@@ -3,9 +3,8 @@ import Foundation
 import FoundationNetworking
 #endif
 public enum FeedError: Error, LocalizedError, Equatable {
-    case contractUnverified, invalidResponse, http(Int), invalidContentType, oversizedResponse
+    case invalidResponse, http(Int), invalidContentType, oversizedResponse
     public var errorDescription: String? { switch self {
-    case .contractUnverified: "The public feed integration is awaiting verification. No guide data has been substituted."
     case .invalidResponse: "The guide service returned an unreadable response."
     case .http(let status): "The guide service returned HTTP \(status). Please try again later."
     case .invalidContentType: "The guide service did not return JSON."
@@ -13,26 +12,30 @@ public enum FeedError: Error, LocalizedError, Equatable {
     } }
 }
 public protocol GuideService: Sendable { func guides() async throws -> [Guide] }
-public protocol FeedContract: Sendable { func decodeIndex(_ data: Data) throws -> [Guide] }
-// Intentionally fail closed until actual public responses can be inspected.
-// Do not wire internal cache models directly to an assumed backend envelope.
-public struct UnverifiedContract: FeedContract {
-    public init() {}
-    public func decodeIndex(_ data: Data) throws -> [Guide] { throw FeedError.contractUnverified }
-}
 public struct PublicGuideService: GuideService {
     private let session: URLSession
-    private let contract: any FeedContract
-    public init(session: URLSession = .shared, contract: any FeedContract = UnverifiedContract()) { self.session=session; self.contract=contract }
-    public func guides() async throws -> [Guide] {
-        var request = URLRequest(url: PublicLinks.home.appendingPathComponent("api/public/guides"))
-        request.setValue("application/json", forHTTPHeaderField: "Accept"); request.timeoutInterval = 25
-        let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw FeedError.invalidResponse }
+    public init(session: URLSession = .shared) { self.session=session }
+    private func json(_ url: URL) async throws -> Data {
+        var request=URLRequest(url:url); request.setValue("application/json",forHTTPHeaderField:"Accept"); request.timeoutInterval=25
+        let (data,response)=try await session.data(for:request)
+        guard let http=response as? HTTPURLResponse else { throw FeedError.invalidResponse }
         guard (200..<300).contains(http.statusCode) else { throw FeedError.http(http.statusCode) }
         guard http.mimeType == "application/json" || http.mimeType?.hasSuffix("+json") == true else { throw FeedError.invalidContentType }
-        guard data.count <= 20_000_000 else { throw FeedError.oversizedResponse }
-        return try contract.decodeIndex(data)
+        guard data.count <= 20_000_000 else { throw FeedError.oversizedResponse }; return data
+    }
+    public func guides() async throws -> [Guide] {
+        let index=try JSONDecoder().decode(PublicIndex.self,from:await json(PublicLinks.home.appendingPathComponent("api/public/guides")))
+        guard index.v == 1 else { throw FeedError.invalidResponse }
+        var results:[Guide]=[]
+        // At five currently published cities this is modest; never drop a failed
+        // detail silently. The repository can restore the last complete snapshot.
+        for header in index.guides {
+            guard let url=PublicLinks.apiGuide(header.id) else { throw FeedError.invalidResponse }
+            let detail=try JSONDecoder().decode(PublicDetail.self,from:await json(url))
+            guard detail.guide.id == header.id else { throw FeedError.invalidResponse }
+            results.append(try detail.model())
+        }
+        return results
     }
 }
 public struct GuideLoad: Sendable {

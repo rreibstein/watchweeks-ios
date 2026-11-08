@@ -1,57 +1,59 @@
-# WatchWeeks implementation status
+# WatchWeeks release status — 2026-11-08
 
-Updated 2026-11-08. Branch: development/native-launch. This is a substantial
-implementation baseline, **not a production-ready or submitted application**.
+Branch: development/native-launch, dedicated rreibstein/watchweeks-ios repository.
+**Not submitted, not production-ready, no iOS build has run.**
 
-## Implemented
+## Implemented and preserved in source
 
-SwiftUI discovery, event/venue schedules, brands with interest and seen controls,
-search/filtering, native release browse/detail, share links, My Visit progress,
-About/independence/privacy links. Guest-first; no analytics, auth or paid services.
-Portable Swift core includes atomic local selection persistence, guide cache,
-offline fallback, scoped IDs, HTTP/content-type errors, URL validation and event
-local-time formatting. iPhone-only iOS 17 deployment; version 1.0.0 build 1.
-Xcode project/shared scheme, UI smoke test, manual macOS CI, verify script,
-release drafts and Mac continuation prompt. No website or other repository changed.
+- SwiftUI iPhone app, iOS 17+, Events, My list, Brands A–Z, New releases, About.
+- Real public v1 index plus detail loading, native brand ratings/seen, release images
+  and credits, event daily local schedules/access notes, native guide sharing.
+- Exact website interest categories (including Skip, distinct from cleared rating),
+  canonical city+brandKey identity, search/filter, persistent selections, offline cache.
+- First-party clock icon, licensed Space Grotesk fonts, mobile web references and
+  product-parity worksheet. Typography/layout parity requires simulator comparison.
+- Official PostHog 3.93.6 dependency, verified existing public token/US host, first-run
+  consent, opt-out, manual requested events, anonymous native identity. Replay off
+  for v1 as owner prioritizes reliable approval. No web analytics/dashboard changed.
+- Dashboard specification, proposed native policy addition, release metadata,
+  manual macOS CI, Xcode project/shared scheme and ready-to-paste Mac continuation.
 
 ## Evidence
 
-- Swift 6.2.1 on Linux compiled core and ran **17 XCTest tests, all passed**.
-  Test-only synthetic values, no production contract claimed. Swift Testing runner
-  has zero tests separately. An initial assertion typo failed and was corrected.
-- Project file parsed with app/UI-test targets; scheme XML and privacy plist parse.
-- Temporary opaque RGB icon is 1024×1024 and visually inspected, not identity approved.
-- GitHub remote main read succeeded. GitHub API calls were blocked by proxy 403;
-  Actions permissions/billing allowance unknown. No CI dispatch or paid usage.
-- Public API probes repeatedly failed at proxy CONNECT 403, not origin responses.
-- Runner inventory via raw.githubusercontent.com/actions/runner-images/main/images/
-  macos/macos-15-Readme.md listed Xcode 26.3 at /Applications/Xcode_26.3.app;
-  manual CI selects it, but actual runner execution remains unverified.
+Live read-only GETs succeeded for index and all 5 guide details; Singapore/Austin
+JSON regression fixtures retained only in test target. HTTP 404 JSON error and
+300-second public caching observed. See API_CONTRACT.md for actual fields/gaps.
+Portable Swift 6.2.1 ran 25 XCTest cases with 0 failures; these cover core
+logic, observed wire fixtures, service transport mocks and consent.
+Project/resource/plist/icon structure checks pass; Swift syntax parsing is separate
+from unavailable SwiftUI/SDK typechecking. No Xcode/simulator/device result exists.
+Mobile website SSR screenshots inspected; JS/third parties blocked to avoid web
+analytics writes. Actual native screenshots have not been captured.
 
-## Release blockers and exact next work
+## Remaining required gates
 
-1. Allow watchweeks.com in cloud Additional allowed domains, save/publish, retry.
-   Config draft service returned INVALID_ARGUMENT; persistence unconfirmed.
-2. Actual feed contract, Singapore+second guide, detail loading, live fixtures,
-   launched filtering, exact rating model, cache/pagination semantics. Adapter
-   intentionally throws contractUnverified: no production feed is integrated yet.
-3. Fetch first-party identity and privacy policy. Approve/replace temporary icon;
-   confirm native policy coverage, support URL, image permissions and data handling.
-4. macOS Xcode build, simulator/UI tests, device QA and screenshots. Linux parsing
-   or core tests do not prove iOS compiles. No simulator/device result exists.
-5. Apple membership/team/bundle availability, seller/DSA/legal/privacy decisions,
-   signing, archive validation, upload/processing and exact build owner approval.
-   No account or App Store record has been configured. No upload/submission/release.
+1. Mac stable Xcode 26+ resolves SDK/transitive lock, compiles app and tests. Fix any
+   issues found there; validate fonts, privacy manifests and iPhone simulator flows.
+2. SDK delivery/queue/consent integration QA and accurate App Store privacy answers.
+   No production synthetic events were sent. Existing PostHog admin access absent;
+   exact dashboard specification provided instead. Native policy wording needs owner
+   review/application in Lovable; this repository never edits the website.
+3. API coverage: website Singapore advertises 56 releases, public API returns 47.
+   Native renders actual feed only. Award payloads and lack of stable release IDs
+   are documented future-contract risks, not fabricated data.
+4. Final mobile visual/functional comparison, accessibility, device QA, real screenshot
+   set and support/privacy verification. Plan My Day/comparisons remain on website.
+5. Active Apple Developer membership/team, bundle availability, legal seller/DSA
+   decisions, signed archive/upload/processing and explicit submission approval.
+   No membership purchase, App Store record, upload, review or publication occurred.
 
-## Known acceptance gaps
+## Environment migration
 
-API-dependent UI cannot be exercised with real data yet. Full real screenshot
-navigation automation, release search empty states and detailed accessibility QA
-need simulator validation. External images are best effort, not a guaranteed offline
-image library. Local data has no website synchronization. Guides removed from a
-future feed may no longer appear in My Visit; selections remain stored but must be
-reconciled with retention/availability semantics during actual API integration.
-Native rating labels are provisional and must match the observed website model.
-No claim of App Review compliance or November 12 launch feasibility is made.
+New published environment now allows watchweeks.com. Old helper files and local
+uncommitted work did not survive. Pushed code was recovered, tools rebuilt and
+needed changes reapplied. Draft reads still fail INVALID_ARGUMENT; newer unknown
+script settings were not overwritten. See ENVIRONMENT_DRAFT.md for exact merge.
+macOS CI remains manual; GitHub API/billing allowance could not be verified.
 
-See MAC_HANDOFF.md for one ready-to-paste continuation prompt and release steps.
+Use MAC_HANDOFF.md to continue in Codex on the Mac; no separate ChatGPT guidance
+is needed. No background App Review monitoring is configured.

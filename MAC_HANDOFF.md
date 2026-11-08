@@ -20,10 +20,11 @@ verified versus unverified capabilities. Never work in the website repository.
 > Continue WatchWeeks iOS launch execution in this checkout. Read MAC_HANDOFF.md,
 > docs/STATUS.md, docs/API_CONTRACT.md, release/APP_STORE.md and git status. Preserve
 > changes; never touch or deploy watchweeks.com. Confirm branch, origin and revision.
-> Resolve the actual public feed and branding first: fetch index and Singapore plus
-> another real guide, inspect schemas/ratings, implement detail loading and verified
-> typed FeedContract, save public fixtures and pass tests. No guessed schema or fake
-> production data. Inspect actual website privacy/branding and replace temporary icon.
+> The actual v1 feed, detail loader, Singapore/Austin fixtures and first-party clock
+> icon are now integrated. Revalidate live responses; read docs/FEATURE_PARITY.md
+> and docs/ANALYTICS.md. Validate pinned PostHog 3.93.6 SDK in Xcode, consent/opt-out
+> and offline delivery without production test spam. No replay for v1. Check native
+> typography/layout against captured mobile-web references and fix discrepancies.
 > Run scripts/verify-macos.sh using stable Xcode 26+ and fix every build/test failure.
 > Validate real offline checklist, date zones, accessibility and device behavior;
 > capture actual screenshots per release/SCREENSHOTS.md and current Apple requirements.
@@ -107,3 +108,10 @@ record URL and verify intended regions. New events should arrive via the public
 feed; perform fixture/contract regression checks when API changes. Maintain a small
 monthly dependency/toolchain check, quarterly device/privacy review and build-number
 log. Do not change website data or add private backend access.
+
+## Current environment update
+Public API access is fixed. Check docs/STATUS.md for current tests. PostHog public
+configuration is established; no owner token is needed. Native analytics and all
+privacy/delivery acceptance gates are in docs/ANALYTICS.md. Source changes after
+the earlier 33fb12f baseline must be fetched before Mac work. The cloud snapshot
+did not preserve uncommitted files; only pushed revisions are durable.

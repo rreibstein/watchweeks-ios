@@ -5,7 +5,8 @@ cd "$(dirname "$0")/.."
 xcodebuild -version
 major=$(xcodebuild -version | awk '/Xcode/{split($2,a,"."); print a[1]}')
 [[ $major -ge 26 ]] || { echo 'Select stable Xcode 26+ with xcode-select.'; exit 1; }
-swift test --parallel
+python3 scripts/validate-source.py
+swift test
 mkdir -p release/archives
 xcodebuild -resolvePackageDependencies -project WatchWeeks.xcodeproj -scheme WatchWeeks
 # Supply a concrete installed simulator UUID, avoiding ambiguous destination names.

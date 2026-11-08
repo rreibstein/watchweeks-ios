@@ -13,7 +13,7 @@ brands, and view new watch releases where available.
 
 Make the most of your visit:
 • Mark brands you're interested in and build a must-see list.
-• Keep track of brands you've seen in My Visit.
+• Keep track of brands you've seen in My list.
 • Search brands and filter your remaining must-see stops.
 • Keep previously loaded guides and your checklist available offline.
 • Share guide links and open the full WatchWeeks website for more planning tools.
@@ -38,22 +38,22 @@ Never imply selecting Singapore accelerates review. Name availability requires A
 
 WatchWeeks is an independent worldwide event guide, not an organizer's official app.
 No login or purchase is needed. Discover > choose a city > Brands lets reviewers
-set interest and seen state; My Visit provides a persistent personal checklist.
+set interest and seen state; My list provides a persistent personal checklist.
 Guest selections stay on-device; no website sync is claimed. Previously loaded
 feed content is cached. The app accesses public read-only WatchWeeks endpoints.
 Provide live instructions for a populated city and exact reviewed build before use.
-Do not send this draft while the public contract adapter is unverified.
+Use only after real-feed simulator and device QA pass.
 
 ## Privacy and age questionnaire worksheet
 
-No advertising, analytics, tracking SDK, login, precise location or contacts access
-is implemented. Ratings/seen state and guide caches are local, not sent to a backend.
+No advertising, login, precise location or contacts access is implemented. Optional
+PostHog product analytics is now implemented; see NATIVE_PRIVACY_ADDITION.md and
+../docs/ANALYTICS.md. Ratings/seen state and guide caches are local, not sent to a backend.
 URLSession requests disclose ordinary connection metadata to website/image hosts;
-inspect actual image domains, logging retention and policy before asserting Apple's
-“Data Not Collected.” Apple's collection definition, processing duration and any
+inspect actual image domains, logging retention and policy before completing disclosures. Do not select “Data Not Collected.” Apple's collection definition, processing duration and any
 linked third-party behavior must be checked with owner. No privacy label is final.
-The privacy manifest declares no tracking or collected data and no required-reason
-API categories; audit actual app and SDK use on Mac before validating submission.
+The app privacy manifest declares analytics/device-linked data and UserDefaults
+CA92.1, alongside the SDK manifest; audit actual app and SDK use on Mac before validating submission.
 Confirm backup behavior (Application Support may be included in device backups).
 No in-app account creation, so native account deletion is not applicable.
 

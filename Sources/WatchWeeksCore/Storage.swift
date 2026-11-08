@@ -14,7 +14,14 @@ public actor LocalStore {
         try JSONEncoder().encode(value).write(to: directory.appendingPathComponent(file), options: .atomic)
     }
     public func snapshot() throws -> GuideSnapshot? { try read("guides-v1.json", as: GuideSnapshot.self) }
-    public func saveGuides(_ guides: [Guide], now: Date = Date()) throws { try write(GuideSnapshot(fetchedAt: now, guides: guides), file: "guides-v1.json") }
+    public func rememberedGuides() throws -> [Guide] { try read("guide-library-v1.json", as: [Guide].self) ?? snapshot()?.guides ?? [] }
+    public func saveGuides(_ guides: [Guide], now: Date = Date()) throws {
+        let previous = try rememberedGuides()
+        var library: [String: Guide] = [:]
+        for guide in previous + guides { library[guide.id] = guide }
+        try write(library.values.sorted { $0.id < $1.id }, file: "guide-library-v1.json")
+        try write(GuideSnapshot(fetchedAt: now, guides: guides), file: "guides-v1.json")
+    }
     public func selections() throws -> [SelectionKey: Selection] { try read("selections-v1.json", as: [SelectionKey: Selection].self) ?? [:] }
     public func saveSelections(_ selections: [SelectionKey: Selection]) throws { try write(selections, file: "selections-v1.json") }
 }

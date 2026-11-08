@@ -13,7 +13,6 @@ final class CoreTests: XCTestCase {
         XCTAssertThrowsError(try JSONDecoder().decode(Guide.self, from: Data(#"{"city":"Test"}"#.utf8)))
         XCTAssertThrowsError(try JSONDecoder().decode(Guide.self, from: Data(#"{"id":123}"#.utf8)))
     }
-    func testProductionContractFailsClosed() { XCTAssertThrowsError(try UnverifiedContract().decodeIndex(Data("{}".utf8))) { XCTAssertEqual($0 as? FeedError, .contractUnverified) } }
     func testGuideAvailabilityUsesEventTimezoneAndInclusiveEndDay() {
         let g=guide()
         XCTAssertEqual(EventDates.status(g, now: EventDates.parse("2026-11-11T15:59:00Z", zone: g.timeZone)!), .upcoming)
@@ -68,6 +67,16 @@ final class CoreTests: XCTestCase {
         let refreshed=try await GuideRepository(service:Stub(result:[]),store:store).load(); XCTAssertFalse(refreshed.stale); XCTAssertTrue(refreshed.guides.isEmpty)
     }
     func testUncachedOfflineThrows() async { let (store,_)=temporaryStore(); do { _ = try await GuideRepository(service:Stub(result:nil),store:store).load(); XCTFail("Expected error") } catch {} }
+    func testRemovedGuideRemainsInChecklistLibrary() async throws {
+        let (store,url)=temporaryStore(); defer { try? FileManager.default.removeItem(at:url) }
+        try await store.saveGuides([guide()]);try await store.saveGuides([])
+        let library=try await store.rememberedGuides();let index=try await store.snapshot()
+        XCTAssertEqual(library.count,1);XCTAssertEqual(index?.guides.count,0)
+    }
+    func testWebsiteRatingCategories() {
+        XCTAssertEqual([Interest.mustSee,.interested,.little,.unfamiliar,.skip].map(\.category),["must","moderate","little","unknown","none"])
+        XCTAssertNotEqual(Interest.none,Interest.skip)
+    }
     func testPublicURLs() {
         XCTAssertEqual(PublicLinks.apiGuide("abc")?.absoluteString,"https://watchweeks.com/api/public/guides/abc")
         for id in ["", "..", "a/b", "a?b", "%2F", "a#b"] { XCTAssertNil(PublicLinks.apiGuide(id)) }

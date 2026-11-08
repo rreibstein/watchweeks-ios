@@ -7,11 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		14215CCA56A8DDC804913D2C /* App/Fonts/SpaceGrotesk-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CC7D0CC784C537671329CA5E /* App/Fonts/SpaceGrotesk-Bold.ttf */; };
+		2AFE847340C9081C12542F16 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 67C84317EB7C868494801166 /* PostHog */; };
+		304811003545CB585939A93B /* App/Fonts/SpaceGrotesk-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FDF34D48B73419E1F2FC4C79 /* App/Fonts/SpaceGrotesk-Regular.ttf */; };
+		3459FE89C0D30B28887395B0 /* App/AnalyticsConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3BAC0E787B0B9D631C267ED /* App/AnalyticsConfig.plist */; };
 		38448B50DF0C9E73C04769E7 /* App/WatchWeeksApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21ABCDCB018C03F35149D7EE /* App/WatchWeeksApp.swift */; };
+		4238B9B8E0157570D62D8840 /* App/NativeAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB21BD335E70CB4BCB694F1D /* App/NativeAnalytics.swift */; };
 		5522B3B3B2EACC1C8F9BEAAC /* App/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B16B6325BA8F1CFBCC279108 /* App/Assets.xcassets */; };
 		5B2D2E1CD1EA09990CD4EACE /* WatchWeeksCore in Frameworks */ = {isa = PBXBuildFile; productRef = F5AE27228AC34400DE4A3768 /* WatchWeeksCore */; };
+		7A83CC12AE916CBEF1A840C4 /* App/Fonts/SpaceGrotesk-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D82522E703C6259E3E3BAD26 /* App/Fonts/SpaceGrotesk-SemiBold.ttf */; };
 		B97747B2115B58614B7FAB53 /* UITests/WatchWeeksUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6FEB704D2C4382BF0DF9BD5 /* UITests/WatchWeeksUITests.swift */; };
 		CE592D926B548708CFD0C61E /* App/PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F048BFA7B57836F484F1B9C1 /* App/PrivacyInfo.xcprivacy */; };
+		FA59B6AAC400C1366BF7C480 /* App/Fonts/SpaceGrotesk-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8DE4E90DC170B3C7C5867617 /* App/Fonts/SpaceGrotesk-Medium.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,10 +34,16 @@
 /* Begin PBXFileReference section */
 		21ABCDCB018C03F35149D7EE /* App/WatchWeeksApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WatchWeeksApp.swift; sourceTree = SOURCE_ROOT; };
 		681C948D238C526E9E3424E0 /* WatchWeeks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = WatchWeeks.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8DE4E90DC170B3C7C5867617 /* App/Fonts/SpaceGrotesk-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "App/Fonts/SpaceGrotesk-Medium.ttf"; sourceTree = SOURCE_ROOT; };
 		B16B6325BA8F1CFBCC279108 /* App/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = App/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		C6FEB704D2C4382BF0DF9BD5 /* UITests/WatchWeeksUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests/WatchWeeksUITests.swift; sourceTree = SOURCE_ROOT; };
+		CC7D0CC784C537671329CA5E /* App/Fonts/SpaceGrotesk-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "App/Fonts/SpaceGrotesk-Bold.ttf"; sourceTree = SOURCE_ROOT; };
+		D3BAC0E787B0B9D631C267ED /* App/AnalyticsConfig.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = App/AnalyticsConfig.plist; sourceTree = SOURCE_ROOT; };
+		D82522E703C6259E3E3BAD26 /* App/Fonts/SpaceGrotesk-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "App/Fonts/SpaceGrotesk-SemiBold.ttf"; sourceTree = SOURCE_ROOT; };
+		EB21BD335E70CB4BCB694F1D /* App/NativeAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/NativeAnalytics.swift; sourceTree = SOURCE_ROOT; };
 		F048BFA7B57836F484F1B9C1 /* App/PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = App/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		F739566ED5280322FF98A798 /* WatchWeeksUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = WatchWeeksUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FDF34D48B73419E1F2FC4C79 /* App/Fonts/SpaceGrotesk-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "App/Fonts/SpaceGrotesk-Regular.ttf"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,6 +52,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B2D2E1CD1EA09990CD4EACE /* WatchWeeksCore in Frameworks */,
+				2AFE847340C9081C12542F16 /* PostHog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,8 +79,14 @@
 			isa = PBXGroup;
 			children = (
 				21ABCDCB018C03F35149D7EE /* App/WatchWeeksApp.swift */,
+				EB21BD335E70CB4BCB694F1D /* App/NativeAnalytics.swift */,
+				D3BAC0E787B0B9D631C267ED /* App/AnalyticsConfig.plist */,
 				B16B6325BA8F1CFBCC279108 /* App/Assets.xcassets */,
 				F048BFA7B57836F484F1B9C1 /* App/PrivacyInfo.xcprivacy */,
+				FDF34D48B73419E1F2FC4C79 /* App/Fonts/SpaceGrotesk-Regular.ttf */,
+				8DE4E90DC170B3C7C5867617 /* App/Fonts/SpaceGrotesk-Medium.ttf */,
+				D82522E703C6259E3E3BAD26 /* App/Fonts/SpaceGrotesk-SemiBold.ttf */,
+				CC7D0CC784C537671329CA5E /* App/Fonts/SpaceGrotesk-Bold.ttf */,
 				C6FEB704D2C4382BF0DF9BD5 /* UITests/WatchWeeksUITests.swift */,
 				0A3E27B8CA818264D75C8D81 /* Products */,
 			);
@@ -107,6 +127,7 @@
 			name = WatchWeeks;
 			packageProductDependencies = (
 				F5AE27228AC34400DE4A3768 /* WatchWeeksCore */,
+				67C84317EB7C868494801166 /* PostHog */,
 			);
 			productName = WatchWeeks;
 			productReference = 681C948D238C526E9E3424E0 /* WatchWeeks.app */;
@@ -132,6 +153,7 @@
 			mainGroup = C69913C7EE4DFDD011BE172F;
 			packageReferences = (
 				085827B649F7606E862BCEEB /* XCLocalSwiftPackageReference "." */,
+				BB1FC55A9734AC2D778B666D /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			productRefGroup = 0A3E27B8CA818264D75C8D81 /* Products */;
 			projectDirPath = "";
@@ -150,6 +172,11 @@
 			files = (
 				5522B3B3B2EACC1C8F9BEAAC /* App/Assets.xcassets in Resources */,
 				CE592D926B548708CFD0C61E /* App/PrivacyInfo.xcprivacy in Resources */,
+				3459FE89C0D30B28887395B0 /* App/AnalyticsConfig.plist in Resources */,
+				304811003545CB585939A93B /* App/Fonts/SpaceGrotesk-Regular.ttf in Resources */,
+				FA59B6AAC400C1366BF7C480 /* App/Fonts/SpaceGrotesk-Medium.ttf in Resources */,
+				7A83CC12AE916CBEF1A840C4 /* App/Fonts/SpaceGrotesk-SemiBold.ttf in Resources */,
+				14215CCA56A8DDC804913D2C /* App/Fonts/SpaceGrotesk-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,6 +188,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				38448B50DF0C9E73C04769E7 /* App/WatchWeeksApp.swift in Sources */,
+				4238B9B8E0157570D62D8840 /* App/NativeAnalytics.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -204,6 +232,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchWeeks;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -255,6 +284,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchWeeks;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -323,7 +353,23 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		BB1FC55A9734AC2D778B666D /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios.git";
+			requirement = {
+				kind = exactVersion;
+				version = 3.93.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		67C84317EB7C868494801166 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BB1FC55A9734AC2D778B666D /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
+		};
 		F5AE27228AC34400DE4A3768 /* WatchWeeksCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WatchWeeksCore;

@@ -1,6 +1,6 @@
 import Foundation
 
-// Internal presentation/cache models. NOT a verified public API contract.
+// Internal presentation/cache models mapped from the verified v1 public contract.
 public struct Guide: Codable, Identifiable, Equatable, Sendable {
     public let id: String
     public let city: String
@@ -17,6 +17,8 @@ public struct Guide: Codable, Identifiable, Equatable, Sendable {
     }
 }
 public struct Event: Codable, Identifiable, Equatable, Sendable {
+    public let note: String?
+    public let days: [EventDay]
     public let id: String
     public let name: String
     public let venue: String?
@@ -24,7 +26,7 @@ public struct Event: Codable, Identifiable, Equatable, Sendable {
     public let startsAt: String?
     public let endsAt: String?
     public let webURL: URL?
-    public init(id: String, name: String, venue: String? = nil, address: String? = nil, startsAt: String? = nil, endsAt: String? = nil, webURL: URL? = nil) { self.id=id; self.name=name; self.venue=venue; self.address=address; self.startsAt=startsAt; self.endsAt=endsAt; self.webURL=webURL }
+    public init(id: String, name: String, venue: String? = nil, address: String? = nil, startsAt: String? = nil, endsAt: String? = nil, webURL: URL? = nil, note: String? = nil, days: [EventDay] = []) { self.note=note; self.days=days; self.id=id; self.name=name; self.venue=venue; self.address=address; self.startsAt=startsAt; self.endsAt=endsAt; self.webURL=webURL }
 }
 public struct Brand: Codable, Identifiable, Equatable, Sendable {
     public let id: String
@@ -35,13 +37,18 @@ public struct Brand: Codable, Identifiable, Equatable, Sendable {
     public init(id: String, name: String, eventIDs: [String] = [], summary: String? = nil, webURL: URL? = nil) { self.id=id; self.name=name; self.eventIDs=eventIDs; self.summary=summary; self.webURL=webURL }
 }
 public struct Release: Codable, Identifiable, Equatable, Sendable {
+    public let brandID: String?
+    public let eventID: String?
+    public let kind: String?
+    public let images: [ReleaseImageData]
+    public let awards: [String]
     public let id: String
     public let title: String
     public let brandName: String?
     public let details: String?
     public let imageURL: URL?
     public let webURL: URL?
-    public init(id: String, title: String, brandName: String? = nil, details: String? = nil, imageURL: URL? = nil, webURL: URL? = nil) { self.id=id; self.title=title; self.brandName=brandName; self.details=details; self.imageURL=imageURL; self.webURL=webURL }
+    public init(id: String, title: String, brandName: String? = nil, details: String? = nil, imageURL: URL? = nil, webURL: URL? = nil, brandID: String? = nil, eventID: String? = nil, kind: String? = nil, images: [ReleaseImageData] = [], awards: [String] = []) { self.brandID=brandID; self.eventID=eventID; self.kind=kind; self.images=images; self.awards=awards; self.id=id; self.title=title; self.brandName=brandName; self.details=details; self.imageURL=imageURL; self.webURL=webURL }
 }
 public enum GuideStatus: String, Sendable { case current = "Happening now", upcoming = "Upcoming", past = "Past", unknown = "Dates to be confirmed" }
 public enum EventDates {
@@ -79,8 +86,10 @@ public enum PublicLinks {
     }
 }
 public enum BrandFilter: String, CaseIterable, Sendable { case all = "All", mustSee = "Must see", remaining = "Must see remaining", seen = "Seen" }
-public enum Interest: Int, Codable, CaseIterable, Sendable { case none, interested, mustSee
-    public var label: String { switch self { case .none: "No rating"; case .interested: "Interested"; case .mustSee: "Must see" } }
+public enum Interest: Int, Codable, CaseIterable, Sendable { case none, interested, mustSee, little, unfamiliar, skip
+    public var priority: Int { switch self { case .mustSee: 3; case .interested: 2; case .little: 1; default: 0 } }
+    public var category: String { switch self { case .none: "unrated"; case .interested: "moderate"; case .mustSee: "must"; case .little: "little"; case .unfamiliar: "unknown"; case .skip: "none" } }
+    public var label: String { switch self { case .none: "No rating"; case .interested: "Interested"; case .mustSee: "Must see"; case .little: "If time"; case .unfamiliar: "Unfamiliar"; case .skip: "Skip" } }
 }
 public struct Selection: Codable, Equatable, Sendable {
     public var interest: Interest = .none
