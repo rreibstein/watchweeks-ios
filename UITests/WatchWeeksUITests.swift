@@ -61,10 +61,13 @@ final class WatchWeeksUITests: XCTestCase {
         talkMenu.tap()
         app.buttons["4:00 PM · GD100 Screening & Conversation"].tap()
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "fits all 3 fairs")).firstMatch.exists)
-        let copy = app.buttons["Copy plan"]
+        let copy = app.buttons["copy-plan"]
         reveal(copy, in: app)
+        if copy.frame.midY > app.frame.height * 0.82 { app.swipeUp(velocity: .slow) }
+        XCTAssertTrue(copy.isHittable)
         copy.tap()
-        XCTAssertTrue(app.buttons["Plan copied"].exists)
+        let copied = app.buttons.matching(NSPredicate(format: "identifier == %@ AND label CONTAINS %@", "copy-plan", "Plan copied")).firstMatch
+        XCTAssertTrue(copied.waitForExistence(timeout: 5))
         capture(app, "02b-planner")
         app.terminate()
         openAsGuest(app)

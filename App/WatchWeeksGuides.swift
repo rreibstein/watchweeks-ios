@@ -163,8 +163,11 @@ private struct SingaporePlanner: View {
                 copied = true
             } label: {
                 Label(copied ? "Plan copied" : "Copy plan", systemImage: copied ? "checkmark" : "document.on.document")
-                    .frame(minHeight: 44)
-            }.disabled(stops.isEmpty)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityIdentifier("copy-plan")
+            .disabled(stops.isEmpty)
         }.padding(14).watchCard()
             .onChange(of: day) { _, _ in selectedTalk = nil; copied = false }
             .onChange(of: window) { _, _ in copied = false }
