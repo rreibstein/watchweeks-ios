@@ -56,7 +56,7 @@ struct AnalyticsSettings: View {
     var body: some View {
         Section("Usage analytics") {
             Toggle("Share anonymous usage analytics", isOn: Binding(get: { analytics.enabled }, set: { analytics.setEnabled($0) }))
-            Text("Optional PostHog analytics help improve WatchWeeks. We send a random app identifier, app/device information and actions such as guide views and ratings. No account, private notes, purchase prices, advertising ID or session replay. Native and website identities are not joined. Turn this off to stop future collection. Previously delivered data may remain under the privacy policy.").font(.footnote).foregroundStyle(.secondary)
+            Text("Optional PostHog analytics help improve WatchWeeks. We send a random app identifier, app/device information and actions such as guide views and ratings. No account, private notes, purchase prices, advertising ID or session replay. Native and website identities are not joined. Turn this off to stop future collection. Previously delivered data may remain under the privacy policy.").font(.wwFootnote).foregroundStyle(.secondary)
         }
     }
 }
@@ -93,9 +93,9 @@ struct AnalyticsConsent: View {
     @ObservedObject private var analytics = NativeAnalytics.shared
     var body: some View {
         VStack(alignment:.leading,spacing:24) {
-            Text("Help improve WatchWeeks").font(.title.bold())
+            Text("Help improve WatchWeeks").font(.wwTitle)
             Text("May we use optional PostHog analytics to understand which guides and features are useful? This sends a random app identifier and usage actions, not your name, private notes or purchase prices. There is no session replay or advertising tracking. Your website and app identities are not joined.")
-            Text("Either choice gives you the full app. You can change it in About at any time.").font(.subheadline).foregroundStyle(.secondary)
+            Text("Either choice gives you the full app. You can change it in About at any time.").font(.wwSubheadline).foregroundStyle(.secondary)
             Button("Allow usage analytics") { analytics.setEnabled(true); analytics.track(.appOpened) }.buttonStyle(.bordered)
             Button("Continue without analytics") { analytics.setEnabled(false) }.buttonStyle(.bordered)
             Link("Privacy policy",destination:PublicLinks.privacy)

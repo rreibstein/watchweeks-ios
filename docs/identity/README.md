@@ -4,9 +4,9 @@ Retrieved read-only on 2026-11-08: https://watchweeks.com/favicon.svg (clock log
 https://watchweeks.com/assets/styles-BN-2ODJ7.css (warm neutral/black/orange palette),
 public mobile Singapore guide and Golden Hour event. Screenshots are SSR website
 references, not native screenshots. Web JS/third parties were blocked during
-capture and TLS verified through curl using the cloud CA. Google font rendering
-was blocked in reference captures, so typography must additionally be compared
-with the actual fully hydrated website on Mac.
+capture and TLS verified through curl using the cloud CA. External Google font requests were blocked during read-only capture; the reference
+images now load the bundled licensed Space Grotesk locally so the correct font
+is visible. Compare with the fully hydrated website and actual native app on Mac.
 
 App Fonts: Space Grotesk variable source from
 https://github.com/google/fonts/tree/main/ofl/spacegrotesk, OFL.txt bundled alongside

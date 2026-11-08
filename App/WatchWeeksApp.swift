@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import WatchWeeksCore
 
 @MainActor final class AppModel: ObservableObject {
@@ -56,6 +57,7 @@ import WatchWeeksCore
     }
 }
 @main struct WatchWeeksApp: App {
+    init() { BrandTypography.configureNavigation() }
     @StateObject private var model = AppModel()
     @Environment(\.scenePhase) private var phase
     var body: some Scene {
@@ -80,10 +82,10 @@ struct RootView: View {
         .sheet(isPresented: Binding(get: { !analytics.choiceMade }, set: { _ in })) { AnalyticsConsent() }
         .onChange(of: tab) { _, value in if value == 1 { NativeAnalytics.shared.track(.myVisitViewed) } }
         .tint(Color(red:0.65,green:0.32,blue:0.16))
-        .font(.custom("SpaceGrotesk-Regular",size:17,relativeTo:.body))
+        .font(.wwBody)
         .safeAreaInset(edge: .bottom) {
             if let error = model.persistenceError {
-                VStack { Text(error).font(.footnote); Button("Retry saving") { Task { await model.retrySaving() } } }.padding().background(.regularMaterial)
+                VStack { Text(error).font(.wwFootnote); Button("Retry saving") { Task { await model.retrySaving() } } }.padding().background(.regularMaterial)
             }
         }
     }
@@ -102,16 +104,16 @@ struct DiscoveryView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section { Text("Find your next watch event. Independent city guides, brands and new releases.").font(.subheadline).foregroundStyle(.secondary) }
+                Section { Text("Find your next watch event. Independent city guides, brands and new releases.").font(.wwSubheadline).foregroundStyle(.secondary) }
                 if model.loading && model.guides.isEmpty { ProgressView("Loading guides…") }
-                if let message = model.message { Section { Text(message).font(.callout); Button("Try again") { Task { await model.refresh() } } } }
-                if model.stale, let date = model.savedAt { Label("Offline copy · updated \(date.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock.arrow.circlepath").font(.caption) }
+                if let message = model.message { Section { Text(message).font(.wwCallout); Button("Try again") { Task { await model.refresh() } } } }
+                if model.stale, let date = model.savedAt { Label("Offline copy · updated \(date.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock.arrow.circlepath").font(.wwCaption) }
                 ForEach(ordered) { guide in
                     NavigationLink { CityView(guide: guide) } label: {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(EventDates.status(guide).rawValue).font(.caption).foregroundStyle(.secondary)
-                            Text(guide.city).font(.custom("SpaceGrotesk-Bold",size:24,relativeTo:.title2))
-                            Text(dateRange(guide)).font(.subheadline)
+                            Text(EventDates.status(guide).rawValue).font(.wwCaption).foregroundStyle(.secondary)
+                            Text(guide.city).font(.wwTitle2)
+                            Text(dateRange(guide)).font(.wwSubheadline)
                             if let summary = guide.summary { Text(summary).lineLimit(3).foregroundStyle(.secondary) }
                         }.padding(.vertical, 8)
                     }
@@ -136,14 +138,14 @@ struct CityView: View {
             case "Releases": ReleasesView(guide: guide)
             default:
                 List {
-                    Section { if let url=PublicLinks.safeExternal(guide.webURL) { WebsiteLink(title:"Full guide and planning tools",url:url,guide:guide) }; Text(dateRange(guide)); Text("All schedules use \(guide.timeZone) local time.").font(.caption).foregroundStyle(.secondary) }
+                    Section { if let url=PublicLinks.safeExternal(guide.webURL) { WebsiteLink(title:"Full guide and planning tools",url:url,guide:guide) }; Text(dateRange(guide)); Text("All schedules use \(guide.timeZone) local time.").font(.wwCaption).foregroundStyle(.secondary) }
                     ForEach(guide.events) { event in
                         Section(event.name) {
                             NavigationLink("Event details") { EventInfo(guide: guide, event: event) }
                             if let venue = event.venue { Label(venue, systemImage: "mappin.and.ellipse") }
                             if let address = event.address { Text(address).textSelection(.enabled) }
                             ForEach(Array(event.days.enumerated()), id: \.offset) { _, day in Text(day.label) }
-                            if let note = event.note { Text(note).font(.footnote) }
+                            if let note = event.note { Text(note).font(.wwFootnote) }
                             Text(EventDates.label(event.startsAt, zone: guide.timeZone))
                             if let end = event.endsAt { Text("Until \(EventDates.label(end, zone: guide.timeZone))") }
                             if let url = PublicLinks.safeExternal(event.webURL) { Link("Event information", destination: url); ShareLink(item: url) }
@@ -179,11 +181,11 @@ struct BrandRow: View {
     var selection: Selection { model.selection(guide, brand) }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(brand.name).font(.custom("SpaceGrotesk-SemiBold",size:17,relativeTo:.headline))
+            Text(brand.name).font(.wwHeadline)
             if showDetails { NavigationLink("Brand details") { BrandInfo(guide: guide, brand: brand) } }
-            if let summary = brand.summary { Text(summary).font(.subheadline).foregroundStyle(.secondary) }
+            if let summary = brand.summary { Text(summary).font(.wwSubheadline).foregroundStyle(.secondary) }
             let venues = guide.events.filter { brand.eventIDs.contains($0.id) }.map { [$0.name, $0.venue].compactMap { $0 }.joined(separator: " · ") }
-            ForEach(venues, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
+            ForEach(venues, id: \.self) { Text($0).font(.wwCaption).foregroundStyle(.secondary) }
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
                 ForEach([Interest.mustSee, .interested, .little, .unfamiliar, .skip], id: \.self) { interest in
                     Button {
@@ -195,7 +197,7 @@ struct BrandRow: View {
                 }
             }
             Toggle("Seen \(brand.name)", isOn: Binding(get: { selection.seen }, set: { model.set(Selection(interest: selection.interest, seen: $0), guide: guide, brand: brand) }))
-            if let url = PublicLinks.safeExternal(brand.webURL) { Link("Brand information", destination: url).font(.subheadline) }
+            if let url = PublicLinks.safeExternal(brand.webURL) { Link("Brand information", destination: url).font(.wwSubheadline) }
         }.padding(.vertical, 6).disabled(model.persistenceError != nil)
     }
 }
@@ -206,12 +208,12 @@ struct VisitView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section { Text("Your selections stay on this device. They do not sync with your WatchWeeks website account.").font(.footnote).foregroundStyle(.secondary); Toggle("Show remaining only", isOn: $remaining) }
+                Section { Text("Your selections stay on this device. They do not sync with your WatchWeeks website account.").font(.wwFootnote).foregroundStyle(.secondary); Toggle("Show remaining only", isOn: $remaining) }
                 ForEach(model.visitGuides) { guide in
                     let selected = guide.brands.filter { let s = model.selection(guide, $0); return s.interest != .none && s.interest != .skip && s.interest != .unfamiliar && (!remaining || !s.seen) }
                     if !selected.isEmpty {
                         Section(guide.city) {
-                            if !model.guides.contains(where: { $0.id == guide.id }) { Text("Previously loaded guide; availability has not been confirmed.").font(.caption) }
+                            if !model.guides.contains(where: { $0.id == guide.id }) { Text("Previously loaded guide; availability has not been confirmed.").font(.wwCaption) }
                             let all = guide.brands.filter { [Interest.mustSee, .interested, .little].contains(model.selection(guide, $0).interest) }
                             let seen = all.filter { model.selection(guide, $0).seen }.count
                             ProgressView("\(seen) of \(all.count) seen", value: Double(seen), total: Double(max(all.count, 1)))
@@ -232,7 +234,7 @@ struct ReleasesView: View {
         List {
             ForEach(guide.releases.filter { query.isEmpty || $0.title.localizedCaseInsensitiveContains(query) || ($0.brandName?.localizedCaseInsensitiveContains(query) == true) }) { release in
                 NavigationLink { ReleaseDetail(guide: guide, release: release) } label: {
-                    HStack { ReleaseImage(url: release.imageURL).frame(width: 72, height: 72).clipped(); VStack(alignment: .leading) { Text(release.title).font(.custom("SpaceGrotesk-SemiBold",size:17,relativeTo:.headline)); if let brand = release.brandName { Text(brand).foregroundStyle(.secondary) } } }
+                    HStack { ReleaseImage(url: release.imageURL).frame(width: 72, height: 72).clipped(); VStack(alignment: .leading) { Text(release.title).font(.wwHeadline); if let brand = release.brandName { Text(brand).foregroundStyle(.secondary) } } }
                 }
             }
             if guide.releases.isEmpty { ContentUnavailableView("No releases available", systemImage: "clock") }
@@ -255,15 +257,15 @@ struct ReleaseDetail: View {
     var body: some View {
         ScrollView { VStack(alignment: .leading, spacing: 20) {
             ReleaseImage(url: release.imageURL).frame(height: 280)
-            Text(release.title).font(.custom("SpaceGrotesk-Bold",size:34,relativeTo:.largeTitle))
-            if let brand = release.brandName { Text(brand).font(.title2) }
-            if let kind = release.kind { Text(kind.capitalized).font(.caption) }
+            Text(release.title).font(.wwLargeTitle)
+            if let brand = release.brandName { Text(brand).font(.wwTitle2) }
+            if let kind = release.kind { Text(kind.capitalized).font(.wwCaption) }
             if let details = release.details { Text(details).textSelection(.enabled) }
             ForEach(Array(release.images.enumerated()), id: \.offset) { index, image in
                 if index > 0 { ReleaseImage(url:image.resolvedURL).frame(height:240) }
-                if let credit=image.credit { Text("Image: \(credit)").font(.caption).foregroundStyle(.secondary) }
+                if let credit=image.credit { Text("Image: \(credit)").font(.wwCaption).foregroundStyle(.secondary) }
             }
-            ForEach(release.awards,id: \.self) { Text($0).font(.caption) }
+            ForEach(release.awards,id: \.self) { Text($0).font(.wwCaption) }
             if let url = PublicLinks.safeExternal(release.webURL) { Link("Full details", destination: url); ShareLink(item: url) }
         }.padding() }.navigationTitle("New release").navigationBarTitleDisplayMode(.inline)
             .task { if !tracked { tracked=true; NativeAnalytics.shared.track(.releaseViewed,guide:guide,eventID:release.eventID,brandID:release.brandID,releaseID:release.id) } }
@@ -275,7 +277,7 @@ struct AboutView: View {
             Section("WatchWeeks") { Text("WatchWeeks is an independent guide to watch fairs and events. It is not affiliated with or endorsed by the listed event organizers or brands.") }
             AnalyticsSettings()
             Section("Your visit, your device") { Text("No account is required. Interest ratings and seen selections are saved on this device and do not synchronize with the website. Removing the app removes its local data."); Text("Previously loaded guides work offline. Images and content you have not loaded may require a connection.") }
-            Section("Explore more") { WebsiteLink(title:"Full WatchWeeks website",url:PublicLinks.home); Text("Use the website for accounts, synchronization and advanced planning.").font(.footnote); Link("Privacy policy", destination: PublicLinks.privacy) }
+            Section("Explore more") { WebsiteLink(title:"Full WatchWeeks website",url:PublicLinks.home); Text("Use the website for accounts, synchronization and advanced planning.").font(.wwFootnote); Link("Privacy policy", destination: PublicLinks.privacy) }
             Section { Text("Version 1.0.0 (1)").foregroundStyle(.secondary) }
         }.navigationTitle("About") }
     }
@@ -287,10 +289,10 @@ struct EventInfo: View {
     @State private var tracked = false
     var body: some View {
         List {
-            Text(event.name).font(.custom("SpaceGrotesk-Bold",size:24,relativeTo:.title2))
+            Text(event.name).font(.wwTitle2)
             if let venue=event.venue { Text(venue) }
             ForEach(Array(event.days.enumerated()), id: \.offset) { _, day in Text(day.label) }
-            Text("Times in \(guide.timeZone)").font(.caption)
+            Text("Times in \(guide.timeZone)").font(.wwCaption)
             if let note=event.note { Text(note) }
             if let url=PublicLinks.safeExternal(event.webURL) { Link("Official event information", destination:url) }
         }.navigationTitle("Event").task { if !tracked { tracked=true; NativeAnalytics.shared.track(.eventViewed,guide:guide,eventID:event.id) } }
@@ -318,6 +320,42 @@ struct CatalogView: View {
                 }
                 if model.guides.isEmpty { ContentUnavailableView("No guides loaded",systemImage:"globe",description:Text("Load guides in Events to browse this directory.")) }
             }.navigationTitle(releases ? "New releases" : "Brands A–Z")
+        }
+    }
+}
+
+// All text styles use bundled WatchWeeks typography and preserve Dynamic Type.
+extension Font {
+    static let wwBody = Font.custom("SpaceGrotesk-Regular", size: 17, relativeTo: .body)
+    static let wwHeadline = Font.custom("SpaceGrotesk-SemiBold", size: 17, relativeTo: .headline)
+    static let wwSubheadline = Font.custom("SpaceGrotesk-Regular", size: 15, relativeTo: .subheadline)
+    static let wwCallout = Font.custom("SpaceGrotesk-Regular", size: 16, relativeTo: .callout)
+    static let wwFootnote = Font.custom("SpaceGrotesk-Regular", size: 13, relativeTo: .footnote)
+    static let wwCaption = Font.custom("SpaceGrotesk-Medium", size: 12, relativeTo: .caption)
+    static let wwCaption2 = Font.custom("SpaceGrotesk-Regular", size: 11, relativeTo: .caption2)
+    static let wwTitle = Font.custom("SpaceGrotesk-Bold", size: 28, relativeTo: .title)
+    static let wwTitle2 = Font.custom("SpaceGrotesk-Bold", size: 22, relativeTo: .title2)
+    static let wwTitle3 = Font.custom("SpaceGrotesk-SemiBold", size: 20, relativeTo: .title3)
+    static let wwLargeTitle = Font.custom("SpaceGrotesk-Bold", size: 34, relativeTo: .largeTitle)
+}
+@MainActor enum BrandTypography {
+    static func configureNavigation() {
+        #if DEBUG
+        for name in ["Regular", "Medium", "SemiBold", "Bold"] {
+            assert(UIFont(name: "SpaceGrotesk-" + name, size: 17) != nil, "Bundled Space Grotesk failed to register")
+        }
+        #endif
+        let bar = UINavigationBar.appearance()
+        if let font = UIFont(name: "SpaceGrotesk-Bold", size: 34) {
+            bar.largeTitleTextAttributes = [.font: UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: font)]
+        }
+        if let font = UIFont(name: "SpaceGrotesk-SemiBold", size: 17) {
+            bar.titleTextAttributes = [.font: UIFontMetrics(forTextStyle: .headline).scaledFont(for: font)]
+        }
+        if let font = UIFont(name: "SpaceGrotesk-Medium", size: 10) {
+            let attributes: [NSAttributedString.Key: Any] = [.font: UIFontMetrics(forTextStyle: .caption2).scaledFont(for: font)]
+            UITabBarItem.appearance().setTitleTextAttributes(attributes, for: .normal)
+            UITabBarItem.appearance().setTitleTextAttributes(attributes, for: .selected)
         }
     }
 }

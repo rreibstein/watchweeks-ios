@@ -32,3 +32,9 @@ Public Singapore API currently has 47 release entries while mobile page advertis
 56; do not fabricate missing releases. Ask backend owner to reconcile public-feed
 coverage only after documenting the discrepancy. Website display date New York
 Oct 14 differs from API start_date Oct 13; native currently trusts machine dates.
+
+Typography follow-up: all explicit native body/caption/heading/consent styles now
+use Space Grotesk with Dynamic Type-relative sizes. UIKit navigation titles and
+tab labels use the bundled font as well. Debug startup asserts all four weights
+register. Web reference screenshots were regenerated with local Space Grotesk.
+Native visual and large-text validation still requires Xcode/simulator.
