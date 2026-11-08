@@ -79,47 +79,34 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            DiscoveryView().tag(WatchWeeksTab.events).toolbar(.hidden, for: .tabBar)
-            VisitView().tag(WatchWeeksTab.list).toolbar(.hidden, for: .tabBar)
-            CatalogView(releases: false).tag(WatchWeeksTab.brands).toolbar(.hidden, for: .tabBar)
-            CatalogView(releases: true).tag(WatchWeeksTab.releases).toolbar(.hidden, for: .tabBar)
+            DiscoveryView().watchTab(.events)
+            VisitView().watchTab(.list)
+            CatalogView(releases: false).watchTab(.brands)
+            CatalogView(releases: true).watchTab(.releases)
         }
         .sheet(isPresented: Binding(get: { !analytics.choiceMade }, set: { _ in })) { AnalyticsConsent() }
         .onChange(of: tab) { _, value in if value == .list { analytics.track(.myVisitViewed) } }
         .tint(WatchWeeksStyle.link)
         .font(.wwBody)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: 0) {
-                if let error = model.persistenceError {
-                    VStack {
-                        Text(error).font(.wwFootnote)
-                        Button("Retry saving") { Task { await model.retrySaving() } }
-                    }.padding()
-                }
-                HStack(spacing: 0) {
-                    ForEach(WatchWeeksTab.allCases, id: \.self) { item in
-                        Button { tab = item } label: {
-                            VStack(spacing: 4) {
-                                Image(systemName: item.symbol).font(.system(size: 21))
-                                Text(item.rawValue).font(.wwCaption).multilineTextAlignment(.center)
-                            }
-                            .foregroundStyle(tab == item ? WatchWeeksStyle.ink : WatchWeeksStyle.secondary)
-                            .frame(maxWidth: .infinity, minHeight: 52)
-                            .background(tab == item ? WatchWeeksStyle.control : Color.clear)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(tab == item ? .isSelected : [])
-                        .accessibilityIdentifier("tab-\(item.rawValue)")
-                    }
-                }
+            if let error = model.persistenceError {
+                VStack {
+                    Text(error).font(.wwFootnote)
+                    Button("Retry saving") { Task { await model.retrySaving() } }
+                }.padding().background(.regularMaterial)
             }
-            .background(WatchWeeksStyle.card.ignoresSafeArea(edges: .bottom))
-            .overlay(alignment: .top) { Rectangle().fill(WatchWeeksStyle.border).frame(height: 1) }
         }
     }
 }
 
-private enum WatchWeeksTab: String, CaseIterable {
+private extension View {
+    func watchTab(_ item: WatchWeeksTab) -> some View {
+        tabItem { Label(item.rawValue, systemImage: item.symbol) }
+            .tag(item)
+    }
+}
+
+private enum WatchWeeksTab: String {
     case events = "Events", list = "My list", brands = "Brands A–Z", releases = "New releases"
 
     var symbol: String {

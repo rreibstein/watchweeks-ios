@@ -4,7 +4,7 @@ final class WatchWeeksUITests: XCTestCase {
     @MainActor func testGuestNavigation() {
         let app = XCUIApplication()
         openAsGuest(app)
-        XCTAssertTrue(app.buttons["tab-Events"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout: 10))
         let account = app.buttons["Account"]
         XCTAssertTrue(account.waitForExistence(timeout: 2))
         account.tap()
@@ -16,7 +16,7 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(app.switches["Share anonymous usage analytics"].exists)
         app.navigationBars["About"].buttons.firstMatch.tap()
         app.buttons["Done"].tap()
-        app.buttons["tab-My list"].tap()
+        app.tabBars.buttons["My list"].tap()
         XCTAssertTrue(app.staticTexts["My list"].exists)
     }
 
@@ -39,7 +39,7 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(guide.waitForExistence(timeout: 5))
         guide.tap()
         XCTAssertTrue(app.staticTexts["Singapore Guide"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["tab-Events"].exists)
+        XCTAssertTrue(app.tabBars.buttons["Events"].exists)
         capture(app, "02-singapore")
         app.buttons["Thu"].tap()
         XCTAssertTrue(app.staticTexts["1 event"].exists)
@@ -81,6 +81,13 @@ final class WatchWeeksUITests: XCTestCase {
         goldenHour.tap()
         XCTAssertTrue(app.staticTexts["Golden Hour Singapore"].waitForExistence(timeout: 5))
         capture(app, "03-golden-hour")
+        app.tabBars.buttons["New releases"].tap()
+        let singaporeReleases = app.staticTexts.containing(
+            NSPredicate(format: "label BEGINSWITH %@ AND label ENDSWITH %@", "Singapore ·", "new releases")
+        ).firstMatch
+        XCTAssertTrue(singaporeReleases.waitForExistence(timeout: 5))
+        app.tabBars.buttons["Events"].tap()
+        XCTAssertTrue(app.staticTexts["Golden Hour Singapore"].waitForExistence(timeout: 5))
 
         let rate = app.buttons["Must-see, ALTO"]
         reveal(rate, in: app)
@@ -99,13 +106,13 @@ final class WatchWeeksUITests: XCTestCase {
         app.terminate()
 
         openAsGuest(app)
-        app.buttons["tab-My list"].tap()
+        app.tabBars.buttons["My list"].tap()
         let saved = app.buttons["ALTO"]
         reveal(saved, in: app)
         saved.tap()
         XCTAssertEqual(app.buttons["Seen ALTO"].value as? String, "Seen")
         capture(app, "05-my-list")
-        app.buttons["tab-New releases"].tap()
+        app.tabBars.buttons["New releases"].tap()
         let chooser = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Choose a guide")).firstMatch
         XCTAssertTrue(chooser.waitForExistence(timeout: 5))
         chooser.tap()

@@ -43,8 +43,8 @@ presentation was revised to follow the mobile site more closely.
 ## Native design and interactions
 
 - Warm paper, bordered event and brand cards, the typographic WatchWeeks wordmark,
-  prominent Find and four persistent, labeled tabs follow the mobile site.
-  UIKit navigation retains the system back gesture; the guide share button uses
+  prominent Find and the four labeled destinations follow the mobile site.
+  The system tab bar handles icon spacing and the bottom safe area. UIKit navigation retains the system back gesture; the guide share button uses
   the native share sheet. Large accessibility text stacks rating buttons.
 - City guides expose local day and sort controls. Event cards and detail use the
   same validated local hours and access labels. The home status refreshes every
