@@ -1,7 +1,7 @@
 # WatchWeeks release status — 2026-11-08
 
 Branch: development/native-launch, dedicated rreibstein/watchweeks-ios repository.
-**Simulator and device acceptance remain open. No submission.**
+**Running on iPhone Simulator. Device and release acceptance remain open.**
 
 ## Implemented and preserved in source
 
@@ -36,23 +36,28 @@ analytics writes. Actual native screenshots have not been captured.
 
 - Xcode 26.3 (17C529) has the iOS and Simulator SDKs at 26.2. Xcode resolved
   PostHog 3.93.6 and wrote the package lock. SwiftPM compiled the app target
-  and SDK for the iOS Simulator in Debug and Release without a device runtime.
+  and SDK for the iOS Simulator in Debug and Release. After installing the
+  iOS 26.3 runtime, Xcode built and launched the Debug app on iPhone 17 Pro.
+  The missing Swift modules were caused by building the app for both simulator
+  architectures while its dependencies built only for the active architecture.
+  Debug now uses the active architecture throughout the Xcode project.
 - All 25 core tests passed on the Mac. The verification script supports
   `WW_SWIFTPM_SCRATCH_PATH` to work around a SwiftPM database I/O error under
-  the Documents checkout.
+  the Documents checkout. `WW_XCODE_DERIVED_DATA_PATH` provides the same
+  workaround for the Xcode build database.
 - The Swift feed decoder loaded all five live city guides. A forced connection
   failure restored the full on-disk snapshot and a saved rating and seen state.
   The Account URL returned HTTP 200.
 - Core Text registered the four Space Grotesk files under their expected
   PostScript names. The source clock SVG matched the live favicon, and the
-  app icon is an opaque 1024×1024 PNG.
+  app icon is an opaque 1024×1024 PNG. The simulator app bundle includes the
+  icon, four registered font filenames, and app and SDK privacy manifests.
 - A localhost SDK check found and verified a fix for delivery of queued events
   during opt-out. See ANALYTICS.md for the scope and remaining iOS checks.
 
 ## Remaining required gates
 
-1. Mac stable Xcode 26+ resolves SDK/transitive lock, compiles app and tests. Fix any
-   issues found there; validate fonts, privacy manifests and iPhone simulator flows.
+1. Complete simulator flows and inspect privacy manifests in the eventual archive.
 2. SDK delivery/queue/consent integration QA and accurate App Store privacy answers.
    No production synthetic events were sent. Existing PostHog admin access absent;
    exact dashboard specification provided instead. Native policy wording needs owner

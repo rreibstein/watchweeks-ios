@@ -38,7 +38,9 @@ def configs(key, common):
     for mode in ['Debug','Release']:
         values=dict(common)
         values.update(SWIFT_OPTIMIZATION_LEVEL='-Onone' if mode=='Debug' else '-O',DEBUG_INFORMATION_FORMAT='dwarf' if mode=='Debug' else 'dwarf-with-dsym')
-        if mode=='Debug': values['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG'
+        if mode=='Debug':
+            values['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG'
+            values['ONLY_ACTIVE_ARCH']='YES'
         ids.append(obj(key+mode,'XCBuildConfiguration',buildSettings=values,name=mode))
     return obj(key+'configs','XCConfigurationList',buildConfigurations=ids,defaultConfigurationIsVisible='0',defaultConfigurationName='Release')
 base={'IPHONEOS_DEPLOYMENT_TARGET':'17.0','SDKROOT':'iphoneos','SWIFT_VERSION':'6.0','CLANG_ENABLE_MODULES':'YES','ENABLE_USER_SCRIPT_SANDBOXING':'YES'}

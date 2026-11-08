@@ -8,7 +8,8 @@ major=$(xcodebuild -version | awk '/Xcode/{split($2,a,"."); print a[1]}')
 python3 scripts/validate-source.py
 swift test --scratch-path "${WW_SWIFTPM_SCRATCH_PATH:-.build}"
 mkdir -p release/archives
-xcodebuild -resolvePackageDependencies -project WatchWeeks.xcodeproj -scheme WatchWeeks -derivedDataPath DerivedData
+derived_data_path="${WW_XCODE_DERIVED_DATA_PATH:-DerivedData}"
+xcodebuild -resolvePackageDependencies -project WatchWeeks.xcodeproj -scheme WatchWeeks -derivedDataPath "$derived_data_path"
 # Supply a concrete installed simulator UUID, avoiding ambiguous destination names.
 if [[ -z ${WW_SIMULATOR_ID:-} ]]; then
   WW_SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next((x["udid"] for k,v in sorted(d["devices"].items(),reverse=True) if "iOS" in k for x in v if "iPhone" in x["name"]), ""))')
@@ -17,4 +18,4 @@ if [[ -z ${WW_SIMULATOR_ID:-} ]]; then
     exit 1
   fi
 fi
-xcodebuild -project WatchWeeks.xcodeproj -scheme WatchWeeks -destination "platform=iOS Simulator,id=$WW_SIMULATOR_ID" -derivedDataPath DerivedData -resultBundlePath "release/archives/Tests-$(date +%s).xcresult" CODE_SIGNING_ALLOWED=NO test
+xcodebuild -project WatchWeeks.xcodeproj -scheme WatchWeeks -destination "platform=iOS Simulator,id=$WW_SIMULATOR_ID" -derivedDataPath "$derived_data_path" -resultBundlePath "release/archives/Tests-$(date +%s).xcresult" CODE_SIGNING_ALLOWED=NO test
