@@ -12,10 +12,17 @@ public struct Guide: Codable, Identifiable, Equatable, Sendable {
     public var events: [Event]
     public var brands: [Brand]
     public var releases: [Release]
-    public init(id: String, city: String, summary: String? = nil, startDate: String? = nil, endDate: String? = nil, timeZone: String, webURL: URL? = nil, events: [Event] = [], brands: [Brand] = [], releases: [Release] = []) {
-        self.id=id; self.city=city; self.summary=summary; self.startDate=startDate; self.endDate=endDate; self.timeZone=timeZone; self.webURL=webURL; self.events=events; self.brands=brands; self.releases=releases
+    public var dealers: [Dealer]?
+    public init(id: String, city: String, summary: String? = nil, startDate: String? = nil, endDate: String? = nil, timeZone: String, webURL: URL? = nil, events: [Event] = [], brands: [Brand] = [], releases: [Release] = [], dealers: [Dealer]? = nil) {
+        self.id=id; self.city=city; self.summary=summary; self.startDate=startDate; self.endDate=endDate; self.timeZone=timeZone; self.webURL=webURL; self.events=events; self.brands=brands; self.releases=releases; self.dealers=dealers
     }
 }
+public struct Dealer: Codable, Identifiable, Equatable, Sendable {
+    public let name: String
+    public let eventId: String
+    public var id: String { "\(eventId)|\(name)" }
+}
+
 public struct Event: Codable, Identifiable, Equatable, Sendable {
     public let note: String?
     public let days: [EventDay]
@@ -90,12 +97,20 @@ public enum BrandFilter: String, CaseIterable, Sendable { case all = "All", must
 public enum Interest: Int, Codable, CaseIterable, Sendable { case none, interested, mustSee, little, unfamiliar, skip
     public var priority: Int { switch self { case .mustSee: 3; case .interested: 2; case .little: 1; default: 0 } }
     public var category: String { switch self { case .none: "unrated"; case .interested: "moderate"; case .mustSee: "must"; case .little: "little"; case .unfamiliar: "unknown"; case .skip: "none" } }
-    public var label: String { switch self { case .none: "No rating"; case .interested: "Interested"; case .mustSee: "Must see"; case .little: "If time"; case .unfamiliar: "Unfamiliar"; case .skip: "Skip" } }
+    public var label: String { switch self { case .none: "No rating"; case .interested: "Moderate"; case .mustSee: "Must-see"; case .little: "A little"; case .unfamiliar: "Unfamiliar"; case .skip: "Not for me" } }
 }
 public struct Selection: Codable, Equatable, Sendable {
     public var interest: Interest = .none
     public var seen = false
-    public init(interest: Interest = .none, seen: Bool = false) { self.interest=interest; self.seen=seen }
+    // Missing in v1 saves. Keep existing ratings-based lists until the user
+    // explicitly adds or removes this brand from the shortlist.
+    public var shortlisted: Bool?
+    public var isShortlisted: Bool { shortlisted ?? (interest.priority > 0) }
+    public init(interest: Interest = .none, seen: Bool = false, shortlisted: Bool? = nil) {
+        self.interest = interest
+        self.seen = seen
+        self.shortlisted = shortlisted
+    }
 }
 public struct SelectionKey: Codable, Hashable, Sendable {
     public let guideID: String

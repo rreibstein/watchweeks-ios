@@ -17,6 +17,8 @@ def phase(key, isa, files):
     return obj(key,isa,buildActionMask='2147483647',files=files,runOnlyForDeploymentPostprocessing='0')
 def build(key, ref): return obj(key,'PBXBuildFile',fileRef=ref)
 appsource=file('App/WatchWeeksApp.swift','sourcecode.swift')
+browsingSources = [file('App/' + name + '.swift', 'sourcecode.swift')
+                   for name in ['WatchWeeksDesign', 'WatchWeeksGuides', 'WatchWeeksCatalog']]
 analytics=file('App/NativeAnalytics.swift','sourcecode.swift')
 analyticsConfig=file('App/AnalyticsConfig.plist','text.plist.xml')
 assets=file('App/Assets.xcassets','folder.assetcatalog')
@@ -46,7 +48,8 @@ def configs(key, common):
 base={'IPHONEOS_DEPLOYMENT_TARGET':'17.0','SDKROOT':'iphoneos','SWIFT_VERSION':'6.0','CLANG_ENABLE_MODULES':'YES','ENABLE_USER_SCRIPT_SANDBOXING':'YES'}
 projectConfigs=configs('project',base)
 settings={'PRODUCT_NAME':'$(TARGET_NAME)','PRODUCT_BUNDLE_IDENTIFIER':'com.watchweeks.app','MARKETING_VERSION':'1.0.0','CURRENT_PROJECT_VERSION':'1','TARGETED_DEVICE_FAMILY':'1','CODE_SIGN_STYLE':'Automatic','GENERATE_INFOPLIST_FILE':'YES','INFOPLIST_FILE':'App/Info.plist','INFOPLIST_KEY_CFBundleDisplayName':'WatchWeeks','INFOPLIST_KEY_LSApplicationCategoryType':'public.app-category.lifestyle','INFOPLIST_KEY_UIApplicationSceneManifest_Generation':'YES','INFOPLIST_KEY_UILaunchScreen_Generation':'YES','INFOPLIST_KEY_UISupportedInterfaceOrientations':'UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight','ASSETCATALOG_COMPILER_APPICON_NAME':'AppIcon','SWIFT_EMIT_LOC_STRINGS':'YES'}
-app=obj('app','PBXNativeTarget',buildConfigurationList=configs('app',settings),buildPhases=[phase('app-src','PBXSourcesBuildPhase',[build('app-src-build',appsource),build('analytics-src-build',analytics)]),phase('app-frameworks','PBXFrameworksBuildPhase',[corebuild,posthogBuild]),phase('app-resources','PBXResourcesBuildPhase',[build('assets-build',assets),build('privacy-build',privacy),build('analytics-config-build',analyticsConfig)]+[build('font-'+str(i),f) for i,f in enumerate(fonts)])],buildRules=[],dependencies=[],name='WatchWeeks',packageProductDependencies=[core,posthogProduct],productName='WatchWeeks',productReference=appProduct,productType='com.apple.product-type.application')
+app=obj('app','PBXNativeTarget',buildConfigurationList=configs('app',settings),buildPhases=[phase('app-src','PBXSourcesBuildPhase',[build('app-src-build',appsource),build('analytics-src-build',analytics)] +
+    [build('browse-src-' + str(i), ref) for i, ref in enumerate(browsingSources)]),phase('app-frameworks','PBXFrameworksBuildPhase',[corebuild,posthogBuild]),phase('app-resources','PBXResourcesBuildPhase',[build('assets-build',assets),build('privacy-build',privacy),build('analytics-config-build',analyticsConfig)]+[build('font-'+str(i),f) for i,f in enumerate(fonts)])],buildRules=[],dependencies=[],name='WatchWeeks',packageProductDependencies=[core,posthogProduct],productName='WatchWeeks',productReference=appProduct,productType='com.apple.product-type.application')
 projectID=sha256(b'project').hexdigest()[:24].upper()
 proxy=obj('proxy','PBXContainerItemProxy',containerPortal=projectID,proxyType='1',remoteGlobalIDString=app,remoteInfo='WatchWeeks')
 dep=obj('dependency','PBXTargetDependency',target=app,targetProxy=proxy)

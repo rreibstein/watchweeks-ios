@@ -8,8 +8,8 @@ public struct PublicGuideHeader: Decodable, Sendable {
     public let id: String; public let slug: String; public let city: String
     public let dates: String; public let timezone: String
     public let start_date: String; public let end_date: String; public let url: URL
-    func model(events: [Event] = [], brands: [Brand] = [], releases: [Release] = []) -> Guide {
-        Guide(id:id,city:city,startDate:start_date,endDate:end_date,timeZone:timezone,webURL:url,events:events,brands:brands,releases:releases)
+    func model(events: [Event] = [], brands: [Brand] = [], releases: [Release] = [], dealers: [Dealer]? = nil) -> Guide {
+        Guide(id:id,city:city,startDate:start_date,endDate:end_date,timeZone:timezone,webURL:url,events:events,brands:brands,releases:releases,dealers:dealers)
     }
 }
 public struct EventDay: Codable, Equatable, Sendable {
@@ -19,8 +19,9 @@ public struct EventDay: Codable, Equatable, Sendable {
 public struct PublicDetail: Decodable, Sendable {
     public let v: Int; public let guide: PublicGuideHeader
     public let events: [PublicEvent]; public let brands: [PublicBrand]; public let releases: [PublicRelease]
+    public let dealers: [Dealer]?
     public struct PublicEvent: Decodable, Sendable {
-        let id: String; let name: String; let venue: String?; let url: URL?; let note: String?
+        let id: String; let name: String; let venue: String?; let address: String?; let url: URL?; let note: String?
         let days: [EventDay]; let start_date: String?; let end_date: String?
     }
     public struct PublicBrand: Decodable, Sendable {
@@ -38,13 +39,13 @@ public struct PublicDetail: Decodable, Sendable {
             let ids=Array(Set((previous?.eventIDs ?? [])+[b.eventId])).sorted()
             merged[b.brandKey]=Brand(id:b.brandKey,name:b.name,eventIDs:ids,webURL:b.website ?? previous?.webURL)
         }
-        let mappedEvents=events.map { e in Event(id:e.id,name:e.name,venue:e.venue,startsAt:e.start_date,endsAt:e.end_date,webURL:e.url,note:e.note,days:e.days) }
+        let mappedEvents=events.map { e in Event(id:e.id,name:e.name,venue:e.venue,address:e.address,startsAt:e.start_date,endsAt:e.end_date,webURL:e.url,note:e.note,days:e.days) }
         let mappedReleases=releases.map { r in
             // API v1 lacks release IDs. This tuple is unique in observed feeds;
             // validation rejects collisions rather than silently assigning unstable indexes.
             Release(id:[r.brandKey,r.eventId,r.kind].joined(separator:"|"), title:r.text.components(separatedBy:" — ").first ?? r.brand, brandName:r.brand, details:r.text, imageURL:r.images.first?.resolvedURL,webURL:r.url,brandID:r.brandKey,eventID:r.eventId,kind:r.kind,images:r.images,awards:r.awards)
         }
-        let result=guide.model(events:mappedEvents,brands:merged.values.sorted{$0.name<$1.name},releases:mappedReleases)
+        let result=guide.model(events:mappedEvents,brands:merged.values.sorted{$0.name<$1.name},releases:mappedReleases,dealers:dealers)
         try GuideRepository.validate([result]); return result
     }
 }

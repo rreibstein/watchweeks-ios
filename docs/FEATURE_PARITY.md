@@ -9,14 +9,14 @@ screenshots or proof of interactive parity. Compare real simulator output on Mac
 
 | Website feature/behavior | Native adaptation | Difference / acceptance |
 |---|---|---|
-| City guides with event dates | Feed-driven discovery, current/upcoming/past | Worldwide landing instead of permanent New York page; dates use API fields |
-| Events with venue, daily access/schedule and notes | Native city event list and details | Daily local HH:mm shown literally with timezone, includes invitation-only day |
-| Brands A–Z | Native searchable brand list grouped within city | Brands A–Z tab selects city then opens directory; verify exact flow against web |
-| Must see / Interested / If time / Unfamiliar / Skip | Same five categories plus clearing rating | Native adaptive buttons support Dynamic Type and tap-again clearing; raw categories must/moderate/little/unknown/none preserved |
+| City guides with event dates | Feed-driven discovery, current/upcoming/past | Worldwide landing follows the current public homepage; dates use event-local time |
+| Events with venue, daily access/schedule and notes | Native city event list and details | Validated local day, opening and closing times, and readable access labels |
+| Brands A–Z | Native searchable brand list grouped within city | Catalog follows the active guide; global entry offers a city picker |
+| Five interest categories | Must-see / Moderate / A little / Not for me / Unfamiliar | Native labels follow the latest brief; wire categories and tap-again clearing are preserved |
 | Seen separate from interest; duplicate appearances mirror seen | Separate toggle, guide+brandKey key | Both event appearances share same brand selection; city isolation |
 | My list visiting shortlist | Native My list with progress and remaining toggle | Earlier My Visit label removed; no new planning algorithm |
 | New releases with editorial classification, pictures, source | Native releases and detail from public API | Image credits preserved; confirm all links/awards and multiple images on Mac |
-| Plan My Day | Full website access | Explicitly omitted natively; do not advertise native itinerary |
+| Plan My Day | Native Singapore time-window planner and website planning tools | The native planner covers the three specified Singapore fairs and the timed IAMWATCH conversations |
 | Comparison and private notes | Full website access | Not implemented natively; no private notes in analytics |
 | Share | Native guide share sheet | Completed share tracked once; canceled share not counted |
 | Header account control / optional web account sync | Always-visible native top-right Account entry opens existing /account | No native sign-in or automatic web sync; local/website state distinction disclosed |
@@ -37,4 +37,44 @@ Typography follow-up: all explicit native body/caption/heading/consent styles no
 use Space Grotesk with Dynamic Type-relative sizes. UIKit navigation titles and
 tab labels use the bundled font as well. Debug startup asserts all four weights
 register. Web reference screenshots were regenerated with local Space Grotesk.
-Native visual and large-text validation still requires Xcode/simulator.
+The original implementation was subsequently reviewed on the simulator and the
+presentation was revised to follow the mobile site more closely.
+
+## Native design and interactions
+
+- Warm paper, bordered event and brand cards, the typographic WatchWeeks wordmark,
+  prominent Find and four persistent, labeled tabs follow the mobile site.
+  UIKit navigation retains the system back gesture; the guide share button uses
+  the native share sheet. Large accessibility text stacks rating buttons.
+- City guides expose local day and sort controls. Event cards and detail use the
+  same validated local hours and access labels. The home status refreshes every
+  minute and uses the event's local calendar. Invitation-only hours are excluded
+  from public live status and the Singapore planner.
+- Event detail combines venue, hours and official link. Its release carousel uses
+  available watch photographs and links to the event-filtered directory. Prices
+  and availability badges appear only when supported by the public record.
+  Miami dealer names come from the v1 feed. Golden Hour Singapore stock uses the
+  supplied 12-brand list with canonical feed keys.
+- My list groups saved brands by city and event. Ratings, shortlist and seen
+  state are local and independent. Legacy ratings-based shortlist membership is
+  preserved until edited. Seen shortlist rows collapse with a reversible tap.
+- Singapore planning reserves 60 minutes per fair, uses the three supplied travel
+  estimates and compares the selected talk with a no-talk itinerary. Six timed
+  conversations are from the organizer's November 2026 Wonder Room program.
+  Confirm admission and the current program with the organizer.
+- Spring Sprang Sprung's official site lists 6 PM on November 14–15, while the
+  public WatchWeeks feed returns 7 PM. The native display and planner use the
+  organizer's 6 PM closing for those two known conflicting entries. No website
+  changes were made. Singapore addresses are supplied for the three planner fairs.
+
+Sources: [WatchWeeks home](https://watchweeks.com/),
+[Singapore guide](https://watchweeks.com/singapore),
+[IAMWATCH program](https://www.iamwatch.com/event/2026/programmes),
+[Golden Hour](https://goldenhour.delugs.com/singapore),
+[Spring Sprang Sprung](https://www.spring-sprang-sprung.com/),
+[The Singapore EDITION](https://www.marriott.com/en-us/hotels/sineb-the-singapore-edition/overview/).
+
+The public feed does not expose all model-level stock, sellout, structured price
+or award data shown on the website, nor every release, appointment, or
+comparison. The native app uses the actual feed and verified edition details.
+Existing website tools remain available through the guide and account links.
