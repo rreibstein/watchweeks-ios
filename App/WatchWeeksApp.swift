@@ -120,7 +120,7 @@ struct DiscoveryView: View {
                 }
                 if ordered.isEmpty && !model.loading { ContentUnavailableView(query.isEmpty ? "No guides loaded" : "No matching cities", systemImage: "globe", description: Text(query.isEmpty ? "Pull to refresh. Previously loaded guides will be available here offline." : "Try another search.")) }
             }
-            .navigationTitle("WatchWeeks").searchable(text: $query, prompt: "Search cities")
+            .navigationTitle("WatchWeeks").accountAccess().searchable(text: $query, prompt: "Search cities")
             .refreshable { await model.refresh() }
         }
     }
@@ -155,7 +155,7 @@ struct CityView: View {
                 }
             }
         }.navigationTitle(guide.city).navigationBarTitleDisplayMode(.inline)
-            .toolbar { if let url = PublicLinks.safeExternal(guide.webURL) { ShareGuideButton(guide: guide, url: url) } }
+            .toolbar { ToolbarItemGroup(placement: .topBarTrailing) { if let url = PublicLinks.safeExternal(guide.webURL) { ShareGuideButton(guide: guide, url: url) }; AccountButton() } }
             .task { if !tracked { tracked=true; NativeAnalytics.shared.track(.guideViewed,guide:guide) } }
     }
 }
@@ -223,7 +223,7 @@ struct VisitView: View {
                 }
                 if count == 0 { ContentUnavailableView("Plan your visit", systemImage: "checklist", description: Text("Choose Interested or Must see on a brand in any city guide. Your checklist works offline after that guide is loaded.")) }
                 if model.visitGuides.isEmpty && count > 0 { Text("Your saved selections are preserved. Load their guides to view the checklist.") }
-            }.navigationTitle("My list")
+            }.navigationTitle("My list").accountAccess()
         }
     }
 }
@@ -267,7 +267,7 @@ struct ReleaseDetail: View {
             }
             ForEach(release.awards,id: \.self) { Text($0).font(.wwCaption) }
             if let url = PublicLinks.safeExternal(release.webURL) { Link("Full details", destination: url); ShareLink(item: url) }
-        }.padding() }.navigationTitle("New release").navigationBarTitleDisplayMode(.inline)
+        }.padding() }.navigationTitle("New release").navigationBarTitleDisplayMode(.inline).accountAccess()
             .task { if !tracked { tracked=true; NativeAnalytics.shared.track(.releaseViewed,guide:guide,eventID:release.eventID,brandID:release.brandID,releaseID:release.id) } }
     }
 }
@@ -279,7 +279,7 @@ struct AboutView: View {
             Section("Your visit, your device") { Text("No account is required. Interest ratings and seen selections are saved on this device and do not synchronize with the website. Removing the app removes its local data."); Text("Previously loaded guides work offline. Images and content you have not loaded may require a connection.") }
             Section("Explore more") { WebsiteLink(title:"Full WatchWeeks website",url:PublicLinks.home); Text("Use the website for accounts, synchronization and advanced planning.").font(.wwFootnote); Link("Privacy policy", destination: PublicLinks.privacy) }
             Section { Text("Version 1.0.0 (1)").foregroundStyle(.secondary) }
-        }.navigationTitle("About") }
+        }.navigationTitle("About").accountAccess() }
     }
 }
 
@@ -295,7 +295,7 @@ struct EventInfo: View {
             Text("Times in \(guide.timeZone)").font(.wwCaption)
             if let note=event.note { Text(note) }
             if let url=PublicLinks.safeExternal(event.webURL) { Link("Official event information", destination:url) }
-        }.navigationTitle("Event").task { if !tracked { tracked=true; NativeAnalytics.shared.track(.eventViewed,guide:guide,eventID:event.id) } }
+        }.navigationTitle("Event").accountAccess().task { if !tracked { tracked=true; NativeAnalytics.shared.track(.eventViewed,guide:guide,eventID:event.id) } }
     }
 }
 struct BrandInfo: View {
@@ -304,7 +304,7 @@ struct BrandInfo: View {
     @State private var tracked = false
     var body: some View {
         List { BrandRow(guide:guide,brand:brand,showDetails:false) }
-            .navigationTitle(brand.name)
+            .navigationTitle(brand.name).accountAccess()
             .task { if !tracked { tracked=true; NativeAnalytics.shared.track(.brandViewed,guide:guide,brandID:brand.id) } }
     }
 }
@@ -316,10 +316,10 @@ struct CatalogView: View {
         NavigationStack {
             List {
                 ForEach(model.guides) { guide in
-                    NavigationLink(guide.city) { if releases { ReleasesView(guide:guide).navigationTitle("New releases") } else { BrandsView(guide:guide).navigationTitle("Brands A–Z") } }
+                    NavigationLink(guide.city) { if releases { ReleasesView(guide:guide).navigationTitle("New releases").accountAccess() } else { BrandsView(guide:guide).navigationTitle("Brands A–Z").accountAccess() } }
                 }
                 if model.guides.isEmpty { ContentUnavailableView("No guides loaded",systemImage:"globe",description:Text("Load guides in Events to browse this directory.")) }
-            }.navigationTitle(releases ? "New releases" : "Brands A–Z")
+            }.navigationTitle(releases ? "New releases" : "Brands A–Z").accountAccess()
         }
     }
 }
@@ -357,5 +357,43 @@ extension Font {
             UITabBarItem.appearance().setTitleTextAttributes(attributes, for: .normal)
             UITabBarItem.appearance().setTitleTextAttributes(attributes, for: .selected)
         }
+    }
+}
+
+// Account access is local UI, never conditional on feed/auth network readiness.
+struct AccountButton: View {
+    @State private var showing = false
+    var body: some View {
+        Button { showing = true } label: {
+            Image(systemName: "person.crop.circle").frame(minWidth: 44, minHeight: 44)
+        }
+        .accessibilityLabel("Account")
+        .accessibilityHint("Manage your existing WatchWeeks account on the website")
+        .sheet(isPresented: $showing) { AccountView() }
+    }
+}
+struct AccountView: View {
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Your WatchWeeks account") {
+                    Text("Use your existing WatchWeeks account on the website to sign in, manage your account and access website synchronization.")
+                    WebsiteLink(title: "Open WatchWeeks account", url: PublicLinks.account)
+                }
+                Section("On this iPhone") {
+                    Text("You can use the native app without signing in. Your native ratings and seen selections are stored on this device. Signing in on the website does not sign you into this app or synchronize these native selections.")
+                    Text("The account website needs an internet connection. Your previously loaded guides and native checklist remain available offline.")
+                }
+            }
+            .font(.wwBody)
+            .navigationTitle("Account")
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }
+    }
+}
+extension View {
+    func accountAccess() -> some View {
+        toolbar { ToolbarItem(placement: .topBarTrailing) { AccountButton() } }
     }
 }

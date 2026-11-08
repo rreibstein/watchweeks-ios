@@ -19,7 +19,7 @@ screenshots or proof of interactive parity. Compare real simulator output on Mac
 | Plan My Day | Full website access | Explicitly omitted natively; do not advertise native itinerary |
 | Comparison and private notes | Full website access | Not implemented natively; no private notes in analytics |
 | Share | Native guide share sheet | Completed share tracked once; canceled share not counted |
-| Optional web account synchronization | Guest-only on-device | No automatic web sync; disclosed throughout |
+| Header account control / optional web account sync | Always-visible native top-right Account entry opens existing /account | No native sign-in or automatic web sync; local/website state distinction disclosed |
 | WatchWeeks identity | Actual first-party clock icon, warm accent direction | No organizer logos. Typography/layout comparison remains a Mac release gate |
 
 Observed CSS uses Space Grotesk (400–700), JetBrains Mono 500; warm neutral

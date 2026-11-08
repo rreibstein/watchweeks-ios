@@ -4,6 +4,10 @@ final class WatchWeeksUITests: XCTestCase {
         let app = XCUIApplication(); app.launch()
         if app.buttons["Continue without analytics"].waitForExistence(timeout: 3) { app.buttons["Continue without analytics"].tap() }
         XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["Account"].waitForExistence(timeout: 2))
+        app.buttons["Account"].tap()
+        XCTAssertTrue(app.buttons["Open WatchWeeks account"].waitForExistence(timeout: 2))
+        app.buttons["Done"].tap()
         app.tabBars.buttons["My list"].tap()
         XCTAssertTrue(app.navigationBars["My list"].exists)
         app.tabBars.buttons["About"].tap()

@@ -8,6 +8,8 @@ Branch: development/native-launch, dedicated rreibstein/watchweeks-ios repositor
 - SwiftUI iPhone app, iOS 17+, Events, My list, Brands A–Z, New releases, About.
 - Real public v1 index plus detail loading, native brand ratings/seen, release images
   and credits, event daily local schedules/access notes, native guide sharing.
+- Always-visible top-right Account entry opens the verified existing account page;
+  no native auth/sync claim. Web loading improvement proposal in ACCOUNT_ACCESS.md.
 - Exact website interest categories (including Skip, distinct from cleared rating),
   canonical city+brandKey identity, search/filter, persistent selections, offline cache.
 - First-party clock icon, licensed Space Grotesk fonts, mobile web references and
