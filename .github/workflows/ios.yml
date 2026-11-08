@@ -1,0 +1,21 @@
+name: Manual iOS validation
+# Manual only: runner billing/private-repo allowance has not been verified.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: macos-15
+    timeout-minutes: 25
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Swift core and simulator application
+        run: scripts/verify-macos.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: xcode-results
+          path: release/archives/*.xcresult

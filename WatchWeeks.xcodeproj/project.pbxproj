@@ -1,0 +1,334 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		38448B50DF0C9E73C04769E7 /* App/WatchWeeksApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21ABCDCB018C03F35149D7EE /* App/WatchWeeksApp.swift */; };
+		5522B3B3B2EACC1C8F9BEAAC /* App/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B16B6325BA8F1CFBCC279108 /* App/Assets.xcassets */; };
+		5B2D2E1CD1EA09990CD4EACE /* WatchWeeksCore in Frameworks */ = {isa = PBXBuildFile; productRef = F5AE27228AC34400DE4A3768 /* WatchWeeksCore */; };
+		B97747B2115B58614B7FAB53 /* UITests/WatchWeeksUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6FEB704D2C4382BF0DF9BD5 /* UITests/WatchWeeksUITests.swift */; };
+		CE592D926B548708CFD0C61E /* App/PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F048BFA7B57836F484F1B9C1 /* App/PrivacyInfo.xcprivacy */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1241936D4DD3AAD68FE7BFBD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 244210E48437B6556980A702 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A172CEDCAE47474B615C54D5;
+			remoteInfo = WatchWeeks;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		21ABCDCB018C03F35149D7EE /* App/WatchWeeksApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WatchWeeksApp.swift; sourceTree = SOURCE_ROOT; };
+		681C948D238C526E9E3424E0 /* WatchWeeks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = WatchWeeks.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B16B6325BA8F1CFBCC279108 /* App/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = App/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		C6FEB704D2C4382BF0DF9BD5 /* UITests/WatchWeeksUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests/WatchWeeksUITests.swift; sourceTree = SOURCE_ROOT; };
+		F048BFA7B57836F484F1B9C1 /* App/PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = App/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
+		F739566ED5280322FF98A798 /* WatchWeeksUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = WatchWeeksUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7A4C2DC8FCA657188648E999 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B2D2E1CD1EA09990CD4EACE /* WatchWeeksCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10CDED79664567B030B2B4F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A3E27B8CA818264D75C8D81 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				681C948D238C526E9E3424E0 /* WatchWeeks.app */,
+				F739566ED5280322FF98A798 /* WatchWeeksUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C69913C7EE4DFDD011BE172F = {
+			isa = PBXGroup;
+			children = (
+				21ABCDCB018C03F35149D7EE /* App/WatchWeeksApp.swift */,
+				B16B6325BA8F1CFBCC279108 /* App/Assets.xcassets */,
+				F048BFA7B57836F484F1B9C1 /* App/PrivacyInfo.xcprivacy */,
+				C6FEB704D2C4382BF0DF9BD5 /* UITests/WatchWeeksUITests.swift */,
+				0A3E27B8CA818264D75C8D81 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		59830EBC3A4184110566BF1A /* WatchWeeksUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 76B96C5EF5145B0A3645A24E /* Build configuration list for PBXNativeTarget "WatchWeeksUITests" */;
+			buildPhases = (
+				81D5B894399CCC634D2142B4 /* Sources */,
+				B10CDED79664567B030B2B4F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F26350DAFE3F19AABFD69AC4 /* PBXTargetDependency */,
+			);
+			name = WatchWeeksUITests;
+			productName = WatchWeeksUITests;
+			productReference = F739566ED5280322FF98A798 /* WatchWeeksUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		A172CEDCAE47474B615C54D5 /* WatchWeeks */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 06CB67C35A91E16DBD17B949 /* Build configuration list for PBXNativeTarget "WatchWeeks" */;
+			buildPhases = (
+				33DE1718BB4648C94FA063E3 /* Sources */,
+				7A4C2DC8FCA657188648E999 /* Frameworks */,
+				F9187E824FE171A6F0EFAE28 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WatchWeeks;
+			packageProductDependencies = (
+				F5AE27228AC34400DE4A3768 /* WatchWeeksCore */,
+			);
+			productName = WatchWeeks;
+			productReference = 681C948D238C526E9E3424E0 /* WatchWeeks.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		244210E48437B6556980A702 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2600;
+			};
+			buildConfigurationList = 76F8DEC3DFE0BDB465198890 /* Build configuration list for PBXProject "WatchWeeks" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C69913C7EE4DFDD011BE172F;
+			packageReferences = (
+				085827B649F7606E862BCEEB /* XCLocalSwiftPackageReference "." */,
+			);
+			productRefGroup = 0A3E27B8CA818264D75C8D81 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A172CEDCAE47474B615C54D5 /* WatchWeeks */,
+				59830EBC3A4184110566BF1A /* WatchWeeksUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F9187E824FE171A6F0EFAE28 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5522B3B3B2EACC1C8F9BEAAC /* App/Assets.xcassets in Resources */,
+				CE592D926B548708CFD0C61E /* App/PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		33DE1718BB4648C94FA063E3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				38448B50DF0C9E73C04769E7 /* App/WatchWeeksApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		81D5B894399CCC634D2142B4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B97747B2115B58614B7FAB53 /* UITests/WatchWeeksUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F26350DAFE3F19AABFD69AC4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A172CEDCAE47474B615C54D5 /* WatchWeeks */;
+			targetProxy = 1241936D4DD3AAD68FE7BFBD /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0B0C687DF8B6B8DC790B519C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		1B104479E55E37CF8A63CBDF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WatchWeeks;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.watchweeks.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		28A722929B94EC37AFB5BA4F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.watchweeks.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = WatchWeeks;
+			};
+			name = Debug;
+		};
+		73EBF6644258C120893E685D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		B00CCDD09424E369308D67FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WatchWeeks;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.watchweeks.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		F318EF763F11578FF40814E6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.watchweeks.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = WatchWeeks;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		06CB67C35A91E16DBD17B949 /* Build configuration list for PBXNativeTarget "WatchWeeks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B00CCDD09424E369308D67FA /* Debug */,
+				1B104479E55E37CF8A63CBDF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		76B96C5EF5145B0A3645A24E /* Build configuration list for PBXNativeTarget "WatchWeeksUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				28A722929B94EC37AFB5BA4F /* Debug */,
+				F318EF763F11578FF40814E6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		76F8DEC3DFE0BDB465198890 /* Build configuration list for PBXProject "WatchWeeks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				73EBF6644258C120893E685D /* Debug */,
+				0B0C687DF8B6B8DC790B519C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		085827B649F7606E862BCEEB /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F5AE27228AC34400DE4A3768 /* WatchWeeksCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WatchWeeksCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 244210E48437B6556980A702 /* Project object */;
+}
