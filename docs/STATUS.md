@@ -1,7 +1,7 @@
 # WatchWeeks release status — 2026-11-08
 
 Branch: development/native-launch, dedicated rreibstein/watchweeks-ios repository.
-**Not submitted, not production-ready, no iOS build has run.**
+**Simulator and device acceptance remain open. No submission.**
 
 ## Implemented and preserved in source
 
@@ -31,6 +31,23 @@ Project/resource/plist/icon structure checks pass; Swift syntax parsing is separ
 from unavailable SwiftUI/SDK typechecking. No Xcode/simulator/device result exists.
 Mobile website SSR screenshots inspected; JS/third parties blocked to avoid web
 analytics writes. Actual native screenshots have not been captured.
+
+## Mac validation
+
+- Xcode 26.3 (17C529) has the iOS and Simulator SDKs at 26.2. Xcode resolved
+  PostHog 3.93.6 and wrote the package lock. SwiftPM compiled the app target
+  and SDK for the iOS Simulator in Debug and Release without a device runtime.
+- All 25 core tests passed on the Mac. The verification script supports
+  `WW_SWIFTPM_SCRATCH_PATH` to work around a SwiftPM database I/O error under
+  the Documents checkout.
+- The Swift feed decoder loaded all five live city guides. A forced connection
+  failure restored the full on-disk snapshot and a saved rating and seen state.
+  The Account URL returned HTTP 200.
+- Core Text registered the four Space Grotesk files under their expected
+  PostScript names. The source clock SVG matched the live favicon, and the
+  app icon is an opaque 1024×1024 PNG.
+- A localhost SDK check found and verified a fix for delivery of queued events
+  during opt-out. See ANALYTICS.md for the scope and remaining iOS checks.
 
 ## Remaining required gates
 

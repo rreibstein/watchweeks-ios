@@ -6,11 +6,15 @@ xcodebuild -version
 major=$(xcodebuild -version | awk '/Xcode/{split($2,a,"."); print a[1]}')
 [[ $major -ge 26 ]] || { echo 'Select stable Xcode 26+ with xcode-select.'; exit 1; }
 python3 scripts/validate-source.py
-swift test
+swift test --scratch-path "${WW_SWIFTPM_SCRATCH_PATH:-.build}"
 mkdir -p release/archives
-xcodebuild -resolvePackageDependencies -project WatchWeeks.xcodeproj -scheme WatchWeeks
+xcodebuild -resolvePackageDependencies -project WatchWeeks.xcodeproj -scheme WatchWeeks -derivedDataPath DerivedData
 # Supply a concrete installed simulator UUID, avoiding ambiguous destination names.
 if [[ -z ${WW_SIMULATOR_ID:-} ]]; then
-  WW_SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for k,v in sorted(d["devices"].items(),reverse=True) if "iOS" in k for x in v if "iPhone" in x["name"]))')
+  WW_SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next((x["udid"] for k,v in sorted(d["devices"].items(),reverse=True) if "iOS" in k for x in v if "iPhone" in x["name"]), ""))')
+  if [[ -z $WW_SIMULATOR_ID ]]; then
+    echo 'Install an iOS simulator runtime in Xcode > Settings > Components, then create an iPhone simulator.' >&2
+    exit 1
+  fi
 fi
 xcodebuild -project WatchWeeks.xcodeproj -scheme WatchWeeks -destination "platform=iOS Simulator,id=$WW_SIMULATOR_ID" -derivedDataPath DerivedData -resultBundlePath "release/archives/Tests-$(date +%s).xcresult" CODE_SIGNING_ALLOWED=NO test

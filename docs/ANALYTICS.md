@@ -48,10 +48,26 @@ SDK lifecycle events remain disabled, so no duplicate automatic install/open str
 
 SDK bounded disk queue: max 500 events, batches at 20 or 30 seconds, retries and
 reachability resume according to SDK. Events can be dropped under queue limits,
-network failure, app deletion or opt-out. No exactly-once/delivery guarantee. SDK
-3.93.6 queue send gating observes enabled/opt-out; future capture is blocked by both
-app and SDK. Already in-flight transmissions cannot be recalled. Re-enable behavior
-and persisted queue suppression must be tested on device before release.
+network failure or app deletion. No exactly-once/delivery guarantee. SDK 3.93.6
+can still try to flush existing queued events while opted out. WatchWeeks blocks
+new capture in the app and SDK, and rejects requests from the SDK URLSession
+when the saved consent setting is off. Already in-flight transmissions cannot be
+recalled. Previously consented events may retry after the user opts back in.
+
+## Mac analytics validation
+
+A local macOS harness exercised the app's consent gate and the pinned SDK's
+actual batch transport. Before the transport guard, a flush delivered a queued
+event after opt-out. With the guard, decline and opt-out blocked capture,
+queued delivery was blocked while opted out, and only previously consented
+events retried after opt-in. The seen value was a JSON Boolean. The harness used
+a fake token and localhost and omitted iOS-only SDK options. iOS runtime and
+device checks remain separate.
+
+Debug Simulator builds use no analytics transport by default. Launch with
+`SIMCTL_CHILD_WW_ANALYTICS_QA=1` (or pass `WW_ANALYTICS_QA=1` in a UI test's
+launch environment) to send only to a local receiver on `localhost:8766`
+with a fake token. Session replay remains disabled.
 
 ## Required Mac acceptance
 

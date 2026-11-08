@@ -3,6 +3,8 @@ import UIKit
 import PostHog
 import WatchWeeksCore
 
+private let analyticsEnabledKey = "analytics.enabled"
+
 @MainActor final class NativeAnalytics: ObservableObject {
     static let shared = NativeAnalytics()
     @Published private(set) var enabled: Bool
@@ -14,6 +16,9 @@ import WatchWeeksCore
     private lazy var gate = AnalyticsGate(enabled: enabled) { [weak self] payload in
         guard let self, self.configured else { return }
         var properties: [String: Any] = payload.properties
+        if let seen = payload.properties["seen"] {
+            properties["seen"] = seen == "true"
+        }
         if payload.name == .appOpened {
             properties["first_observed_open"] = !UserDefaults.standard.bool(forKey: "analytics.recordedOpen")
             UserDefaults.standard.set(true, forKey: "analytics.recordedOpen")
@@ -21,15 +26,24 @@ import WatchWeeksCore
         self.sdk.capture(payload.name.rawValue, properties: properties)
     }
     private init() {
-        enabled = UserDefaults.standard.bool(forKey: "analytics.enabled")
+        enabled = UserDefaults.standard.bool(forKey: analyticsEnabledKey)
         if enabled { configure() }
     }
     private func configure() {
         guard !configured else { return }
+        #if DEBUG && targetEnvironment(simulator)
+        // Simulator QA can only send analytics to the Mac's local test receiver.
+        guard ProcessInfo.processInfo.environment["WW_ANALYTICS_QA"] == "1" else { return }
+        let c = PostHogConfig(projectToken: "phc_watchweeks_simulator", host: "http://localhost:8766")
+        #else
         guard let url = Bundle.main.url(forResource: "AnalyticsConfig", withExtension: "plist"),
               let data = try? Data(contentsOf: url), let p = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String],
               let token = p["projectToken"], token.hasPrefix("phc_"), let host = p["host"], host == "https://us.i.posthog.com" else { return }
         let c = PostHogConfig(projectToken: token, host: host)
+        #endif
+        let session = URLSessionConfiguration.default
+        session.protocolClasses = [AnalyticsConsentProtocol.self]
+        c.urlSessionConfiguration = session
         c.optOut = !enabled
         c.captureApplicationLifecycleEvents = false; c.captureScreenViews = false
         c.captureElementInteractions = false; c.captureSwiftUIElementInteractions = false
@@ -41,9 +55,11 @@ import WatchWeeksCore
         sdk.setup(c); configured = true
     }
     func setEnabled(_ value: Bool) {
-        enabled=value; choiceMade=true; UserDefaults.standard.set(true,forKey:"analytics.choiceMade"); UserDefaults.standard.set(value,forKey:"analytics.enabled")
+        enabled=value; choiceMade=true; UserDefaults.standard.set(true,forKey:"analytics.choiceMade"); UserDefaults.standard.set(value,forKey:analyticsEnabledKey)
         gate.setEnabled(value)
-        if value { configure(); sdk.optIn() } else { sdk.optOut() }
+        if value { configure() }
+        guard configured else { return }
+        if value { sdk.optIn() } else { sdk.optOut() }
     }
     func active() { gate.becameActive(version: version, build: build) }
     func background() { gate.becameInactive() }
@@ -51,6 +67,24 @@ import WatchWeeksCore
         gate.track(AnalyticsPayload(name,version:version,build:build,guideID:guide?.id,city:guide?.city,eventID:eventID,brandID:brandID,releaseID:releaseID,rating:rating,seen:seen))
     }
 }
+// PostHog 3.93.6 can flush previously queued events after optOut().
+// Only the SDK session uses this protocol. Consented requests use URLSession's normal transport.
+private final class AnalyticsConsentProtocol: URLProtocol {
+    override class func canInit(with request: URLRequest) -> Bool {
+        !UserDefaults.standard.bool(forKey: analyticsEnabledKey)
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
+    }
+
+    override func stopLoading() {}
+}
+
 struct AnalyticsSettings: View {
     @ObservedObject private var analytics = NativeAnalytics.shared
     var body: some View {
