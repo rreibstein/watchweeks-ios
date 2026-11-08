@@ -162,13 +162,22 @@ private struct FindView: View {
 struct WatchSegments<Value: Hashable>: View {
     @Binding var selection: Value
     let choices: [Value]
+    var columns: Int? = nil
     let label: (Value) -> String
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 4) { ForEach(choices, id: \.self, content: segment) }
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 4) { ForEach(choices, id: \.self, content: segment) }
+        Group {
+            if let columns {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: columns), spacing: 4) {
+                    ForEach(choices, id: \.self, content: segment)
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 4) { ForEach(choices, id: \.self, content: segment) }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 4) { ForEach(choices, id: \.self, content: segment) }
+                    }
+                }
             }
         }
         .padding(4)
@@ -178,7 +187,8 @@ struct WatchSegments<Value: Hashable>: View {
     private func segment(_ value: Value) -> some View {
         Button { selection = value } label: {
             Text(label(value)).font(.wwSubheadline.weight(.semibold))
-                .fixedSize(horizontal: true, vertical: false)
+                .fixedSize(horizontal: columns == nil, vertical: true)
+                .multilineTextAlignment(.center)
                 .padding(.horizontal, 8)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .background(selection == value ? WatchWeeksStyle.card : Color.clear, in: RoundedRectangle(cornerRadius: 12))

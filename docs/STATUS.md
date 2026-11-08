@@ -41,7 +41,11 @@ analytics writes. Actual native screenshots have not been captured.
   The missing Swift modules were caused by building the app for both simulator
   architectures while its dependencies built only for the active architecture.
   Debug now uses the active architecture throughout the Xcode project.
-- All 25 core tests passed on the Mac. The verification script supports
+  Xcode also built the unsigned Release configuration against the iPhone SDK.
+  The live simulator test covered event day filters, the Singapore talk
+  trade-off and copying the plan, Golden Hour, rating and shortlist checkoff,
+  reopening a collapsed saved brand after relaunch, and the release directory.
+- All 30 core tests and both guest and live-data simulator tests passed on the Mac. The verification script supports
   `WW_SWIFTPM_SCRATCH_PATH` to work around a SwiftPM database I/O error under
   the Documents checkout. `WW_XCODE_DERIVED_DATA_PATH` provides the same
   workaround for the Xcode build database.

@@ -124,7 +124,7 @@ private struct SingaporePlanner: View {
             Text("Plan around the three overlapping fairs. Times are in Singapore, with one hour at each fair plus estimated travel.")
                 .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
             WatchSegments(selection: $day, choices: days) { LocalSchedule.dateLabel($0, zone: guide.timeZone) ?? "Day" }
-            WatchSegments(selection: $window, choices: Window.allCases) { $0.rawValue }
+            WatchSegments(selection: $window, choices: Window.allCases, columns: 2) { $0.rawValue }
             Text(LocalSchedule.hoursLabel(window.hours)).font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
             Toggle("Build around a talk", isOn: $includeTalk)
             if includeTalk {
