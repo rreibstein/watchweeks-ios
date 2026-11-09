@@ -27,7 +27,7 @@ public enum LocalSchedule {
         // conflicting 7 PM value so a refreshed feed can supply any later correction.
         return event.days.map { day in
             guard ["2026-11-14", "2026-11-15"].contains(day.date), day.close == "19:00" else { return day }
-            return EventDay(date: day.date, open: day.open, close: "18:00", access: day.access)
+            return EventDay(date: day.date, open: day.open, close: "18:00", access: day.access, session: day.session)
         }
     }
 
@@ -35,6 +35,7 @@ public enum LocalSchedule {
         switch value?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) {
         case "invitation", "invitation only", "invite_only", "invitation_only": "Invitation only"
         case "free", "walk-in", "walk_in", "free_walk_in", "walkin": "Free walk-in"
+        case "vip", "vvip": "VIP access"
         case "ticket", "ticketed", "ticket_required": "Ticket required"
         case "rsvp", "registration", "registration_required": "RSVP required"
         case "public", "open": "Open to the public"
@@ -52,7 +53,7 @@ public enum LocalSchedule {
     }
 
     public static func label(_ day: EventDay, zone: String) -> String {
-        [dateLabel(day.date, zone: zone), hours(day).map(hoursLabel), accessLabel(day.access)]
+        [dateLabel(day.date, zone: zone), day.session, hours(day).map(hoursLabel), accessLabel(day.access)]
             .compactMap { $0 }.joined(separator: " · ")
     }
 
@@ -83,8 +84,8 @@ public struct LiveEvent: Sendable {
             guard let zone = TimeZone(identifier: guide.timeZone) else { continue }
             var calendar = Calendar(identifier: .gregorian)
             calendar.timeZone = zone
-            for event in guide.events {
-                for day in LocalSchedule.days(for: event, guideID: guide.id) where LocalSchedule.accessLabel(day.access) != "Invitation only" {
+            for event in guide.publicEvents {
+                for day in LocalSchedule.days(for: event, guideID: guide.id) where !day.isRestrictedAccess {
                     guard let interval = LocalSchedule.interval(day, zone: guide.timeZone), interval.upperBound > now else { continue }
                     let status: Status
                     if interval.contains(now) { status = .now }
@@ -180,30 +181,5 @@ public enum SingaporeItinerary {
         }
         consider([], remaining: visits)
         return best
-    }
-}
-
-public extension Release {
-    var displayedPrice: String? {
-        guard let details else { return nil }
-        let pattern = #"(?i)\bPrice:\s*((?:(?:US|AU|CA|HK|SG|NZ|C|A)?\$|[€£¥]|(?:CHF|USD|CAD|AUD|SGD|HKD|JPY|EUR|GBP)\s+)\s*\d[\d,.]*(?:\s?\d{3})*)"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
-        let matches = regex.matches(in: details, range: NSRange(details.startIndex..., in: details))
-        let prices = Set(matches.compactMap { Range($0.range(at: 1), in: details).map { String(details[$0]).trimmingCharacters(in: CharacterSet(charactersIn: ".,")) } })
-        return prices.count == 1 ? prices.first : nil
-    }
-
-    var displayBadges: [String] {
-        let text = details ?? ""
-        var labels: [String] = []
-        if text.range(of: #"(?i)\bAvailability:\s*Sold out\b"#, options: .regularExpression) != nil {
-            labels.append("Sold out")
-        }
-        if text.range(of: #"(?i)\b(?:not at (?:the )?show|not exhibited at (?:the )?show|will not be (?:shown|exhibited) at (?:the )?show)\b"#,
-                      options: .regularExpression) != nil {
-            labels.append("Not exhibited at the show")
-        }
-        labels += awards.filter { !$0.isEmpty }
-        return labels
     }
 }

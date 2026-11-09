@@ -49,13 +49,14 @@ public struct Release: Codable, Identifiable, Equatable, Sendable {
     public let kind: String?
     public let images: [ReleaseImageData]
     public let awards: [String]
+    public let sharedImages: [ReleaseImageData]?
     public let id: String
     public let title: String
     public let brandName: String?
     public let details: String?
     public let imageURL: URL?
     public let webURL: URL?
-    public init(id: String, title: String, brandName: String? = nil, details: String? = nil, imageURL: URL? = nil, webURL: URL? = nil, brandID: String? = nil, eventID: String? = nil, kind: String? = nil, images: [ReleaseImageData] = [], awards: [String] = []) { self.brandID=brandID; self.eventID=eventID; self.kind=kind; self.images=images; self.awards=awards; self.id=id; self.title=title; self.brandName=brandName; self.details=details; self.imageURL=imageURL; self.webURL=webURL }
+    public init(id: String, title: String, brandName: String? = nil, details: String? = nil, imageURL: URL? = nil, webURL: URL? = nil, brandID: String? = nil, eventID: String? = nil, kind: String? = nil, images: [ReleaseImageData] = [], awards: [String] = [], sharedImages: [ReleaseImageData]? = nil) { self.sharedImages=sharedImages; self.brandID=brandID; self.eventID=eventID; self.kind=kind; self.images=images; self.awards=awards; self.id=id; self.title=title; self.brandName=brandName; self.details=details; self.imageURL=imageURL; self.webURL=webURL }
 }
 public enum GuideStatus: String, Sendable { case current = "Happening now", upcoming = "Upcoming", past = "Past", unknown = "Dates to be confirmed" }
 public enum EventDates {
@@ -99,12 +100,22 @@ public enum Interest: Int, Codable, CaseIterable, Sendable { case none, interest
     public var category: String { switch self { case .none: "unrated"; case .interested: "moderate"; case .mustSee: "must"; case .little: "little"; case .unfamiliar: "unknown"; case .skip: "none" } }
     public var label: String { switch self { case .none: "No rating"; case .interested: "Moderate"; case .mustSee: "Must-see"; case .little: "A little"; case .unfamiliar: "Unfamiliar"; case .skip: "Not for me" } }
 }
+public enum VisitReaction: String, Codable, CaseIterable, Sendable {
+    case loved = "Loved", liked = "Liked", notForMe = "Not for me"
+}
+
+public enum BuyingIntent: String, Codable, CaseIterable, Sendable {
+    case secondLook = "Second look", considerBuying = "Consider buying"
+}
+
 public struct Selection: Codable, Equatable, Sendable {
     public var interest: Interest = .none
     public var seen = false
     // Missing in v1 saves. Keep existing ratings-based lists until the user
     // explicitly adds or removes this brand from the shortlist.
     public var shortlisted: Bool?
+    public var reaction: VisitReaction?
+    public var buyingIntent: BuyingIntent?
     public var isShortlisted: Bool { shortlisted ?? (interest.priority > 0) }
     public init(interest: Interest = .none, seen: Bool = false, shortlisted: Bool? = nil) {
         self.interest = interest
@@ -119,10 +130,11 @@ public struct SelectionKey: Codable, Hashable, Sendable {
 }
 public enum Browsing {
     public static func brands(_ brands: [Brand], query: String, filter: BrandFilter, selection: (Brand) -> Selection) -> [Brand] {
-        brands.filter { brand in
+        let search = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        return brands.filter { brand in
             let s = selection(brand)
-            let matches = query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || brand.name.localizedCaseInsensitiveContains(query.trimmingCharacters(in: .whitespacesAndNewlines))
+            let matches = search.isEmpty || brand.displayName.localizedCaseInsensitiveContains(search) || brand.name.localizedCaseInsensitiveContains(search)
             return matches && (filter == .all || (filter == .mustSee && s.interest == .mustSee) || (filter == .remaining && s.interest == .mustSee && !s.seen) || (filter == .seen && s.seen))
-        }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        }.sorted { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
     }
 }

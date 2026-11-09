@@ -28,3 +28,36 @@ final class PublicContractTests: XCTestCase {
         XCTAssertThrowsError(try JSONDecoder().decode(PublicDetail.self,from:JSONSerialization.data(withJSONObject:p)))
     }
 }
+
+extension PublicContractTests {
+    func testAustinEditionSeparatesAccessAndModels() throws {
+        let guide = try JSONDecoder().decode(PublicDetail.self, from: fixture("austin")).model()
+        let fair = try XCTUnwrap(guide.publicEvents.first { $0.id == "minutes-hours" })
+        XCTAssertFalse(guide.publicEvents.contains { $0.id == "minutes-preview" })
+        XCTAssertEqual(guide.accessSessions(for: fair).map(\.id), ["minutes-preview"])
+        let baltic = guide.newReleases(for: "baltic").filter { $0.eventID == "intersect" }
+        let rift = try XCTUnwrap(baltic.first { $0.title == "Hermétique The Rift" })
+        XCTAssertEqual(rift.displayedPrice, "€620")
+        XCTAssertEqual(rift.displayBadges, ["Sold out"])
+        XCTAssertTrue(rift.imageURL?.lastPathComponent.contains("hermetique") == true)
+        XCTAssertEqual(baltic.first { $0.title == "Aquascaphe GMT MK-II" }?.displayBadges, [])
+        XCTAssertEqual(guide.newReleases(for: "yema").filter(\.isNotExhibited).count, 2)
+        XCTAssertEqual(guide.newReleases(for: "christopherward").filter {
+            $0.displayBadges.contains("GPHG 2026 nominee")
+        }.map(\.title), ["C1 Loco Classic"])
+        XCTAssertEqual(Brand.canonicalName("CW", id: nil), "Christopher Ward")
+        XCTAssertEqual(Brand.canonicalName("TWCO", id: "toolwatchco"), "TWCO. (Tool Watch Co.)")
+    }
+
+    func testLegacySelectionCanStoreIndependentFeedback() throws {
+        var selection = try JSONDecoder().decode(Selection.self, from: Data(#"{"interest":2,"seen":true}"#.utf8))
+        XCTAssertNil(selection.reaction)
+        selection.reaction = .loved
+        selection.buyingIntent = .considerBuying
+        let restored = try JSONDecoder().decode(Selection.self, from: JSONEncoder().encode(selection))
+        XCTAssertEqual(restored.reaction, .loved)
+        XCTAssertEqual(restored.buyingIntent, .considerBuying)
+        XCTAssertEqual(restored.interest, .mustSee)
+        XCTAssertTrue(restored.seen)
+    }
+}

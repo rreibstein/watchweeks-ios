@@ -124,9 +124,11 @@ private struct FindView: View {
                     Text("Search cities, events, brands, dealers and new releases.").foregroundStyle(.secondary)
                 } else {
                     ForEach(model.guides) { guide in
-                        let events = guide.events.filter { matches($0.name) }
-                        let brands = guide.brands.filter { matches($0.name) }
-                        let releases = guide.releases.filter { matches($0.title) || matches($0.brandName ?? "") }
+                        let events = guide.publicEvents.filter { matches($0.name) }
+                        let brands = guide.brands.filter { matches($0.displayName) || matches($0.name) }
+                        let releases = guide.newReleases.filter {
+                            !$0.isTeaser && $0.displayBrandName != nil && matches($0.title)
+                        }
                         let dealers = (guide.dealers ?? []).filter { matches($0.name) }
                         if matches(guide.city) || !events.isEmpty || !brands.isEmpty || !releases.isEmpty || !dealers.isEmpty {
                             Section(guide.city) {
@@ -134,13 +136,32 @@ private struct FindView: View {
                                     Button("Open the \(guide.city) guide") { select(.guide(guide)) }
                                 }
                                 ForEach(events) { event in Button(event.name) { select(.event(guide, event)) } }
-                                ForEach(brands) { brand in Button(brand.name) { select(.brand(guide, brand)) } }
+                                ForEach(brands) { brand in
+                                    Button { select(.brand(guide, brand)) } label: {
+                                        VStack(alignment: .leading) {
+                                            Text(brand.displayName).font(.wwHeadline)
+                                            Text(guide.events.filter { brand.eventIDs.contains($0.id) }.map(\.name).joined(separator: " · "))
+                                                .font(.wwCaption).foregroundStyle(.secondary)
+                                        }
+                                    }
+                                }
                                 ForEach(dealers) { dealer in
                                     if let event = guide.events.first(where: { $0.id == dealer.eventId }) {
                                         Button(dealer.name) { select(.event(guide, event)) }
                                     }
                                 }
-                                ForEach(releases) { release in Button(release.title) { select(.release(guide, release)) } }
+                                ForEach(releases) { release in
+                                    if let brand = release.displayBrandName {
+                                        Button { select(.release(guide, release)) } label: {
+                                            VStack(alignment: .leading) {
+                                                Text("\(brand) — \(release.title)").font(.wwHeadline)
+                                                if let event = guide.events.first(where: { $0.id == release.eventID }) {
+                                                    Text(event.name).font(.wwCaption).foregroundStyle(.secondary)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

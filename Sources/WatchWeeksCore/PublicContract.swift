@@ -14,6 +14,7 @@ public struct PublicGuideHeader: Decodable, Sendable {
 }
 public struct EventDay: Codable, Equatable, Sendable {
     public let date: String; public let open: String?; public let close: String?; public let access: String?
+    public var session: String? = nil
     public var label: String { [date, [open,close].compactMap{$0}.joined(separator:"–"), access].compactMap{$0}.filter{!$0.isEmpty}.joined(separator:" · ") }
 }
 public struct PublicDetail: Decodable, Sendable {

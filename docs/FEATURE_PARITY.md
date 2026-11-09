@@ -78,3 +78,23 @@ The public feed does not expose all model-level stock, sellout, structured price
 or award data shown on the website, nor every release, appointment, or
 comparison. The native app uses the actual feed and verified edition details.
 Existing website tools remain available through the guide and account links.
+
+## Guide and release data follow-up
+
+- The New York past card displays the fixed public snapshot `nyww-2026-event-v1`
+  for October 14–20, 2026. Its ordering uses the production bundle's frozen
+  scores and tie breakers. Austin has no published frozen snapshot in the
+  public sources reviewed, so the past card reports that gap.
+- The edition-specific Austin and Miami access entries are folded into their
+  parent events. The day schedule preserves those entries, including named
+  slots embedded in the public feed. VIP hours are excluded from public live
+  status. Coconut Grove shows the 24 dealer records from the public feed.
+- The feed still delivers editorial release blocks. The app splits explicit
+  model headings, reads the price and availability for each model, and shows
+  unmatched photographs as release-group photos. The app does not infer
+  missing awards, prices, or model-specific image associations.
+
+[New York guide](https://watchweeks.com/newyork#audience-favorites) ·
+[Published ranking bundle](https://watchweeks.com/assets/topBrands-ihB13dQ1.js) ·
+[Miami guide](https://watchweeks.com/miami) ·
+[Austin new releases](https://watchweeks.com/austin/new-releases)

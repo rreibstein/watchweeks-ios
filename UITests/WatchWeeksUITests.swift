@@ -42,8 +42,14 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Events"].exists)
         capture(app, "02-singapore")
         app.buttons["Thu"].tap()
-        XCTAssertTrue(app.staticTexts["1 event"].exists)
+        XCTAssertTrue(app.staticTexts["0 events"].exists)
+        app.buttons["By day"].tap()
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Invitation only")).firstMatch.exists)
         app.buttons["All"].tap()
+        app.buttons["By # of brands"].tap()
+        let planner = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Plan your fair day")).firstMatch
+        reveal(planner, in: app)
+        planner.tap()
         let saturday = app.buttons["Sat, Nov 14"]
         reveal(saturday, in: app)
         saturday.tap()
@@ -111,6 +117,7 @@ final class WatchWeeksUITests: XCTestCase {
         reveal(saved, in: app)
         saved.tap()
         XCTAssertEqual(app.buttons["Seen ALTO"].value as? String, "Seen")
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Share My Picks")).firstMatch.exists)
         capture(app, "05-my-list")
         app.tabBars.buttons["New releases"].tap()
         let chooser = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Choose a guide")).firstMatch
