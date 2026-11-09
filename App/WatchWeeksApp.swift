@@ -98,59 +98,65 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            DiscoveryView().watchTab(.events)
-            VisitView().watchTab(.list)
-            CatalogView(releases: false).watchTab(.brands)
-            CatalogView(releases: true).watchTab(.releases)
+            withStatus(DiscoveryView()).watchTab(.events)
+            withStatus(VisitView()).watchTab(.list)
+            withStatus(CatalogView(releases: false)).watchTab(.brands)
+            withStatus(CatalogView(releases: true)).watchTab(.releases)
         }
         .tint(WatchWeeksStyle.link)
         .font(.wwBody)
-        .overlay(alignment: .bottom) {
-            if !model.pendingSort.isEmpty && model.persistenceError == nil {
-                sortToast.padding(.horizontal, 16).padding(.bottom, 64)
-            }
-        }
         .onChange(of: tab) { _, _ in model.resort() }
         .onChange(of: model.activeGuideID) { _, _ in model.resort() }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+    }
+
+    private func withStatus<Content: View>(_ content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom, spacing: 0) {
             if let error = model.persistenceError {
                 VStack {
                     Text(error).font(.wwFootnote)
                     Button("Retry saving") { Task { await model.retrySaving() } }
                 }.padding().background(.regularMaterial)
+            } else if !model.pendingSort.isEmpty {
+                sortToast
+                    .padding(.horizontal, 16)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
             }
         }
     }
 
     private var sortToast: some View {
         let count = model.pendingSort.count
+        let message = Text(count == 1 ? "1 change" : "\(count) changes")
         return ViewThatFits(in: .horizontal) {
-            HStack(spacing: 12) {
-                Text(count == 1 ? "1 change" : "\(count) changes")
+            HStack(spacing: 8) {
+                message.monospacedDigit().frame(minWidth: 70)
                 sortActions
-            }
+            }.fixedSize(horizontal: true, vertical: false)
             VStack(spacing: 0) {
-                Text(count == 1 ? "1 change" : "\(count) changes")
+                message.multilineTextAlignment(.center)
                 sortActions
             }.padding(.top, 8)
         }
         .font(.wwFootnote.weight(.semibold))
         .foregroundStyle(WatchWeeksStyle.ink)
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 12)
         .watchCard(radius: 16)
         .shadow(color: .black.opacity(0.14), radius: 8, y: 3)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("sort-toast")
     }
 
     private var sortActions: some View {
         HStack(spacing: 12) {
             Button { model.resort() } label: {
-                Text("Re-sort").frame(minHeight: 44)
+                Text("Re-sort").multilineTextAlignment(.center).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
             }
             Button {
                 model.resort()
                 tab = .list
             } label: {
-                Text("View My list").frame(minHeight: 44)
+                Text("View My list").multilineTextAlignment(.center).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
             }
         }.buttonStyle(.plain).foregroundStyle(WatchWeeksStyle.link)
     }
@@ -210,21 +216,6 @@ extension Font {
                 .setTitleTextAttributes(attributes, for: .normal)
         }
 
-    }
-}
-
-extension View {
-    func guideToolbar() -> some View {
-        toolbar(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .principal) { WatchWordmark(compact: true) }
-                ToolbarItem(placement: .topBarTrailing) { WatchFindButton(compact: true) }
-            }
-    }
-
-    func findAccess() -> some View {
-        toolbar(.visible, for: .navigationBar)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { WatchFindButton(compact: true) } }
     }
 }
 

@@ -12,8 +12,8 @@ enum WatchWeeksStyle {
     static let control = adaptive(0xEBE7E0, 0x352D27)
     static let link = adaptive(0xA52D1B, 0xFF9F89)
     static let release = adaptive(0x6A3CB0, 0xC9A8FF)
-    static let live = Color(rgb: 0x16A34A)
-    static let today = Color(rgb: 0xD97706)
+    static let live = Color(rgb: 0x15803D)
+    static let today = Color(rgb: 0xB45309)
     static let quiet = Color(rgb: 0x71717A)
 
     static func city(_ guide: Guide) -> Color {
@@ -75,17 +75,22 @@ extension View {
 }
 
 struct WatchHeader: View {
+    var compact = false
+
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: 8) { WatchWordmark(); Spacer(minLength: 4); WatchFindButton() }
+            HStack(spacing: 8) {
+                WatchWordmark(compact: compact)
+                Spacer(minLength: 4)
+                WatchFindButton(compact: compact)
+            }
             VStack(alignment: .leading, spacing: 8) {
-                WatchWordmark()
-                WatchFindButton().frame(maxWidth: .infinity, alignment: .trailing)
+                WatchWordmark(compact: compact)
+                WatchFindButton(compact: compact).frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(WatchWeeksStyle.paper)
+        .padding(.vertical, compact ? 0 : 8)
     }
 }
 
@@ -101,7 +106,7 @@ struct WatchWordmark: View {
                 .scaledToFit()
                 .frame(width: size, height: size)
                 .accessibilityHidden(true)
-            Text("WatchWeeks").font(compact ? .wwHeadline : .wwTitle2).lineLimit(1)
+            Text("WatchWeeks").font(compact ? .wwHeadline : .wwTitle2)
         }
     }
 }
@@ -115,7 +120,7 @@ struct WatchFindButton: View {
     var body: some View {
         Button { finding = true } label: {
             if compact {
-                Image(systemName: "magnifyingglass").frame(minWidth: 44, minHeight: 44)
+                Image(systemName: "magnifyingglass").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
             } else {
                 Label("Find", systemImage: "magnifyingglass")
                     .font(.wwSubheadline).padding(.horizontal, 12).frame(minHeight: 44).watchCard(radius: 24)

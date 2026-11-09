@@ -36,8 +36,7 @@ final class WatchWeeksUITests: XCTestCase {
         let preview = app.buttons["Renaud Tixier, Monday Skeleton"]
         reveal(preview, in: app)
         preview.tap()
-        XCTAssertTrue(app.navigationBars["New release"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Monday Skeleton"].exists)
+        XCTAssertTrue(app.staticTexts["Monday Skeleton"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Explore at Golden Hour Singapore"].exists)
         XCTAssertFalse(app.links["Full details"].exists)
         XCTAssertFalse(app.buttons["Full details"].exists)
@@ -49,18 +48,27 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Photo: Renaud Tixier"].exists)
         closePhoto.tap()
         capture(app, "01b-release")
-        let mustSee = app.buttons.matching(NSPredicate(format: "label IN %@", ["Mark as Must-see", "Must see"])).firstMatch
+        let interested = app.buttons["Interested, Renaud Tixier"]
         let resort = app.buttons["Re-sort"]
-        reveal(mustSee, in: app)
-        mustSee.tap()
+        reveal(interested, in: app)
+        XCTAssertGreaterThanOrEqual(interested.frame.height, 44)
+        for label in ["Must see", "Interested", "If time", "Unfamiliar", "Skip"] {
+            XCTAssertTrue(app.buttons["\(label), Renaud Tixier"].exists)
+        }
+        interested.tap()
+        XCTAssertTrue(interested.isSelected)
         XCTAssertTrue(resort.waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["View My list"].exists)
+        assertToastPlacement(in: app)
         resort.tap()
         XCTAssertFalse(resort.exists)
-        mustSee.tap()
+        interested.tap()
+        XCTAssertFalse(interested.isSelected)
         XCTAssertTrue(resort.waitForExistence(timeout: 2))
         resort.tap()
-        app.navigationBars["New release"].buttons.firstMatch.tap()
+        let back = app.navigationBars.firstMatch.buttons.firstMatch
+        XCTAssertFalse(back.label.isEmpty)
+        back.tap()
 
         let cardHeader = app.buttons["home-guide-singapore-2026"]
         let guideTitle = app.staticTexts["Singapore Guide"]
@@ -111,6 +119,7 @@ final class WatchWeeksUITests: XCTestCase {
         let copied = app.buttons.matching(NSPredicate(format: "identifier == %@ AND label CONTAINS %@", "copy-plan", "Plan copied")).firstMatch
         XCTAssertTrue(copied.waitForExistence(timeout: 5))
         capture(app, "02b-planner")
+        XCTAssertFalse(app.buttons["Find"].isHittable)
         XCTAssertFalse(app.buttons["Full guide and planning tools"].exists)
         XCTAssertTrue(app.buttons["Share guide"].exists)
         app.terminate()
@@ -161,6 +170,7 @@ final class WatchWeeksUITests: XCTestCase {
             if !seen.isHittable { app.swipeDown(velocity: .slow) }
             seen.tap()
             XCTAssertTrue(resort.waitForExistence(timeout: 2))
+            assertToastPlacement(in: app)
             capture(app, "04b-resort")
             resort.tap()
         }
@@ -192,6 +202,66 @@ final class WatchWeeksUITests: XCTestCase {
         app.buttons["Event, Golden Hour Singapore"].tap()
         app.buttons["All events"].tap()
         capture(app, "06-new-releases")
+        let releaseRating = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Interested, ")).firstMatch
+        reveal(releaseRating, in: app)
+        let wasSelected = releaseRating.isSelected
+        releaseRating.tap()
+        XCTAssertEqual(releaseRating.isSelected, !wasSelected)
+        assertToastPlacement(in: app)
+        resort.tap()
+
+        app.tabBars.buttons["Brands A–Z"].tap()
+        app.buttons["A–Z"].tap()
+        for (index, brand) in ["22Studio", "AndoAndoAndo", "Angles", "Anoma", "Artime"].enumerated() {
+            let rating = app.buttons["If time, \(brand)"]
+            reveal(rating, in: app)
+            XCTAssertGreaterThanOrEqual(rating.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(rating.frame.height, 44)
+            rating.tap()
+            let count = index + 1
+            XCTAssertTrue(app.staticTexts[count == 1 ? "1 change" : "\(count) changes"].exists)
+            assertToastPlacement(in: app)
+            if count == 4 { capture(app, "07-four-change-toast") }
+        }
+        resort.tap()
+    }
+
+    @MainActor func testRatingsAtLargestDynamicType() throws {
+        guard ProcessInfo.processInfo.environment["WW_CAPTURE"] == "1" else {
+            throw XCTSkip("Set TEST_RUNNER_WW_CAPTURE=1 to exercise ratings with the live guide.")
+        }
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        let find = app.buttons["Find"]
+        XCTAssertTrue(find.waitForExistence(timeout: 10))
+        XCTAssertGreaterThanOrEqual(find.frame.height, 44)
+        find.tap()
+        let search = app.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.tap()
+        search.typeText("Renaud Tixier")
+        let result = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Renaud Tixier")).firstMatch
+        XCTAssertTrue(result.waitForExistence(timeout: 20))
+        result.tap()
+        let mustSee = app.buttons["Must see, Renaud Tixier"]
+        let interested = app.buttons["Interested, Renaud Tixier"]
+        reveal(mustSee, in: app)
+        XCTAssertGreaterThanOrEqual(mustSee.frame.height, 44)
+        XCTAssertEqual(mustSee.frame.midX, interested.frame.midX, accuracy: 2)
+        XCTAssertLessThanOrEqual(mustSee.frame.maxY, interested.frame.minY)
+        mustSee.tap()
+        assertToastPlacement(in: app)
+        capture(app, "08-largest-type-ratings")
+        app.buttons["Re-sort"].tap()
+    }
+
+    @MainActor private func assertToastPlacement(in app: XCUIApplication) {
+        let toast = app.descendants(matching: .any)["sort-toast"].firstMatch
+        XCTAssertTrue(toast.exists)
+        XCTAssertEqual(toast.frame.midX, app.frame.midX, accuracy: 2)
+        XCTAssertLessThanOrEqual(toast.frame.maxY, app.tabBars.firstMatch.frame.minY)
     }
 
     @MainActor private func reveal(_ element: XCUIElement, in app: XCUIApplication) {

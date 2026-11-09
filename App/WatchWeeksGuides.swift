@@ -22,62 +22,60 @@ struct DiscoveryView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                WatchHeader()
-                ScrollViewReader { scroll in
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 16) {
-                            Text("Make the most of every watch fair.")
-                                .font(.wwLargeTitle).accessibilityAddTraits(.isHeader)
-                            Text("The independent guide to watch events around the world. Discover the brands exhibiting, explore the new releases, and plan your must-sees.")
-                                .foregroundStyle(WatchWeeksStyle.secondary)
-                            LiveStatusCard(guides: model.guides)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack {
-                                    ForEach(ordered) { guide in
-                                        let selected = selectedCity == guide.id
-                                        Button {
-                                            selectedCity = guide.id
-                                            withAnimation { scroll.scrollTo(guide.id, anchor: .top) }
-                                        } label: {
-                                            Text(guide.city).font(.wwSubheadline)
-                                                .padding(.horizontal, 12).frame(minHeight: 44)
-                                                .watchCard(radius: 22)
-                                                .overlay {
-                                                    if selected {
-                                                        Capsule().strokeBorder(WatchWeeksStyle.city(guide), lineWidth: 2)
-                                                            .allowsHitTesting(false)
-                                                    }
+            ScrollViewReader { scroll in
+                ScrollView {
+                    WatchHeader()
+                    LazyVStack(alignment: .leading, spacing: 16) {
+                        Text("Make the most of every watch fair.")
+                            .font(.wwLargeTitle).accessibilityAddTraits(.isHeader)
+                        Text("The independent guide to watch events around the world. Discover the brands exhibiting, explore the new releases, and plan your must-sees.")
+                            .foregroundStyle(WatchWeeksStyle.secondary)
+                        LiveStatusCard(guides: model.guides)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack {
+                                ForEach(ordered) { guide in
+                                    let selected = selectedCity == guide.id
+                                    Button {
+                                        selectedCity = guide.id
+                                        withAnimation { scroll.scrollTo(guide.id, anchor: .top) }
+                                    } label: {
+                                        Text(guide.city).font(.wwSubheadline)
+                                            .padding(.horizontal, 12).frame(minHeight: 44)
+                                            .watchCard(radius: 22)
+                                            .overlay {
+                                                if selected {
+                                                    Capsule().strokeBorder(WatchWeeksStyle.city(guide), lineWidth: 2)
+                                                        .allowsHitTesting(false)
                                                 }
-                                        }.buttonStyle(.plain)
-                                            .accessibilityAddTraits(selected ? .isSelected : [])
-                                    }
+                                            }
+                                    }.buttonStyle(.plain)
+                                        .accessibilityAddTraits(selected ? .isSelected : [])
                                 }
                             }
-                            Text("Guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
-                            if model.loading && model.guides.isEmpty { ProgressView("Loading guides…") }
-                            if let message = model.message {
-                                Text(message).font(.wwCallout)
-                                Button("Try again") { Task { await model.refresh() } }
-                            }
-                            if model.stale && !model.loading, let date = model.savedAt {
-                                Label("Offline copy · updated \(date.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock.arrow.circlepath").font(.wwCaption)
-                            }
-                            ForEach(ordered.filter { !isPast($0) }) {
-                                GuidePreview(guide: $0, past: false).id($0.id)
-                            }
-                            let past = ordered.filter(isPast)
-                            if !past.isEmpty {
-                                Text("Past guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
-                                ForEach(past) { GuidePreview(guide: $0, past: true).id($0.id) }
-                            }
-                            if ordered.isEmpty && !model.loading {
-                                ContentUnavailableView("No guides loaded", systemImage: "globe", description: Text("Pull to refresh. Previously loaded guides are available offline."))
-                            }
-                        }.padding(16)
-                    }
-                    .refreshable { await model.refresh() }
+                        }
+                        Text("Guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
+                        if model.loading && model.guides.isEmpty { ProgressView("Loading guides…") }
+                        if let message = model.message {
+                            Text(message).font(.wwCallout)
+                            Button("Try again") { Task { await model.refresh() } }
+                        }
+                        if model.stale && !model.loading, let date = model.savedAt {
+                            Label("Offline copy · updated \(date.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock.arrow.circlepath").font(.wwCaption)
+                        }
+                        ForEach(ordered.filter { !isPast($0) }) {
+                            GuidePreview(guide: $0, past: false).id($0.id)
+                        }
+                        let past = ordered.filter(isPast)
+                        if !past.isEmpty {
+                            Text("Past guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
+                            ForEach(past) { GuidePreview(guide: $0, past: true).id($0.id) }
+                        }
+                        if ordered.isEmpty && !model.loading {
+                            ContentUnavailableView("No guides loaded", systemImage: "globe", description: Text("Pull to refresh. Previously loaded guides are available offline."))
+                        }
+                    }.padding(16)
                 }
+                .refreshable { await model.refresh() }
             }.watchPage().toolbar(.hidden, for: .navigationBar)
                 .onAppear { model.activeGuideID = nil }
         }
@@ -403,7 +401,7 @@ private struct CityReleases: View {
                 }
             }
         }
-        NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").findAccess() } label: {
+        NavigationLink { ReleasesView(guide: guide) } label: {
             HStack(spacing: 6) {
                 Text("See all new releases")
                 Image(systemName: "arrow.right").accessibilityHidden(true)
@@ -451,6 +449,7 @@ struct CityView: View {
 
     var body: some View {
         ScrollView {
+            WatchHeader(compact: true)
             LazyVStack(alignment: .leading, spacing: 16) {
                 Text("\(guide.city) Guide").font(.wwLargeTitle).accessibilityAddTraits(.isHeader)
                 Text(guideDateRange(guide)).font(.wwHeadline).foregroundStyle(WatchWeeksStyle.secondary)
@@ -479,7 +478,7 @@ struct CityView: View {
                 }
                 if guide.id == "singapore-2026" { SingaporePlanner(guide: guide) }
                 if !guide.releaseCatalog().isEmpty {
-                    NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").findAccess() } label: {
+                    NavigationLink { ReleasesView(guide: guide) } label: {
                         Label("See all \(guide.releaseCatalog().count) new releases", systemImage: "sparkles")
                             .foregroundStyle(WatchWeeksStyle.release)
                     }.padding(.vertical, 8)
@@ -489,7 +488,7 @@ struct CityView: View {
                 }
             }.padding(16)
         }
-        .watchPage().navigationTitle("WatchWeeks").navigationBarTitleDisplayMode(.inline).guideToolbar()
+        .watchPage().navigationBarTitleDisplayMode(.inline)
         .task {
             model.activeGuideID = guide.id
         }
@@ -621,6 +620,7 @@ struct EventInfo: View {
 
     var body: some View {
         ScrollView {
+            WatchHeader(compact: true)
             LazyVStack(alignment: .leading, spacing: 16) {
                 Text("\(guide.city.uppercased()) GUIDE").font(.wwCaption).tracking(1)
                     .foregroundStyle(WatchWeeksStyle.link)
@@ -639,7 +639,7 @@ struct EventInfo: View {
                 }
             }.padding(16)
         }
-        .watchPage().navigationTitle("WatchWeeks").navigationBarTitleDisplayMode(.inline).guideToolbar()
+        .watchPage().navigationBarTitleDisplayMode(.inline)
         .task {
             model.activeGuideID = guide.id
         }
@@ -728,7 +728,7 @@ struct EventInfo: View {
                 }
             }
             NavigationLink {
-                ReleasesView(guide: guide, eventID: event.id).navigationTitle("New releases").guideToolbar()
+                ReleasesView(guide: guide, eventID: event.id)
             } label: {
                 Label("See all \(releases.count) new releases at this event", systemImage: "arrow.right")
                     .foregroundStyle(WatchWeeksStyle.release).frame(minHeight: 44)
