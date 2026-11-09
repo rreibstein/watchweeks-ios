@@ -61,9 +61,8 @@ Find opens the native search sheet. My list includes About & privacy.
    unlock the iPhone 13 Pro, tap **Trust**, select it as the run destination,
    and use **Register Device** if offered. Enable Developer Mode if prompted.
    Run once with **Command-R**, then switch to **Any iOS Device (arm64)**.
-2. Confirm **Version 1.0.0, Build 2**. Build 1 was already uploaded and predates
-   the final fixes. Leave Xcode's automatic version/build number adjustment off
-   during upload.
+2. Confirm **Version 1.0.0, Build 3**. Earlier builds predate the final fixes.
+   Leave Xcode's automatic version/build number adjustment off during upload.
    In App Store Connect, match the editable version number to the archive.
 3. Select **WatchWeeks** and **Any iOS Device (arm64)** in the toolbar, then
    **Product → Archive**. In Organizer, select the new archive and use
@@ -90,14 +89,14 @@ Trust This Computer. If Xcode asks, enable Developer Mode in iPhone
 - Open a fresh install. The Events tab should appear without an account or
   analytics prompt. Open Singapore, then Golden Hour and IAMWATCH.
 - Confirm Singapore dates, venue, public access, hours and an official link.
-  Open the itinerary planner, select Friday then Saturday, and copy a plan.
 - In an event, shortlist a real brand, set an interest rating and mark it seen.
   Open My list. Force-quit and relaunch to confirm those choices persisted.
 - Enable Airplane Mode and switch Wi-Fi off. Relaunch and open the cached
   Singapore guide and My list. Turn connectivity back on and refresh.
 - Open New releases and a release detail with a retained brand-credited photo.
   Confirm the photo and credit appear and the photo opens and closes in the
-  lightbox. Verify **My list → About & privacy → Privacy policy** loads in the
+  lightbox. On the Singapore guide, swipe the citywide release carousel and
+  open **See all new releases**. Verify **My list → About & privacy → Privacy policy** loads in the
   system browser.
 - Confirm the icon, type, native tabs and back navigation on the device.
   Record iPhone model, iOS, build number and pass/fail. A reproducible crash,
@@ -171,10 +170,10 @@ Find your next watch event with WatchWeeks, an independent guide for enthusiasts
 Explore city guides, browse fairs and venues, discover participating brands, and
 see new watch releases where available.
 
-- Plan your Singapore fair visits around opening hours and travel time.
+- Check local event hours, venues and admission details.
 - Shortlist brands, rate your interest and keep track of the brands you've seen.
 - Browse previously loaded guides and your checklist offline.
-- Share guide links and copy your itinerary.
+- Share guide links.
 
 Your personal selections stay on your device. Event
 schedules may change, so confirm important details with the organizer.
@@ -182,15 +181,15 @@ WatchWeeks is independent of the listed events and brands.
 
 **Keywords**
 
-`watches,watch fairs,horology,city guide,checklist,watch releases,itinerary`
+`watches,watch fairs,horology,city guide,checklist,watch releases,event schedule`
 
 **Review notes**
 
-> WatchWeeks 1.0.0, build 2, is an independent watch fair guide.
+> WatchWeeks 1.0.0, build 3, is an independent watch fair guide.
 > In Events, open Singapore, then Golden
 > Hour Singapore for the venue, hours and exhibitor checklist. Shortlist a
-> brand, mark it seen, then open My list in the tab bar. Back in Singapore,
-> open “Plan your fair day” to make and copy an itinerary.
+> brand, mark it seen, then open My list in the tab bar. At the bottom of the
+> Singapore guide, swipe the New releases carousel or open the full catalog.
 >
 > The app retrieves public, read-only guide data. Personal selections and
 > previously loaded guides stay on-device. The app has no accounts or
@@ -229,7 +228,7 @@ WatchWeeks is independent of the listed events and brands.
 > 6832395283, for the Singapore watch fairs on November 13–15, 2026. Golden
 > Hour Singapore opens Friday, November 13 at 11 a.m. Singapore time. The app
 > helps attendees plan across Golden Hour, IAMWATCH and Spring Sprang Sprung
-> with local event hours, a visit planner and a checklist available offline
+> with local event hours and a checklist available offline
 > after loading. The guide is independent of the event organizers.
 >
 > Guide: https://watchweeks.com/singapore

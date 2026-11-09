@@ -11,7 +11,7 @@ Current source: [Apple App Review Guidelines](https://developer.apple.com/app-st
   typographic brand names and bundled font license. The launch candidate includes
   credited watch photographs. Confirm the right to show them in the app.
 - **4.2 Minimum functionality.** Review notes should point to the native visit
-  checklist, offline guide and itinerary planner.
+  checklist, event schedules and offline guide.
 - **4.8 and 5.1.1 Account and privacy.** Guest use is complete. My list links
   to About & privacy. There is no native registration, login or synchronization.
   The launch build contains no product analytics

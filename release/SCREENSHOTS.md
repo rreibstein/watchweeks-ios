@@ -6,7 +6,7 @@ for the **iPhone with Dynamic Island (medium display)** slot. The app targets
 iPhone only. Apple's current size reference applies.
 
 For the listing, start with **02-singapore**, **03-golden-hour**, and
-**05-my-list**, in that order. **02b-planner** is an optional fourth screen.
+**05-my-list**, in that order.
 The updated home screen now includes brand photos. Upload **01-home**,
 **01b-release**, or **06-new-releases** after confirming rights for the
 featured photos in App Store marketing. **04-rating** is a QA reference.

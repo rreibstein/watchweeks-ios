@@ -16,7 +16,6 @@ screenshots or proof of interactive parity. Compare real simulator output on Mac
 | Seen separate from interest; duplicate appearances mirror seen | Separate toggle, guide+brandKey key | Both event appearances share same brand selection; city isolation |
 | My list visiting shortlist | Native My list with progress and remaining toggle | Earlier My Visit label removed; no new planning algorithm |
 | New releases with editorial classification, pictures, source | Native releases and detail from public API | Image credits preserved; confirm all links/awards and multiple images on Mac |
-| Plan My Day | Native Singapore time-window planner and website planning tools | The native planner covers the three specified Singapore fairs and the timed IAMWATCH conversations |
 | Comparison and private notes | Full website access | Not implemented natively; no private notes in analytics |
 | Share | Native guide share sheet | Completed share tracked once; canceled share not counted |
 | Website accounts and sync | Native checklist state stays on-device | Find occupies the trailing header and My list includes About & privacy |
@@ -49,7 +48,7 @@ presentation was revised to follow the mobile site more closely.
 - City guides expose local day and sort controls. Event cards and detail use the
   same validated local hours and access labels. The home status refreshes every
   minute and uses the event's local calendar. Invitation-only hours are excluded
-  from public live status and the Singapore planner.
+  from public live status.
 - Event detail combines venue, hours and official link. Its release carousel uses
   available watch photographs and links to the event-filtered directory. Prices
   and availability badges appear only when supported by the public record.
@@ -58,14 +57,10 @@ presentation was revised to follow the mobile site more closely.
 - My list groups saved brands by city and event. Ratings, shortlist and seen
   state are local and independent. Legacy ratings-based shortlist membership is
   preserved until edited. Seen shortlist rows collapse with a reversible tap.
-- Singapore planning reserves 60 minutes per fair, uses the three supplied travel
-  estimates and compares the selected talk with a no-talk itinerary. Six timed
-  conversations are from the organizer's November 2026 Wonder Room program.
-  Confirm admission and the current program with the organizer.
 - Spring Sprang Sprung's official site lists 6 PM on November 14–15, while the
-  public WatchWeeks feed returns 7 PM. The native display and planner use the
+  public WatchWeeks feed returns 7 PM. The native display uses the
   organizer's 6 PM closing for those two known conflicting entries. No website
-  changes were made. Singapore addresses are supplied for the three planner fairs.
+  changes were made. Singapore addresses are supplied for the three fairs.
 
 Sources: [WatchWeeks home](https://watchweeks.com/),
 [Singapore guide](https://watchweeks.com/singapore),

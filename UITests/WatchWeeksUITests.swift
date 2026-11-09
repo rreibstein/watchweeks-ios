@@ -91,37 +91,26 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Invitation only")).firstMatch.exists)
         app.buttons["All"].tap()
         app.buttons["By # of brands"].tap()
-        let planner = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Plan your fair day")).firstMatch
-        reveal(planner, in: app)
-        planner.tap()
-        let saturday = app.buttons["Sat, Nov 14"]
-        reveal(saturday, in: app)
-        saturday.tap()
-        let afternoon = app.buttons["Afternoon"]
-        reveal(afternoon, in: app)
-        afternoon.tap()
-        let talkToggle = app.switches["Build around a talk"]
-        reveal(talkToggle, in: app)
-        if (talkToggle.value as? String) != "1" {
-            talkToggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
-        }
-        XCTAssertEqual(talkToggle.value as? String, "1")
-        let talkMenu = app.buttons["planner-talk-menu"]
-        reveal(talkMenu, in: app)
-        talkMenu.tap()
-        app.buttons["4:00 PM · GD100 Screening & Conversation"].tap()
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "fits all 3 fairs")).firstMatch.exists)
-        let copy = app.buttons["copy-plan"]
-        reveal(copy, in: app)
-        if copy.frame.midY > app.frame.height * 0.82 { app.swipeUp(velocity: .slow) }
-        XCTAssertTrue(copy.isHittable)
-        copy.tap()
-        let copied = app.buttons.matching(NSPredicate(format: "identifier == %@ AND label CONTAINS %@", "copy-plan", "Plan copied")).firstMatch
-        XCTAssertTrue(copied.waitForExistence(timeout: 5))
-        capture(app, "02b-planner")
+        let cityRelease = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "city-release-card-")).firstMatch
+        reveal(cityRelease, in: app)
+        XCTAssertGreaterThan(cityRelease.frame.height, 100)
+        capture(app, "02b-city-releases")
+        cityRelease.tap()
+        XCTAssertTrue(app.buttons["View photo"].firstMatch.waitForExistence(timeout: 5))
+        app.navigationBars.firstMatch.buttons.firstMatch.tap()
+        let releases = app.buttons["city-releases"]
+        reveal(releases, in: app)
+        releases.tap()
+        XCTAssertTrue(app.buttons["Event, All events"].waitForExistence(timeout: 5))
+        app.navigationBars.firstMatch.buttons.firstMatch.tap()
+
+        let shareGuide = app.buttons["Share guide"]
+        reveal(shareGuide, in: app)
         XCTAssertFalse(app.buttons["Find"].isHittable)
+        XCTAssertFalse(app.staticTexts["Plan your fair day"].exists)
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Plan your fair day")).firstMatch.exists)
         XCTAssertFalse(app.buttons["Full guide and planning tools"].exists)
-        XCTAssertTrue(app.buttons["Share guide"].exists)
+        XCTAssertTrue(releases.exists)
         app.terminate()
         app.launch()
         app.buttons["Find"].tap()
@@ -161,6 +150,7 @@ final class WatchWeeksUITests: XCTestCase {
         let rate = app.buttons["Must see, ALTO"]
         reveal(rate, in: app)
         if !rate.isSelected { rate.tap() }
+        XCTAssertFalse(app.buttons["Details for ALTO"].exists)
         let shortlist = app.buttons["shortlist-alto"]
         if !shortlist.isHittable { app.swipeDown(velocity: .slow) }
         XCTAssertTrue(shortlist.isHittable)

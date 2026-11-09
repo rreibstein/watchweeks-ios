@@ -94,13 +94,13 @@ struct BrandRow: View {
     @State private var expanded = false
     let guide: Guide
     let brand: Brand
-    var showDetails = true
+    var collapsesWhenSeen = true
     var event: Event? = nil
     var selection: Selection { model.selection(guide, brand) }
 
     var body: some View {
         Group {
-            if selection.isShortlisted && selection.seen && showDetails && !expanded {
+            if selection.isShortlisted && selection.seen && collapsesWhenSeen && !expanded {
                 Button { expanded = true } label: {
                     HStack(spacing: 8) {
                         mustBadge
@@ -144,7 +144,7 @@ struct BrandRow: View {
     private var expandedCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 12) {
-                if selection.isShortlisted && selection.seen && showDetails {
+                if selection.isShortlisted && selection.seen && collapsesWhenSeen {
                     Button { expanded = false } label: {
                         HStack(spacing: 8) {
                             mustBadge
@@ -202,11 +202,6 @@ struct BrandRow: View {
                     }.buttonStyle(.plain)
                         .accessibilityIdentifier("shortlist-\(brand.id)")
                         .accessibilityAddTraits(selection.isShortlisted ? .isSelected : [])
-                    if showDetails {
-                        NavigationLink { BrandInfo(guide: guide, brand: brand) } label: {
-                            Image(systemName: "ellipsis").frame(minWidth: 44, minHeight: 44)
-                        }.buttonStyle(.plain).accessibilityLabel("Details for \(brand.displayName)")
-                    }
                     Spacer(minLength: 0)
                     Button {
                         var updated = selection
@@ -547,6 +542,7 @@ struct ReleaseCard: View {
     let guide: Guide
     var compact = false
     var standalone = true
+    var showsEvent = false
     @State private var photoNearViewport = false
 
     var body: some View {
@@ -574,7 +570,7 @@ struct ReleaseCard: View {
             ReleaseBadges(release: release)
             Text(release.title).font(.wwTitle3)
             if let price = release.displayedPrice { Text(price).font(.wwSubheadline.weight(.semibold)) }
-            if !compact, let event = guide.events.first(where: { $0.id == release.eventID }) {
+            if !compact || showsEvent, let event = guide.events.first(where: { $0.id == release.eventID }) {
                 Text(event.name).font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
             }
             if let credit = release.displayImages.first?.credit {
@@ -724,7 +720,7 @@ struct BrandInfo: View {
     var body: some View {
         ScrollView {
             WatchHeader(compact: true)
-            BrandRow(guide: guide, brand: brand, showDetails: false).padding(16)
+            BrandRow(guide: guide, brand: brand, collapsesWhenSeen: false).padding(16)
         }.watchPage().navigationBarTitleDisplayMode(.inline)
             .task {
                 model.activeGuideID = guide.id

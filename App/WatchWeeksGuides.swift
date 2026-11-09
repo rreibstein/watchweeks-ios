@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 import WatchWeeksCore
 
 struct DiscoveryView: View {
@@ -122,122 +121,6 @@ private struct ActivityPill: View {
         Text(title).font(.wwCaption2.bold()).foregroundStyle(.white)
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(color, in: Capsule())
-    }
-}
-
-private struct SingaporePlanner: View {
-    let guide: Guide
-    @State private var day = "2026-11-13"
-    @State private var window: Window = .allDay
-    @State private var includeTalk = false
-    @State private var selectedTalk: SingaporeItinerary.Talk?
-    @State private var copied = false
-    @State private var expanded = false
-    @State private var customized = false
-
-    private enum Window: String, CaseIterable {
-        case morning = "Morning", afternoon = "Afternoon", late = "Late afternoon", allDay = "All day"
-        var hours: Range<Int> {
-            switch self {
-            case .morning: 660..<780
-            case .afternoon: 780..<1020
-            case .late: 1020..<1200
-            case .allDay: 660..<1200
-            }
-        }
-    }
-
-    private static let program = URL(string: "https://www.iamwatch.com/event/2026/programmes")!
-    // Organizer's Wonder Room conversation schedule, local to Singapore.
-    private static let talks: [SingaporeItinerary.Talk] = [
-        .init(title: "I Want to Make My Own Watch. Now What?", date: "2026-11-13", hours: 840..<900),
-        .init(title: "The Morteau Generation", date: "2026-11-13", hours: 960..<1020),
-        .init(title: "Who Actually Invents Anything Anymore?", date: "2026-11-14", hours: 720..<780),
-        .init(title: "GD100 Screening & Conversation", date: "2026-11-14", hours: 960..<1020),
-        .init(title: "What Should Watches Made in 2026 and Beyond Look Like?", date: "2026-11-15", hours: 870..<930),
-        .init(title: "Does Independence Need the Groups?", date: "2026-11-15", hours: 960..<1020)
-    ]
-
-    var body: some View {
-        let days = ["2026-11-13", "2026-11-14", "2026-11-15"]
-        let talks = Self.talks.filter { $0.date == day }
-        let talk = includeTalk ? (talks.first { $0 == selectedTalk } ?? talks.first) : nil
-        let noTalk = SingaporeItinerary.plan(events: guide.events, date: day, window: window.hours)
-        let stops = talk.map { SingaporeItinerary.plan(events: guide.events, date: day, window: window.hours, talk: $0) } ?? noTalk
-        DisclosureGroup(isExpanded: $expanded) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Times are in Singapore, with one hour at each fair plus estimated travel.")
-                    .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
-                WatchSegments(selection: $day, choices: days) { LocalSchedule.dateLabel($0, zone: guide.timeZone) ?? "Day" }
-                WatchSegments(selection: $window, choices: Window.allCases, columns: 2) { $0.rawValue }
-                Text(LocalSchedule.hoursLabel(window.hours)).font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
-                Toggle("Build around a talk", isOn: $includeTalk)
-                if includeTalk {
-                    WatchDropdown(choices: talks, selection: talk, title: {
-                        "\(LocalSchedule.timeLabel($0.hours.lowerBound)) · \($0.title)"
-                    }, select: { selectedTalk = $0 }) {
-                        Label(talk?.title ?? "Choose an IAMWATCH talk", systemImage: "chevron.up.chevron.down")
-                            .font(.wwSubheadline).multilineTextAlignment(.leading).frame(minHeight: 44)
-                    }
-                    .accessibilityIdentifier("planner-talk-menu")
-                    Link("Official IAMWATCH program", destination: Self.program).font(.wwFootnote)
-                    Text(tradeOff(keeping: stops, skipping: noTalk)).font(.wwFootnote)
-                    if let talk {
-                        Text("Talk: \(LocalSchedule.hoursLabel(talk.hours)) · Wonder Room")
-                            .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
-                    }
-                }
-                if stops.isEmpty { Text("No itinerary fits this time window.").font(.wwSubheadline) }
-                ForEach(Array(stops.enumerated()), id: \.offset) { _, stop in
-                    if stop.transit > 0 {
-                        Label("\(stop.transit) min travel", systemImage: "figure.walk").font(.wwCaption)
-                            .foregroundStyle(WatchWeeksStyle.secondary)
-                    }
-                    Text(stop.title).font(.wwHeadline)
-                    Text(LocalSchedule.hoursLabel(stop.hours)).font(.wwSubheadline)
-                }
-                Button {
-                    let date = LocalSchedule.dateLabel(day, zone: guide.timeZone) ?? "Singapore"
-                    let lines = stops.flatMap { stop in
-                        (stop.transit > 0 ? ["\(stop.transit) min travel"] : [])
-                            + ["\(LocalSchedule.hoursLabel(stop.hours)) · \(stop.title)"]
-                    }
-                    UIPasteboard.general.string = (["Singapore · \(date) · local time"] + lines).joined(separator: "\n")
-                    copied = true
-                } label: {
-                    Label(copied ? "Plan copied" : "Copy plan", systemImage: copied ? "checkmark" : "document.on.document")
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        .contentShape(Rectangle())
-                }
-                .accessibilityIdentifier("copy-plan")
-                .disabled(stops.isEmpty)
-            }.padding(.top, 12)
-        } label: {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Plan your fair day").font(.wwTitle2).accessibilityAddTraits(.isHeader)
-                Text("Pick a day and how much time you have — see which of the 3 fairs fit, in what order, with travel time.")
-                    .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
-                if customized && !expanded, let date = LocalSchedule.dateLabel(day, zone: guide.timeZone) {
-                    Text("\(date) · \(window.rawValue)").font(.wwCaption)
-                        .padding(.horizontal, 8).padding(.vertical, 4)
-                        .background(WatchWeeksStyle.control, in: Capsule())
-                }
-            }
-        }.padding(14).watchCard()
-            .onChange(of: day) { _, _ in selectedTalk = nil; copied = false; customized = true }
-            .onChange(of: window) { _, _ in copied = false; customized = true }
-            .onChange(of: includeTalk) { _, _ in copied = false; customized = true }
-            .onChange(of: selectedTalk) { _, _ in copied = false }
-    }
-
-    private func tradeOff(keeping: [SingaporeItinerary.Stop], skipping: [SingaporeItinerary.Stop]) -> String {
-        let keepIDs = Set(keeping.filter { !$0.isTalk }.map(\.eventID))
-        let skipFairs = skipping.filter { !$0.isTalk }
-        let misses = skipFairs.filter { !keepIDs.contains($0.eventID) }.map(\.title)
-        let keep = keeping.isEmpty ? "Talk is outside this window" :
-            (misses.isEmpty ? "Keep the talk (same fairs)" : "Keep the talk (misses \(misses.joined(separator: ", ")))")
-        let skip = skipFairs.count == 3 ? "fits all 3 fairs" : "fits \(skipFairs.count) \(skipFairs.count == 1 ? "fair" : "fairs")"
-        return "\(keep) vs. Skip the talk (\(skip))"
     }
 }
 
@@ -476,13 +359,8 @@ struct CityView: View {
                     eventCards(events)
                     if events.isEmpty { Text("No public events on this day.").foregroundStyle(WatchWeeksStyle.secondary) }
                 }
-                if guide.id == "singapore-2026" { SingaporePlanner(guide: guide) }
-                if !guide.releaseCatalog().isEmpty {
-                    NavigationLink { ReleasesView(guide: guide) } label: {
-                        Label("See all \(guide.releaseCatalog().count) new releases", systemImage: "sparkles")
-                            .foregroundStyle(WatchWeeksStyle.release)
-                    }.padding(.vertical, 8)
-                }
+                let releases = guide.releaseCatalog()
+                if !releases.isEmpty { GuideReleaseCarousel(guide: guide, releases: releases) }
                 if let url = PublicLinks.safeExternal(guide.webURL) {
                     ShareLink(item: url) { Label("Share guide", systemImage: "square.and.arrow.up") }
                 }
@@ -629,7 +507,7 @@ struct EventInfo: View {
                 metadata
                 if SingaporeStock.applies(to: guide, event: event) { stock }
                 let releases = guide.releaseCatalog(eventID: event.id)
-                if !releases.isEmpty { releasePreviews(releases) }
+                if !releases.isEmpty { GuideReleaseCarousel(guide: guide, event: event, releases: releases) }
                 let dealers = guide.dealers(at: event)
                 if guide.isDealerShow(event) {
                     Text("\(dealers.count) dealers").font(.wwHeadline)
@@ -708,8 +586,16 @@ struct EventInfo: View {
         }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
             .background(WatchWeeksStyle.control, in: RoundedRectangle(cornerRadius: 16))
     }
+}
 
-    private func releasePreviews(_ releases: [Release]) -> some View {
+private struct GuideReleaseCarousel: View {
+    let guide: Guide
+    var event: Event? = nil
+    let releases: [Release]
+
+    private var scope: String { event == nil ? "city" : "event" }
+
+    var body: some View {
         let pictured = releases.filter { !$0.displayImages.isEmpty }
         let textOnly = releases.filter { $0.displayImages.isEmpty }
         return VStack(alignment: .leading, spacing: 10) {
@@ -720,19 +606,20 @@ struct EventInfo: View {
                 HStack(alignment: .top, spacing: 12) {
                     ForEach(pictured + textOnly) { release in
                         NavigationLink { ReleaseDetail(guide: guide, release: release) } label: {
-                            ReleaseCard(release: release, guide: guide, compact: true)
+                            ReleaseCard(release: release, guide: guide, compact: true, showsEvent: event == nil)
                                 .frame(width: 205, alignment: .leading)
                                 .fixedSize(horizontal: false, vertical: true)
-                        }.buttonStyle(.plain).accessibilityIdentifier("event-release-card-\(release.id)")
+                        }.buttonStyle(.plain).accessibilityIdentifier("\(scope)-release-card-\(release.id)")
                     }
                 }
             }
             NavigationLink {
-                ReleasesView(guide: guide, eventID: event.id)
+                ReleasesView(guide: guide, eventID: event?.id)
             } label: {
-                Label("See all \(releases.count) new releases at this event", systemImage: "arrow.right")
+                let title = "See all \(releases.count) new releases"
+                Label(event == nil ? title : "\(title) at this event", systemImage: "arrow.right")
                     .foregroundStyle(WatchWeeksStyle.release).frame(minHeight: 44)
-            }.accessibilityIdentifier("event-releases")
+            }.accessibilityIdentifier("\(scope)-releases")
         }
     }
 }

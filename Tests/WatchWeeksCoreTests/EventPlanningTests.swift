@@ -57,25 +57,12 @@ final class EventPlanningTests: XCTestCase {
         XCTAssertEqual(LocalSchedule.hoursLabel(660..<1140, compact: true), "11 AM–7 PM")
     }
 
-    func testSingaporePlannerShowsSaturdayTalkTradeOffWithoutOverlappingTravel() throws {
+    func testSingaporeSpringSprangSprungUsesOrganizerClosingTime() throws {
         let fixture = try XCTUnwrap(Bundle.module.url(forResource: "singapore", withExtension: "json", subdirectory: "Fixtures"))
         let detail = try JSONDecoder().decode(PublicDetail.self, from: Data(contentsOf: fixture))
         let events = try detail.model().events
         let spring = try XCTUnwrap(events.first { $0.id == "spring-sprang-sprung" })
         XCTAssertEqual(LocalSchedule.days(for: spring, guideID: "singapore-2026").first?.close, "18:00")
-        let date = "2026-11-14"
-        let afternoon = 780..<1020
-        let noTalk = SingaporeItinerary.plan(events: events, date: date, window: afternoon)
-        XCTAssertEqual(noTalk.count, 3)
-        let talk = SingaporeItinerary.Talk(title: "GD100 Screening & Conversation", date: date, hours: 960..<1020)
-        let plan = SingaporeItinerary.plan(events: events, date: date, window: afternoon, talk: talk)
-        XCTAssertEqual(plan.filter { !$0.isTalk }.count, 2)
-        XCTAssertEqual(plan.last?.hours, talk.hours)
-        for (first, second) in zip(plan, plan.dropFirst()) {
-            XCTAssertGreaterThanOrEqual(second.hours.lowerBound, first.hours.upperBound + second.transit)
-        }
-        let friday = SingaporeItinerary.plan(events: events, date: "2026-11-13", window: 660..<1200)
-        XCTAssertFalse(friday.contains { $0.eventID == "spring-sprang-sprung" })
     }
 
     func testLegacySelectionsAndExplicitShortlistOverride() throws {
