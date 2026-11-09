@@ -89,8 +89,18 @@ struct WatchHeader: View {
 
 struct WatchWordmark: View {
     var compact = false
+    @ScaledMetric(relativeTo: .headline) private var markSize = 28.0
+
     var body: some View {
-        Text("WatchWeeks").font(compact ? .wwHeadline : .wwTitle2).lineLimit(1)
+        let size = compact ? markSize * 6 / 7 : markSize
+        HStack(spacing: 6) {
+            Image("WatchWeeksMark")
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+                .accessibilityHidden(true)
+            Text("WatchWeeks").font(compact ? .wwHeadline : .wwTitle2).lineLimit(1)
+        }
     }
 }
 
