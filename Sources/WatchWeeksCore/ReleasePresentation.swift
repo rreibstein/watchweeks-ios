@@ -3,6 +3,9 @@ import Foundation
 public extension Release {
     var displayBrandName: String? { brandName.map { Brand.canonicalName($0, id: brandID) } }
 
+    var displayImages: [ReleaseImageData] { images.filter(\.isDisplayable) }
+    var displaySharedImages: [ReleaseImageData] { (sharedImages ?? []).filter(\.isDisplayable) }
+
     // The public feed delivers one editorial block per brand/event/kind. Only
     // paragraph-leading model headings can start a new item.
     var individualModels: [Release] {
@@ -23,7 +26,7 @@ public extension Release {
         let pictured = blocks.indices.filter { blocks[$0].title.caseInsensitiveCompare("Teaser") != .orderedSame }
         var assignments: [Int: [ReleaseImageData]] = [:]
         var shared: [ReleaseImageData] = []
-        for image in images {
+        for image in displayImages {
             let file = image.resolvedURL?.lastPathComponent ?? image.url
             let fileWords = Self.tokens(file)
             let scores = pictured.map { block in (block, Self.tokens(blocks[block].title).intersection(fileWords).count) }
@@ -85,5 +88,27 @@ public extension Release {
             labels.append(award)
         }
         return labels
+    }
+}
+
+private extension ReleaseImageData {
+    // Editorial source links at the release level can refer to reporting while the
+    // photo comes from the brand. Only inspect the individual photo's provenance.
+    static var excludedSources: [String] {
+        ["monochrome", "hodinkee", "timeandtide", "timetide", "fratello", "oracletime", "oracleoftime",
+         "wornandwound", "wornwound", "watchtime", "hautetime", "deployant",
+         "watchesofespionage", "watchpro", "ablogtowatch", "hypebeast",
+         "revolutionwatch", "robbreport", "watchonista", "watchesbysjx",
+         "swisswatchesmagazine", "exquisitetimepieces"]
+    }
+
+    var isDisplayable: Bool {
+        guard let credit, !credit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              let url = PublicLinks.safeExternal(resolvedURL) else { return false }
+        let linkHost = link.flatMap { URL(string: $0)?.host } ?? ""
+        let provenance = [credit, linkHost, url.host ?? "", url.lastPathComponent].map {
+            $0.lowercased().filter { $0.isLetter || $0.isNumber }
+        }
+        return !Self.excludedSources.contains { source in provenance.contains { $0.contains(source) } }
     }
 }

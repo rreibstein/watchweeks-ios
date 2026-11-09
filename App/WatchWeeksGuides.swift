@@ -239,7 +239,7 @@ private struct GuidePreview: View {
                 Label("Enthusiasts’ favorites", systemImage: "star").font(.wwHeadline)
                 if guide.id == "nyww-2026", let snapshot = URL(string: "https://watchweeks.com/newyork#audience-favorites") {
                     NewYorkFavorites(guide: guide)
-                    WebsiteLink(title: "View the published snapshot", url: snapshot, guide: guide)
+                    WebsiteLink(title: "View the published snapshot", url: snapshot)
                 } else {
                     Text("A frozen audience snapshot hasn’t been published here.").font(.wwFootnote)
                 }
@@ -338,7 +338,6 @@ private func dateRange(_ start: String?, _ end: String?, zone: String) -> String
 struct CityView: View {
     @EnvironmentObject var model: AppModel
     let guide: Guide
-    @State private var tracked = false
     @State private var day: String?
     @State private var sortByDay = false
 
@@ -390,15 +389,14 @@ struct CityView: View {
                     }.padding(.vertical, 8)
                 }
                 if let url = PublicLinks.safeExternal(guide.webURL) {
-                    WebsiteLink(title: "Full guide and planning tools", url: url, guide: guide)
-                    ShareGuideButton(guide: guide, url: url)
+                    WebsiteLink(title: "Full guide and planning tools", url: url)
+                    ShareLink(item: url) { Label("Share guide", systemImage: "square.and.arrow.up") }
                 }
             }.padding(16)
         }
         .watchPage().navigationTitle("WatchWeeks").navigationBarTitleDisplayMode(.inline).guideToolbar()
         .task {
             model.activeGuideID = guide.id
-            if !tracked { tracked = true; NativeAnalytics.shared.track(.guideViewed, guide: guide) }
         }
     }
 
@@ -525,7 +523,6 @@ struct EventInfo: View {
     @EnvironmentObject var model: AppModel
     let guide: Guide
     let event: Event
-    @State private var tracked = false
 
     var body: some View {
         ScrollView {
@@ -550,7 +547,6 @@ struct EventInfo: View {
         .watchPage().navigationTitle("WatchWeeks").navigationBarTitleDisplayMode(.inline).guideToolbar()
         .task {
             model.activeGuideID = guide.id
-            if !tracked { tracked = true; NativeAnalytics.shared.track(.eventViewed, guide: guide, eventID: event.id) }
         }
     }
 

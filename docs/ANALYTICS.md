@@ -1,4 +1,9 @@
-# Native analytics implementation and acceptance
+# Native analytics history
+
+The 1.0 launch candidate contains no product analytics SDK, consent screen,
+tracking or replay. The rest of this document records the previous implementation
+and local verification for a later release. Use the current App Store worksheet
+in [release/APP_STORE.md](../release/APP_STORE.md) for submission.
 
 Official PostHog iOS SDK pinned exactly to **3.93.6**, tag commit
 4e9850f767988f394e8584b0bf61ce85674775eb. Source/manifest inspected, SDK not yet

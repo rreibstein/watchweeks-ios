@@ -22,8 +22,8 @@ verified versus unverified capabilities. Never work in the website repository.
 > changes; never touch or deploy watchweeks.com. Confirm branch, origin and revision.
 > The actual v1 feed, detail loader, Singapore/Austin fixtures and first-party clock
 > icon are now integrated. Revalidate live responses; read docs/FEATURE_PARITY.md
-> and docs/ANALYTICS.md. Validate pinned PostHog 3.93.6 SDK in Xcode, consent/opt-out
-> and offline delivery without production test spam. No replay for v1. Check native
+> and release/APP_STORE.md. Keep the 1.0 candidate free of native product analytics
+> and replay. Check native
 > typography/layout against captured mobile-web references and fix discrepancies.
 > Run scripts/verify-macos.sh using stable Xcode 26+ and fix every build/test failure.
 > Validate real offline checklist, date zones, accessibility and device behavior;
@@ -110,8 +110,6 @@ monthly dependency/toolchain check, quarterly device/privacy review and build-nu
 log. Do not change website data or add private backend access.
 
 ## Current environment update
-Public API access is fixed. Check docs/STATUS.md for current tests. PostHog public
-configuration is established; no owner token is needed. Native analytics and all
-privacy/delivery acceptance gates are in docs/ANALYTICS.md. Source changes after
-the earlier 33fb12f baseline must be fetched before Mac work. The cloud snapshot
-did not preserve uncommitted files; only pushed revisions are durable.
+The live public API is integrated. See docs/STATUS.md for Mac validation and
+release/APP_STORE.md for signing, device testing and submission steps. The
+first release has no native product analytics or replay.

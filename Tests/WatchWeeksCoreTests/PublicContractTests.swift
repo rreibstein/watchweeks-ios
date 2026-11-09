@@ -39,7 +39,7 @@ extension PublicContractTests {
         let rift = try XCTUnwrap(baltic.first { $0.title == "Hermétique The Rift" })
         XCTAssertEqual(rift.displayedPrice, "€620")
         XCTAssertEqual(rift.displayBadges, ["Sold out"])
-        XCTAssertTrue(rift.imageURL?.lastPathComponent.contains("hermetique") == true)
+        XCTAssertTrue(rift.displayImages.isEmpty)
         XCTAssertEqual(baltic.first { $0.title == "Aquascaphe GMT MK-II" }?.displayBadges, [])
         XCTAssertEqual(guide.newReleases(for: "yema").filter(\.isNotExhibited).count, 2)
         XCTAssertEqual(guide.newReleases(for: "christopherward").filter {
@@ -59,5 +59,18 @@ extension PublicContractTests {
         XCTAssertEqual(restored.buyingIntent, .considerBuying)
         XCTAssertEqual(restored.interest, .mustSee)
         XCTAssertTrue(restored.seen)
+    }
+
+    func testReleasePhotosExcludePublisherCreditsLinksAndAssetNames() {
+        let pressPhoto = ReleaseImageData(url: "/press/bianchet.webp", credit: "Bianchet", link: "https://www.bianchet.com/watch")
+        let publisherCredit = ReleaseImageData(url: "/watch.webp", credit: "Time + Tide", link: nil)
+        let publisherLink = ReleaseImageData(url: "/watch.webp", credit: "Brand", link: "https://www.fratellowatches.com/watch")
+        let publisherAsset = ReleaseImageData(url: "/watchtime-bianchet.webp", credit: "Bianchet", link: "https://www.bianchet.com/watch")
+        let unknownPhoto = ReleaseImageData(url: "/watch.webp", credit: nil, link: nil)
+        let release = Release(id: "cached", title: "Watch", imageURL: publisherCredit.resolvedURL,
+                              images: [publisherCredit, publisherLink, publisherAsset, pressPhoto],
+                              sharedImages: [publisherAsset, unknownPhoto, pressPhoto])
+        XCTAssertEqual(release.displayImages, [pressPhoto])
+        XCTAssertEqual(release.displaySharedImages, [pressPhoto])
     }
 }

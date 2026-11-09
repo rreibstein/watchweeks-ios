@@ -6,19 +6,20 @@ Branch: development/native-launch, dedicated rreibstein/watchweeks-ios repositor
 ## Implemented and preserved in source
 
 - SwiftUI iPhone app, iOS 17+, Events, My list, Brands A–Z, New releases, About.
-- Real public v1 index plus detail loading, native brand ratings/seen, release images
-  and credits, event daily local schedules/access notes, native guide sharing.
+- Real public v1 index plus detail loading, native brand ratings/seen, release details
+  with credited photos, event daily local schedules/access notes, native guide sharing.
 - Always-visible top-right Account entry opens the verified existing account page;
   no native auth/sync claim. Web loading improvement proposal in ACCOUNT_ACCESS.md.
 - Exact website interest categories (including Skip, distinct from cleared rating),
   canonical city+brandKey identity, search/filter, persistent selections, offline cache.
 - First-party clock icon, licensed Space Grotesk fonts, mobile web references and
   product-parity worksheet. Typography/layout parity requires simulator comparison.
-- Official PostHog 3.93.6 dependency, verified existing public token/US host, first-run
-  consent, opt-out, manual requested events, anonymous native identity. Replay off
-  for v1 as owner prioritizes reliable approval. No web analytics/dashboard changed.
-- Dashboard specification, proposed native policy addition, release metadata,
-  manual macOS CI, Xcode project/shared scheme and ready-to-paste Mac continuation.
+- The first release ships without a product analytics SDK, consent prompt, or
+  replay. No web analytics or dashboards were changed.
+- Release metadata, the native privacy policy, manual macOS CI and shared scheme
+  are included. See [release handoff](../release/APP_STORE.md) for the current gate.
+
+The checks below include earlier revisions and historical PostHog validation.
 
 ## Evidence
 

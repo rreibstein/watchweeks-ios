@@ -19,11 +19,10 @@ def build(key, ref): return obj(key,'PBXBuildFile',fileRef=ref)
 appsource=file('App/WatchWeeksApp.swift','sourcecode.swift')
 browsingSources = [file('App/' + name + '.swift', 'sourcecode.swift')
                    for name in ['WatchWeeksDesign', 'WatchWeeksGuides', 'WatchWeeksCatalog']]
-analytics=file('App/NativeAnalytics.swift','sourcecode.swift')
-analyticsConfig=file('App/AnalyticsConfig.plist','text.plist.xml')
 assets=file('App/Assets.xcassets','folder.assetcatalog')
 privacy=file('App/PrivacyInfo.xcprivacy','text.xml')
 fonts=[file('App/Fonts/SpaceGrotesk-'+style+'.ttf','file') for style in ['Regular','Medium','SemiBold','Bold']]
+fontLicense=file('App/Fonts/OFL.txt','text')
 testsource=file('UITests/WatchWeeksUITests.swift','sourcecode.swift')
 appProduct=obj('app-product','PBXFileReference',explicitFileType='wrapper.application',path='WatchWeeks.app',sourceTree='BUILT_PRODUCTS_DIR')
 testProduct=obj('test-product','PBXFileReference',explicitFileType='wrapper.cfbundle',path='WatchWeeksUITests.xctest',sourceTree='BUILT_PRODUCTS_DIR')
@@ -32,9 +31,6 @@ group=obj('root-group','PBXGroup',children=refs+[products],sourceTree='<group>')
 package=obj('core-package','XCLocalSwiftPackageReference',relativePath='.')
 core=obj('core-product','XCSwiftPackageProductDependency',productName='WatchWeeksCore')
 corebuild=obj('core-build','PBXBuildFile',productRef=core)
-posthogPackage=obj('posthog-package','XCRemoteSwiftPackageReference',repositoryURL='https://github.com/PostHog/posthog-ios.git',requirement={'kind':'exactVersion','version':'3.93.6'})
-posthogProduct=obj('posthog-product','XCSwiftPackageProductDependency',package=posthogPackage,productName='PostHog')
-posthogBuild=obj('posthog-build','PBXBuildFile',productRef=posthogProduct)
 def configs(key, common):
     ids=[]
     for mode in ['Debug','Release']:
@@ -48,13 +44,13 @@ def configs(key, common):
 base={'IPHONEOS_DEPLOYMENT_TARGET':'17.0','SDKROOT':'iphoneos','SWIFT_VERSION':'6.0','CLANG_ENABLE_MODULES':'YES','ENABLE_USER_SCRIPT_SANDBOXING':'YES'}
 projectConfigs=configs('project',base)
 settings={'PRODUCT_NAME':'$(TARGET_NAME)','PRODUCT_BUNDLE_IDENTIFIER':'com.watchweeks.app','MARKETING_VERSION':'1.0.0','CURRENT_PROJECT_VERSION':'1','TARGETED_DEVICE_FAMILY':'1','CODE_SIGN_STYLE':'Automatic','GENERATE_INFOPLIST_FILE':'YES','INFOPLIST_FILE':'App/Info.plist','INFOPLIST_KEY_CFBundleDisplayName':'WatchWeeks','INFOPLIST_KEY_LSApplicationCategoryType':'public.app-category.lifestyle','INFOPLIST_KEY_UIApplicationSceneManifest_Generation':'YES','INFOPLIST_KEY_UILaunchScreen_Generation':'YES','INFOPLIST_KEY_UISupportedInterfaceOrientations':'UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight','ASSETCATALOG_COMPILER_APPICON_NAME':'AppIcon','SWIFT_EMIT_LOC_STRINGS':'YES'}
-app=obj('app','PBXNativeTarget',buildConfigurationList=configs('app',settings),buildPhases=[phase('app-src','PBXSourcesBuildPhase',[build('app-src-build',appsource),build('analytics-src-build',analytics)] +
-    [build('browse-src-' + str(i), ref) for i, ref in enumerate(browsingSources)]),phase('app-frameworks','PBXFrameworksBuildPhase',[corebuild,posthogBuild]),phase('app-resources','PBXResourcesBuildPhase',[build('assets-build',assets),build('privacy-build',privacy),build('analytics-config-build',analyticsConfig)]+[build('font-'+str(i),f) for i,f in enumerate(fonts)])],buildRules=[],dependencies=[],name='WatchWeeks',packageProductDependencies=[core,posthogProduct],productName='WatchWeeks',productReference=appProduct,productType='com.apple.product-type.application')
+app=obj('app','PBXNativeTarget',buildConfigurationList=configs('app',settings),buildPhases=[phase('app-src','PBXSourcesBuildPhase',[build('app-src-build',appsource)] +
+    [build('browse-src-' + str(i), ref) for i, ref in enumerate(browsingSources)]),phase('app-frameworks','PBXFrameworksBuildPhase',[corebuild]),phase('app-resources','PBXResourcesBuildPhase',[build('assets-build',assets),build('privacy-build',privacy)]+[build('font-'+str(i),f) for i,f in enumerate(fonts)]+[build('font-license-build',fontLicense)])],buildRules=[],dependencies=[],name='WatchWeeks',packageProductDependencies=[core],productName='WatchWeeks',productReference=appProduct,productType='com.apple.product-type.application')
 projectID=sha256(b'project').hexdigest()[:24].upper()
 proxy=obj('proxy','PBXContainerItemProxy',containerPortal=projectID,proxyType='1',remoteGlobalIDString=app,remoteInfo='WatchWeeks')
 dep=obj('dependency','PBXTargetDependency',target=app,targetProxy=proxy)
 test=obj('tests','PBXNativeTarget',buildConfigurationList=configs('uitest',{'PRODUCT_NAME':'$(TARGET_NAME)','PRODUCT_BUNDLE_IDENTIFIER':'com.watchweeks.app.uitests','GENERATE_INFOPLIST_FILE':'YES','TARGETED_DEVICE_FAMILY':'1','TEST_TARGET_NAME':'WatchWeeks','CODE_SIGN_STYLE':'Automatic'}),buildPhases=[phase('test-src','PBXSourcesBuildPhase',[build('test-src-build',testsource)]),phase('test-frameworks','PBXFrameworksBuildPhase',[])],buildRules=[],dependencies=[dep],name='WatchWeeksUITests',productName='WatchWeeksUITests',productReference=testProduct,productType='com.apple.product-type.bundle.ui-testing')
-obj('project','PBXProject',attributes={'LastUpgradeCheck':'2600','BuildIndependentTargetsInParallel':'YES'},buildConfigurationList=projectConfigs,compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings='0',knownRegions=['en','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',targets=[app,test],packageReferences=[package,posthogPackage])
+obj('project','PBXProject',attributes={'LastUpgradeCheck':'2600','BuildIndependentTargetsInParallel':'YES'},buildConfigurationList=projectConfigs,compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings='0',knownRegions=['en','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',targets=[app,test],packageReferences=[package])
 path=root/'WatchWeeks.xcodeproj'; path.mkdir(exist_ok=True)
 XcodeProject({'archiveVersion':'1','classes':{},'objectVersion':'56','objects':objects,'rootObject':projectID},str(path/'project.pbxproj')).save()
 schemes=path/'xcshareddata/xcschemes'; schemes.mkdir(parents=True,exist_ok=True)

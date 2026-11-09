@@ -101,7 +101,7 @@ private enum WatchDestination: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.key == rhs.key }
     func hash(into hasher: inout Hasher) { hasher.combine(key) }
 
-    @ViewBuilder var screen: some View {
+    @MainActor @ViewBuilder var screen: some View {
         switch self {
         case .guide(let guide): CityView(guide: guide)
         case .event(let guide, let event): EventInfo(guide: guide, event: event)

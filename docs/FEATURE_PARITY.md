@@ -98,3 +98,32 @@ Existing website tools remain available through the guide and account links.
 [Published ranking bundle](https://watchweeks.com/assets/topBrands-ihB13dQ1.js) ·
 [Miami guide](https://watchweeks.com/miami) ·
 [Austin new releases](https://watchweeks.com/austin/new-releases)
+
+
+## Native photo provenance audit, November 8, 2026
+
+The five live guide responses supplied 162 image entries. The native app
+excluded 14 entries representing 12 distinct assets. The filter runs before
+hero, carousel or gallery selection and also applies to cached guide records.
+It uses the individual photo's credit, source-link host, image host and filename.
+An article cited for the editorial text does not disqualify separately credited
+brand photography. Retained credits do not independently establish permission.
+
+| City | Photo | Reason omitted |
+| --- | --- | --- |
+| Austin and Singapore | Baltic Hermétique The Rift | Monochrome source link |
+| Austin | Formex Essence Ceramica Dark Matter Redshift | Monochrome source link |
+| Austin | Vulcain Skindiver Nautique GMT | Monochrome source link |
+| Austin | Marathon × Watches of Espionage Titanium SAR | Watches of Espionage credit and source link |
+| Austin | DOXA SUB 200T Afterglow | Exquisite Timepieces / DOXA credit |
+| Hong Kong | Armin Strom Tribute³ Au750 | WatchTime source link and filename |
+| Hong Kong | Bianchet Rotondo UltraFino Diamond | WatchTime filename, despite Bianchet link |
+| Hong Kong | Czapek Antarctique Tourbillon Victory Green | WatchTime filename |
+| Miami | Armin Strom Mirrored Force Resonance Zeitgeist Blue | Exquisite Timepieces credit |
+| Miami | Fortis Novonaut N-42 Halo | WatchTime filename, despite Fortis credit |
+| Miami | Glashütte Original Senator Meissen Cherry Blossom | Monochrome source link and WatchTime filename |
+| Miami | Jacob & Co. Palatial Flying Tourbillon Minute Repeater | Haute Time source link |
+
+The two Exquisite Timepieces assets were omitted under the same brand-source
+standard. The brand-linked variants of the Vulcain and Glashütte Original
+releases and the separate Singapore Czapek asset can still display.

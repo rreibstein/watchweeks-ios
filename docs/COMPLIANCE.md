@@ -1,19 +1,21 @@
-# Release review worksheet
+# Release review checks
 
-Apple live guideline pages could not be retrieved in cloud (developer.apple.com
-blocked). Re-read current https://developer.apple.com/app-store/review/guidelines/
-on Mac before signing off. These are engineering checks, not Apple's approval.
+Current source: [Apple App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/).
 
-- 2.1 completeness: Feed implemented; BLOCKED by no Xcode/device test.
-- 2.3 metadata: draft feature claims must match observed release behavior; replace
-  final icon identity, actual screenshots only, no fabricated event content.
-- 4.1 impersonation: independent statement in app and listing; no organizer logo;
-  first-party clock icon/fonts retrieved; native comparison still required.
-- 4.2 utility: native interest/seen controls, My list progress and cached guide
-  browsing implemented; actual working end-to-end functionality still required.
-- 4.8 login: guest-only, no third-party login or account creation added.
-- 5.1 privacy: optional PostHog with consent, no ad SDKs, local selections; verify native policy, backup,
-  image host behavior and Apple disclosure definitions. No automatic website sync.
+- **2.1 Completeness.** Simulator and physical iPhone tests must cover guest
+  launch, the live Singapore guide, opening hours, navigation, checklist
+  persistence, cached browsing and the support/privacy links.
+- **2.3 Metadata.** Use real iPhone screenshots from the candidate and describe
+  only working flows. List WatchWeeks as independent of the events.
+- **4.1 and 5.2 Identity and content rights.** Keep the first-party clock icon,
+  typographic brand names and bundled font license. The launch candidate includes
+  credited watch photographs. Confirm the right to show them in the app.
+- **4.2 Minimum functionality.** Review notes should point to the native visit
+  checklist, offline guide and itinerary planner.
+- **4.8 and 5.1.1 Account and privacy.** Guest use is complete. The Account
+  action opens the website in the browser. There is no native registration,
+  login or synchronization. The launch build contains no product analytics
+  SDK or replay. Verify the native policy and actual request log retention
+  before setting App Store privacy answers.
 
-Do not submit until API_CONTRACT.md checklist, Mac build/QA, policy, icon/license,
-support contact, seller/legal decisions and owner release approval are complete.
+See [App Store handoff](../release/APP_STORE.md) for owner actions and the gate.

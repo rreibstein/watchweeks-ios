@@ -1,13 +1,9 @@
 # WatchWeeks iOS
 
-Independent native SwiftUI iPhone guide. Dedicated iOS code only; the production
-website is not modified by this project. iOS 17+, Swift 6, one runtime SDK dependency (official PostHog).
-
-**Not release-ready:** real public v1 guide/detail integration is implemented with
-Singapore/Austin regression fixtures. Optional official PostHog analytics is wired
-to the existing public project, with consent and no replay. Xcode/SDK compilation,
-simulator/device QA and privacy sign-off still require macOS. See
-[status](docs/STATUS.md), [analytics](docs/ANALYTICS.md) and [API contract](docs/API_CONTRACT.md).
+Independent native SwiftUI iPhone guide for iOS 17 and later. The first release
+uses the public WatchWeeks feed, stores selections locally and ships without a
+product analytics SDK or consent screen. See [release status](docs/STATUS.md),
+[App Store handoff](release/APP_STORE.md) and [API contract](docs/API_CONTRACT.md).
 
 Open `WatchWeeks.xcodeproj` using stable Xcode 26+. Run `swift test` for portable
 core tests and `scripts/verify-macos.sh` for Xcode/simulator checks on macOS.

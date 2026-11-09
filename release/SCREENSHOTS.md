@@ -1,26 +1,19 @@
-# Actual screenshot capture
+# App Store screenshot handoff
 
-No App Store screenshots have been produced. No mockups or synthetic content may
-be represented as running app screenshots. Live feed acceptance and branding comparison
-are prerequisites. Verify Apple's current reference on Mac:
-https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications
-Cloud access to developer.apple.com was blocked; current requirements unverified.
+Use the actual iPhone 17 simulator captures in
+`release/screenshots/app-store/`. These are 1206 × 2622 portrait screenshots
+for the **iPhone with Dynamic Island (medium display)** slot. The app targets
+iPhone only. Apple's current size reference applies.
 
-In App Store Connect, use the currently required iPhone screenshot size(s), then
-select matching installed simulators in Xcode. iPhone-only first release; no iPad
-screenshots unless iPad is intentionally enabled. Do not rely on a historical size
-list. Capture actual pixels and verify dimensions with `sips -g pixelWidth -g pixelHeight`.
+For the listing, upload **01-home**, **02-singapore**, **03-golden-hour**, and
+**05-my-list** if they show no photo that still needs listing rights. The other
+captures are for QA. Upload a photo-forward capture such as **06-new-releases**
+only after confirming rights for the featured photos in App Store marketing.
 
-Run scripts/verify-macos.sh first. Boot the chosen simulator, launch the app with
-live data, set a neutral status bar using `xcrun simctl status_bar booted override
---time '9:41' --batteryState charged --batteryLevel 100`, and capture via
-`xcrun simctl io booted screenshot release/screenshots/01-discovery.png`.
-Create directory first. Restore with `xcrun simctl status_bar booted clear`.
+[Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)
 
-Capture five real flows: discovery; city brands; rating/seen interactions; release
-detail with licensed actual imagery; My list. Seed personal selections by normal
-UI interactions using real brands, not fabricated guide content. Extend UITests
-with actual navigable labels after API verification. Existing capture attachment
-covers only discovery and is opt-in; it is not a complete screenshot suite.
-Inspect light/dark, large text, loading/error/empty/offline and VoiceOver order.
-Verify the first-party icon, font rendering and final identity before uploading.
+To recapture, run the live UI test via `scripts/verify-macos.sh` with
+`TEST_RUNNER_WW_CAPTURE=1` and an iPhone 17 or 17 Pro simulator destination.
+Use the attached real screenshots in the resulting `.xcresult`, exported with
+`xcrun xcresulttool export attachments`. Check the PNG dimensions and alpha
+with `sips -g pixelWidth -g pixelHeight -g hasAlpha`. Upload opaque files.

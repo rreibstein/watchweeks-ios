@@ -44,8 +44,6 @@ import WatchWeeksCore
             selection.shortlisted = previous.isShortlisted
         }
         guard previous != selection else { return }
-        if previous.interest != selection.interest { NativeAnalytics.shared.track(.ratingSet,guide:guide,brandID:brand.id,rating:selection.interest.category) }
-        if previous.seen != selection.seen { NativeAnalytics.shared.track(.seenToggled,guide:guide,brandID:brand.id,seen:selection.seen) }
         selections[SelectionKey(guideID: guide.id, brandID: brand.id)] = selection
         let snapshot = selections; let previousSave = saving; let store = store
         saving = Task { [weak self] in
@@ -67,13 +65,12 @@ import WatchWeeksCore
     @Environment(\.scenePhase) private var phase
     var body: some Scene {
         WindowGroup {
-            RootView().environmentObject(model).task { NativeAnalytics.shared.active(); await model.start() }
-                .onChange(of: phase) { _, phase in if phase == .active { NativeAnalytics.shared.active(); Task { await model.refresh() } }; if phase == .background { NativeAnalytics.shared.background() } }
+            RootView().environmentObject(model).task { await model.start() }
+                .onChange(of: phase) { _, phase in if phase == .active { Task { await model.refresh() } } }
         }
     }
 }
 struct RootView: View {
-    @ObservedObject private var analytics = NativeAnalytics.shared
     @EnvironmentObject var model: AppModel
     @State private var tab: WatchWeeksTab = .events
 
@@ -84,8 +81,6 @@ struct RootView: View {
             CatalogView(releases: false).watchTab(.brands)
             CatalogView(releases: true).watchTab(.releases)
         }
-        .sheet(isPresented: Binding(get: { !analytics.choiceMade }, set: { _ in })) { AnalyticsConsent() }
-        .onChange(of: tab) { _, value in if value == .list { analytics.track(.myVisitViewed) } }
         .tint(WatchWeeksStyle.link)
         .font(.wwBody)
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -175,7 +170,7 @@ struct AccountView: View {
                 Section("On this iPhone") {
                     Text("You can use the native app without signing in. Your native ratings and seen selections are stored on this device. Signing in on the website does not sign you into this app or synchronize these native selections.")
                     Text("The account website needs an internet connection. Your previously loaded guides and native checklist remain available offline.")
-                    NavigationLink("About & analytics") { AboutView() }
+                    NavigationLink("About & privacy") { AboutView() }
                 }
             }
             .font(.wwBody)
@@ -197,5 +192,15 @@ extension View {
     func accountAccess() -> some View {
         toolbar(.visible, for: .navigationBar)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { AccountButton() } }
+    }
+}
+
+struct WebsiteLink: View {
+    let title: String
+    let url: URL
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        Button(title) { openURL(url) }
     }
 }

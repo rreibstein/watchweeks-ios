@@ -3,17 +3,19 @@ import XCTest
 final class WatchWeeksUITests: XCTestCase {
     @MainActor func testGuestNavigation() {
         let app = XCUIApplication()
-        openAsGuest(app)
+        app.launch()
         XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["Allow usage analytics"].exists)
+        XCTAssertFalse(app.buttons["Continue without analytics"].exists)
         let account = app.buttons["Account"]
         XCTAssertTrue(account.waitForExistence(timeout: 2))
         account.tap()
         XCTAssertTrue(app.buttons["Open WatchWeeks account"].waitForExistence(timeout: 2))
-        let about = app.buttons["About & analytics"]
+        let about = app.buttons["About & privacy"]
         if !about.isHittable { app.swipeUp() }
         about.tap()
         XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.switches["Share anonymous usage analytics"].exists)
+        XCTAssertTrue(app.buttons["Privacy policy"].waitForExistence(timeout: 3))
         app.navigationBars["About"].buttons.firstMatch.tap()
         app.buttons["Done"].tap()
         app.tabBars.buttons["My list"].tap()
@@ -26,7 +28,7 @@ final class WatchWeeksUITests: XCTestCase {
         }
         continueAfterFailure = false
         let app = XCUIApplication()
-        openAsGuest(app)
+        app.launch()
         XCTAssertTrue(app.buttons["Singapore"].waitForExistence(timeout: 40))
         capture(app, "01-home")
 
@@ -76,7 +78,7 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(copied.waitForExistence(timeout: 5))
         capture(app, "02b-planner")
         app.terminate()
-        openAsGuest(app)
+        app.launch()
         app.buttons["Find"].tap()
         let eventSearch = app.searchFields.firstMatch
         XCTAssertTrue(eventSearch.waitForExistence(timeout: 5))
@@ -95,6 +97,14 @@ final class WatchWeeksUITests: XCTestCase {
         app.tabBars.buttons["Events"].tap()
         XCTAssertTrue(app.staticTexts["Golden Hour Singapore"].waitForExistence(timeout: 5))
 
+        let collapsedBrand = app.buttons["ALTO"]
+        if collapsedBrand.exists {
+            reveal(collapsedBrand, in: app)
+            collapsedBrand.tap()
+            let previouslySeen = app.buttons["Seen ALTO"]
+            reveal(previouslySeen, in: app)
+            previouslySeen.tap()
+        }
         let rate = app.buttons["Must-see, ALTO"]
         reveal(rate, in: app)
         if !rate.isSelected { rate.tap() }
@@ -111,7 +121,7 @@ final class WatchWeeksUITests: XCTestCase {
         capture(app, "04-rating")
         app.terminate()
 
-        openAsGuest(app)
+        app.launch()
         app.tabBars.buttons["My list"].tap()
         let saved = app.buttons["ALTO"]
         reveal(saved, in: app)
@@ -134,12 +144,6 @@ final class WatchWeeksUITests: XCTestCase {
                 .press(forDuration: 0.08, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.54, dy: 0.43)))
         }
         XCTAssertTrue(element.isHittable, "Expected \(element) to be visible")
-    }
-
-    @MainActor private func openAsGuest(_ app: XCUIApplication) {
-        app.launch()
-        let decline = app.buttons["Continue without analytics"]
-        if decline.waitForExistence(timeout: 3) { decline.tap() }
     }
 
     @MainActor private func capture(_ app: XCUIApplication, _ name: String) {

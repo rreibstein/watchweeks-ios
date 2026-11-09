@@ -1,88 +1,182 @@
-# Draft App Store package — NOT approved for submission
+# WatchWeeks 1.0 App Store handoff
 
-Name: **WatchWeeks: Watch Event Guide** (29 characters; availability unverified)
-Subtitle: **Independent watch event guide** (29 characters)
-Promotional text: Explore watch events worldwide. Browse participating brands,
-keep your own must-see checklist, and discover new releases with WatchWeeks.
+Target public availability before Friday, November 13, 2026, 11 a.m. Singapore
+time (Thursday, November 12, 10 p.m. US Eastern). Aim to submit by Monday,
+November 9, and release as soon as approved. Apple can take up to 24 hours to
+make a released app available. Check the Singapore storefront after release.
 
-## Description (use only after feature and feed acceptance)
+This is an iPhone-only, free candidate with public guides, local visit planning
+and offline access to previously loaded guides. The iPhone app contains no
+product analytics SDK, session replay, ads, tracking, sign-in or purchases.
+Account opens the existing website in the system browser.
+
+## 1. Create the App Store Connect record
+
+1. Sign in to [App Store Connect](https://appstoreconnect.apple.com/). If Business
+   shows a pending Apple Developer Program agreement, the Account Holder
+   reviews and accepts it. Use the existing WatchWeeks record if one exists.
+2. If needed, register an explicit App ID under Apple Developer → Certificates,
+   Identifiers & Profiles → Identifiers → **+** → App IDs → App. Use
+   `com.watchweeks.app`, description **WatchWeeks**, and the existing owner team.
+3. In App Store Connect → Apps → **+** → **New App**, select iOS, English (U.S.),
+   the registered bundle ID and SKU `watchweeks-ios`. Try **WatchWeeks** as the
+   public name. If unavailable, try **WatchWeeks: Watch Event Guide**.
+4. Copy the numeric Apple ID from **App Information** to make the direct product
+   page link after launch. Keep the business-card QR pointed to the live
+   [Singapore guide](https://watchweeks.com/singapore).
+
+## 2. Archive and upload from Xcode
+
+1. Open `WatchWeeks.xcodeproj` from the verified `development/native-launch`
+   checkout. In **Xcode → Settings → Accounts**, add your Apple Account if it
+   is missing. Choose the enrolled team for the WatchWeeks target in
+   **Signing & Capabilities** and leave **Automatically manage signing** on.
+   Keep `com.watchweeks.app` unless the actual existing app record uses a
+   different ID. Avoid committing personal signing settings.
+2. Confirm **Version 1.0.0**, **Build 1** if unused, or the next unused build
+   number if App Store Connect already has a build. Leave Xcode's automatic
+   version/build number adjustment off during upload if you set them explicitly.
+3. Select **WatchWeeks** and **Any iOS Device (arm64)** in the toolbar, then
+   **Product → Archive**. In Organizer, select the new archive and use
+   **Validate App** if offered. Resolve any validation errors.
+4. In Organizer choose **Distribute App → App Store Connect → Upload**.
+   Use the regular App Store Connect upload so the same build can be tested
+   and submitted. Keep upload symbols enabled if offered. Wait for processing
+   and check App Store Connect for any build issues. This step uploads the
+   build for private preparation. App Review starts in step 5 below.
+
+[Apple's Xcode distribution instructions](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases)
+
+## 3. Do one physical iPhone pass on the exact build
+
+In App Store Connect → **TestFlight → Internal Testing**, create or use an
+internal group, add yourself and the processed build, and install it from
+TestFlight on a physical iPhone running iOS 17 or later. A first-generation
+iPhone SE (A1662) cannot run this build. If the upload is still processing, start the
+smoke test by selecting a connected iPhone in Xcode and choosing **Product →
+Run** with the scheme's Run configuration set to Release, then confirm the
+processed build in TestFlight. For a wired run, unlock the iPhone and accept
+Trust This Computer. If Xcode asks, enable Developer Mode in iPhone
+**Settings → Privacy & Security → Developer Mode**, restart and confirm.
+
+- Open a fresh install. The Events tab should appear without an account or
+  analytics prompt. Open Singapore, then Golden Hour and IAMWATCH.
+- Confirm Singapore dates, venue, public access, hours and an official link.
+  Open the itinerary planner, select Friday then Saturday, and copy a plan.
+- In an event, shortlist a real brand, set an interest rating and mark it seen.
+  Open My list. Force-quit and relaunch to confirm those choices persisted.
+- Enable Airplane Mode and switch Wi-Fi off. Relaunch and open the cached
+  Singapore guide and My list. Turn connectivity back on and refresh.
+- Open New releases and one release detail. Open Account and verify the
+  existing website opens in the browser. Return to the app and verify
+  **Account → About & privacy → Privacy policy** loads in the browser.
+- Confirm the icon, type, native tabs and back navigation on the device.
+  Record iPhone model, iOS, build number and pass/fail. A reproducible crash,
+  lost selection, blocked guest flow or incorrect core schedule holds submission.
+
+[Apple's internal TestFlight instructions](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers)
+
+## 4. Fill the version page while the build processes
+
+| App Store Connect field | Entry or action |
+| --- | --- |
+| Subtitle | Independent watch event guide |
+| Category | Lifestyle |
+| Price | Free |
+| Availability | Choose all eligible storefronts, including Singapore. Complete any owner verification for the EU and skip regions with unresolved requirements on the first release. |
+| Support URL | `https://watchweeks.com` (public footer has the correction/contact path) |
+| Privacy Policy URL | `https://github.com/rreibstein/watchweeks-ios/blob/development/native-launch/release/PRIVACY.md` after owner confirms the wording and feed and image-host log retention. This matches the in-app link. |
+| Copyright | 2026 Reed Reibstein |
+| Age Rating | Complete the current questionnaire from the actual app. Native guides have editorial text and credited photos, with no messaging, public posting, ads or native web browser. Check Apple's wording on external links. |
+| Content Rights | Answer Yes for third-party content. The app displays brand-credited watch photos and excludes images with publication provenance. Confirm the source and applicable native usage terms for the retained photos and keep documentation ready. The listing should only show photos with verified listing rights. |
+| Export Compliance | The candidate uses system HTTPS, with no app or third-party encryption library. The build declares no non-exempt encryption. Answer any remaining territory questions using Apple's questionnaire. |
+| App Privacy | The app stores visit data locally. Confirm feed, CDN and image-host logging and retention before deciding what to disclose. See the request below. Apple excludes data discarded after servicing the request in real time. Disclose relevant retained data and purposes. The app has no tracking. |
+| Screenshots | Use actual, final-build iPhone Dynamic Island medium PNGs. See [screenshot instructions](SCREENSHOTS.md). |
+| App Review Information | Provide a real contact name, phone and email. Leave Sign-in required off. Paste the review notes below and replace the build placeholder. |
+| Version Release | Manually release this version. Be ready to release as soon as Apple approves it. |
+
+**Read-only hosting question for Lovable**
+
+> For requests from the iPhone app to `watchweeks.com/api/public/guides`,
+> `watchweeks.com/api/public/guides/<id>`, and the guide photo paths under
+> `watchweeks.com/__l5e/assets-v1/`, identify what production Cloudflare,
+> Lovable and any connected logging or storage service retain after the
+> request. Check IP, user agent, resource path, cookie or other identifier,
+> analytics use, retention duration, who can access it and deletion process.
+> Cite the settings or provider docs and mark unknowns. Do not change or
+> deploy anything.
+
+The live guide and photo responses set Cloudflare's `__cf_bm` bot-management
+cookie. All image URLs in the five live guides resolved to `watchweeks.com`
+at the time of this check. The public response does not establish log
+retention or prove that every underlying provider discards the data.
+
+[Apple's definition of collection](https://developer.apple.com/app-store/app-privacy-details/)
+· [Cloudflare cookie documentation](https://developers.cloudflare.com/fundamentals/reference/policies-compliances/cloudflare-cookies/#__cf_bm-cookie-for-cloudflare-bot-products)
+
+**Promotional text**
+
+Explore watch events worldwide. Browse participating brands, build your
+must-see list, and discover new releases with WatchWeeks.
+
+**Description**
 
 Find your next watch event with WatchWeeks, an independent guide for enthusiasts.
-Explore published city guides, browse events and venues, discover participating
-brands, and view new watch releases where available.
+Explore city guides, browse fairs and venues, discover participating brands, and
+see new watch releases where available.
 
-Make the most of your visit:
-• Mark brands you're interested in and build a must-see list.
-• Keep track of brands you've seen in My list.
-• Search brands and filter your remaining must-see stops.
-• Keep previously loaded guides and your checklist available offline.
-• Share guide links and open the full WatchWeeks website for more planning tools.
+- Plan your Singapore fair visits around opening hours and travel time.
+- Shortlist brands, rate your interest and keep track of the brands you've seen.
+- Browse previously loaded guides and your checklist offline.
+- Share guide links and copy your itinerary.
 
-No account is required. Your ratings and seen selections stay on your device and
-do not automatically synchronize with a WatchWeeks website account. Uncached
-content and images need an internet connection. Event schedules may change;
-confirm important details with the organizer.
+No account is required. Your personal selections stay on your device. Event
+schedules may change, so confirm important details with the organizer.
+WatchWeeks is independent of the listed events and brands.
 
-WatchWeeks is an independent guide to watch fairs and events. It is not affiliated
-with or endorsed by the listed event organizers or brands.
+**Keywords**
 
-Keywords: watches,watch fairs,events,horology,brands,city guide,checklist,watch releases
-Primary category: Lifestyle. Secondary: Travel (optional).
-Support URL proposal: https://watchweeks.com (must confirm accessible support/contact path).
-Privacy URL: https://watchweeks.com/privacy (native coverage not yet verified).
-Copyright proposal: 2026 [owner's verified legal rights-holder name]. Do not submit brackets.
-Distribution: worldwide English, free; review legal availability and export questionnaire.
-Never imply selecting Singapore accelerates review. Name availability requires ASC access.
+`watches,watch fairs,horology,city guide,checklist,watch releases,itinerary`
 
-## Review notes draft
+**Review notes**
 
-WatchWeeks is an independent worldwide event guide, not an organizer's official app.
-No login or purchase is needed. Discover > choose a city > Brands lets reviewers
-set interest and seen state; My list provides a persistent personal checklist.
-Guest selections stay on-device; no website sync is claimed. Previously loaded
-feed content is cached. The app accesses public read-only WatchWeeks endpoints.
-Provide live instructions for a populated city and exact reviewed build before use.
-Use only after real-feed simulator and device QA pass.
+> WatchWeeks 1.0.0, build [build number], is an independent watch fair guide.
+> No account or purchase is required. In Events, open Singapore, then Golden
+> Hour Singapore for the venue, hours and exhibitor checklist. Shortlist a
+> brand, mark it seen, then open My list in the tab bar. Back in Singapore,
+> open “Plan your fair day” to make and copy an itinerary.
+>
+> The app saves personal selections and previously loaded guides on-device.
+> It retrieves public, read-only guide data. Account is an optional link to
+> the existing WatchWeeks website in the system browser. The iPhone app
+> has no native login or synchronization.
+>
+> The independent editorial guide displays product photos credited to
+> their brands. The app filters out photos with publication provenance.
+> Photos load from watchweeks.com and are not embedded in the app binary.
+> We can replace or remove them from the hosted guide without a binary
+> update. Review About & privacy for the contact and privacy policy.
+>
+> The release is time-sensitive. Golden Hour Singapore opens Friday,
+> November 13, 2026 at 11 a.m. SGT and runs through November 15. The app helps
+> visitors plan around Golden Hour, IAMWATCH and Spring Sprang Sprung.
+> Guide: https://watchweeks.com/singapore
+> Organizer schedule: https://goldenhour.delugs.com/singapore
 
-## Privacy and age questionnaire worksheet
+## 5. Submit, request expedited review, then release after approval
 
-No advertising, login, precise location or contacts access is implemented. Optional
-PostHog product analytics is now implemented; see NATIVE_PRIVACY_ADDITION.md and
-../docs/ANALYTICS.md. Ratings/seen state and guide caches are local, not sent to a backend.
-URLSession requests disclose ordinary connection metadata to website/image hosts;
-inspect actual image domains, logging retention and policy before completing disclosures. Do not select “Data Not Collected.” Apple's collection definition, processing duration and any
-linked third-party behavior must be checked with owner. No privacy label is final.
-The app privacy manifest declares analytics/device-linked data and UserDefaults
-CA92.1, alongside the SDK manifest; audit actual app and SDK use on Mac before validating submission.
-Confirm backup behavior (Application Support may be included in device backups).
-No in-app account creation, so native account deletion is not applicable.
+1. After physical-device QA, privacy and rights clearance, select the tested
+   build on the 1.0 version page. Save the completed listing and use
+   **Add for Review → Submit for Review**. Only the owner or authorized release
+   manager should take this step.
+2. With the app in **Waiting for Review**, use Apple's **Request an Expedited
+   App Review** form. Select WatchWeeks and iOS. State that it is a first release
+   for the November 13–15 Singapore fairs and repeat the opening time and links
+   from Review Notes. Apple's decision and turnaround are discretionary.
+3. Watch App Review messages. If Apple requests information or a fix, resolve
+   that exact request. At **Pending Developer Release**, use **Release This
+   Version → Confirm**. Verify availability on the Singapore storefront.
 
-Expected content: watch-event information, external web links, no messaging/UGC,
-no gambling or explicit content. Complete current age questionnaire honestly after
-inspecting live feed and applicable unrestricted web-access questions. Do not
-choose a numeric age rating based only on this worksheet.
-
-Owner decisions still required: legal seller/copyright holder; EU DSA trader versus
-non-trader based on actual commercial status (not chosen by engineering); public
-contact details if trader; regional legal availability and export compliance.
-
-## Expedited review draft
-
-Subject: Time-sensitive WatchWeeks launch for Singapore watch events, 12–15 November 2026
-
-WatchWeeks is an independent guide to watch events. We request expedited review
-for version 1.0.0, build [exact build], to help attendees plan visits during
-Singapore's watch events on 12–15 November 2026, with public IAMWATCH attendance
-beginning Friday 13 November. The app provides native brand interest selections,
-a personal seen checklist and offline access to loaded guides. It is not affiliated
-with the organizers. [Provide verified event source links and complete App Store
-Connect details.] We understand expedited review is discretionary.
-
-Owner supplied dates above remain subject to verification. No deadline guarantee.
-
-## Mandatory first submission approval gate
-
-Present exact version/build/archive revision, app name and bundle ID, seller/team,
-privacy answers/policy, price, territories, age rating, screenshots, live-feed QA,
-remaining risks and release mode. Obtain explicit owner App Review submission
-approval. Prefer manual release; obtain publication approval before making public.
+[Submit an app](https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app)
+· [Request expedited review](https://developer.apple.com/help/app-review/after-submitting-for-review/request-expedited-review/)
+· [Release timing](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/select-an-app-store-version-release-option)

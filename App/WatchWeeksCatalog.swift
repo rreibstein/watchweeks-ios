@@ -145,10 +145,10 @@ struct BrandRow: View {
                                 NavigationLink { ReleaseDetail(guide: guide, release: release) } label: {
                                     ReleaseCard(release: release, guide: guide)
                                 }.buttonStyle(.plain)
-                                ReleaseGallery(images: release.images, skipFirst: release.imageURL != nil)
-                                if let photos = release.sharedImages, !photos.isEmpty {
+                                ReleaseGallery(images: release.displayImages, skipFirst: !release.displayImages.isEmpty)
+                                if !release.displaySharedImages.isEmpty {
                                     Text("Other photos from this release group").font(.wwCaption)
-                                    ReleaseGallery(images: photos)
+                                    ReleaseGallery(images: release.displaySharedImages)
                                 }
                             }
                         }
@@ -480,9 +480,9 @@ struct ReleaseCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            if release.imageURL != nil {
+            if let url = release.displayImages.first?.resolvedURL {
                 Color.clear.aspectRatio(4.0 / 3.0, contentMode: .fit)
-                    .overlay { ReleaseImage(url: release.imageURL) }
+                    .overlay { ReleaseImage(url: url) }
                     .clipped()
             }
             if let brand = release.displayBrandName {
@@ -494,7 +494,7 @@ struct ReleaseCard: View {
             if !compact, let event = guide.events.first(where: { $0.id == release.eventID }) {
                 Text(event.name).font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
             }
-            if let credit = release.images.first?.credit, release.imageURL != nil {
+            if let credit = release.displayImages.first?.credit {
                 Text("Photo: \(credit)").font(.wwCaption2).foregroundStyle(WatchWeeksStyle.secondary)
             }
         }.padding(12).frame(maxWidth: .infinity, alignment: .leading).watchCard()
@@ -514,12 +514,11 @@ struct ReleaseDetail: View {
     @EnvironmentObject var model: AppModel
     let guide: Guide
     let release: Release
-    @State private var tracked = false
     var body: some View {
         ScrollView { VStack(alignment: .leading, spacing: 20) {
-            if release.imageURL != nil {
+            if let url = release.displayImages.first?.resolvedURL {
                 Color.clear.aspectRatio(4.0 / 3.0, contentMode: .fit)
-                    .overlay { ReleaseImage(url: release.imageURL) }.clipped()
+                    .overlay { ReleaseImage(url: url) }.clipped()
             }
             ReleaseBadges(release: release)
             Text(release.title).font(.wwLargeTitle)
@@ -544,27 +543,39 @@ struct ReleaseDetail: View {
                 }
             }
             if let details = release.details { Text(details).textSelection(.enabled) }
-            ReleaseGallery(images: release.images, skipFirst: release.imageURL != nil)
-            if let photos = release.sharedImages, !photos.isEmpty {
+            ReleaseGallery(images: release.displayImages, skipFirst: !release.displayImages.isEmpty)
+            if !release.displaySharedImages.isEmpty {
                 Text("Other photos from this release group").font(.wwHeadline)
-                ReleaseGallery(images: photos)
+                ReleaseGallery(images: release.displaySharedImages)
             }
             if let url = PublicLinks.safeExternal(release.webURL) { Link("Full details", destination: url); ShareLink(item: url) }
         }.padding() }.watchPage().navigationTitle("New release").navigationBarTitleDisplayMode(.inline).accountAccess()
             .task {
                 model.activeGuideID = guide.id
-                if !tracked { tracked = true; NativeAnalytics.shared.track(.releaseViewed, guide: guide, eventID: release.eventID, brandID: release.brandID, releaseID: release.id) }
             }
     }
 }
 struct AboutView: View {
     var body: some View {
         List {
-            Section("WatchWeeks") { Text("WatchWeeks is an independent guide to watch fairs and events. It is not affiliated with or endorsed by the listed event organizers or brands.") }
-            AnalyticsSettings()
-            Section("Your visit, your device") { Text("No account is required. Interest ratings and seen selections are saved on this device and do not synchronize with the website. Removing the app removes its local data."); Text("Previously loaded guides work offline. Images and content you have not loaded may require a connection.") }
-            Section("Explore more") { WebsiteLink(title:"Full WatchWeeks website",url:PublicLinks.home); Text("Use the website for accounts, synchronization and advanced planning.").font(.wwFootnote); Link("Privacy policy", destination: PublicLinks.privacy) }
-            Section { Text("Version 1.0.0 (1)").foregroundStyle(.secondary) }
+            Section("WatchWeeks") {
+                Text("WatchWeeks is an independent guide to watch fairs and events. It is not affiliated with or endorsed by the listed event organizers or brands.")
+                WebsiteLink(title: "Privacy policy", url: PublicLinks.privacy)
+            }
+            Section("Your visit, your device") {
+                Text("Your shortlist, ratings and seen selections are saved on this device. The iPhone app sends no product analytics.")
+                Text("Previously loaded guides work offline. Links and content you have not loaded may require a connection.")
+            }
+            Section("Explore more") {
+                WebsiteLink(title: "Full WatchWeeks website", url: PublicLinks.home)
+                Text("Use the website for accounts, synchronization and advanced planning.").font(.wwFootnote)
+            }
+            Section {
+                if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+                   let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+                    Text("Version \(version) (\(build))").foregroundStyle(.secondary)
+                }
+            }
         }.scrollContentBackground(.hidden).watchPage().navigationTitle("About")
     }
 }
@@ -573,13 +584,11 @@ struct BrandInfo: View {
     @EnvironmentObject var model: AppModel
     let guide: Guide
     let brand: Brand
-    @State private var tracked = false
     var body: some View {
         ScrollView { BrandRow(guide:guide,brand:brand,showDetails:false).padding(16) }.watchPage()
             .navigationTitle(brand.displayName).accountAccess()
             .task {
                 model.activeGuideID = guide.id
-                if !tracked { tracked = true; NativeAnalytics.shared.track(.brandViewed, guide: guide, brandID: brand.id) }
             }
     }
 }
