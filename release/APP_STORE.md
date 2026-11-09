@@ -10,6 +10,33 @@ and offline access to previously loaded guides. The iPhone app contains no
 product analytics SDK, session replay, ads, tracking, sign-in or purchases.
 Account opens the existing website in the system browser.
 
+## Launch decisions
+
+- Include Singapore, the EU and other intended eligible storefronts. In
+  **Business → Agreements → Compliance → Digital Services Act**, declare
+  your status before submission. Based on the current free community project,
+  non-trader is reasonable if WatchWeeks is outside your trade or profession
+  and paid sponsorship is only a future possibility. If WatchWeeks is already
+  operated commercially or professionally, assess trader status even if it
+  is free. The website's invitation to sponsors is one factor. Its wording
+  does not determine the outcome.
+- If you qualify as a non-trader, select **I'm not a trader under the DSA or
+  I don't plan to distribute in the EU**. Set storefronts separately in
+  **WatchWeeks → Pricing and Availability → App Availability**. The combined
+  wording does not require non-traders to exclude the EU.
+- A trader must provide contact details and may need supporting documents.
+  Resolve this in parallel with build preparation. Apple's published criteria
+  for expedited review focus on urgency and reviewer availability. DSA status
+  is a submission/compliance requirement, and pending verification can affect
+  EU availability. If it actually blocks submission and timing takes priority,
+  release outside the EU and add those storefronts once compliance is resolved.
+- A free app with no in-app purchases uses the active Free Apps Agreement.
+  Reassess DSA status before starting paid sponsorship, even if the sponsorship
+  is website-only and the app helps promote or drive traffic to the business.
+
+[Apple's DSA requirements](https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements)
+· [App availability](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/manage-availability-for-your-app-on-the-app-store)
+
 ## 1. Create the App Store Connect record
 
 1. Sign in to [App Store Connect](https://appstoreconnect.apple.com/). If Business
@@ -51,8 +78,7 @@ Account opens the existing website in the system browser.
 
 In App Store Connect → **TestFlight → Internal Testing**, create or use an
 internal group, add yourself and the processed build, and install it from
-TestFlight on a physical iPhone running iOS 17 or later. A first-generation
-iPhone SE (A1662) cannot run this build. If the upload is still processing, start the
+TestFlight on the iPhone 13 Pro running iOS 17 or later. If the upload is still processing, start the
 smoke test by selecting a connected iPhone in Xcode and choosing **Product →
 Run** with the scheme's Run configuration set to Release, then confirm the
 processed build in TestFlight. For a wired run, unlock the iPhone and accept
@@ -67,7 +93,8 @@ Trust This Computer. If Xcode asks, enable Developer Mode in iPhone
   Open My list. Force-quit and relaunch to confirm those choices persisted.
 - Enable Airplane Mode and switch Wi-Fi off. Relaunch and open the cached
   Singapore guide and My list. Turn connectivity back on and refresh.
-- Open New releases and one release detail. Open Account and verify the
+- Open New releases and a release detail with a retained brand-credited photo.
+  Confirm the photo and credit appear. Open Account and verify the
   existing website opens in the browser. Return to the app and verify
   **Account → About & privacy → Privacy policy** loads in the browser.
 - Confirm the icon, type, native tabs and back navigation on the device.
@@ -83,7 +110,7 @@ Trust This Computer. If Xcode asks, enable Developer Mode in iPhone
 | Subtitle | Independent watch event guide |
 | Category | Lifestyle |
 | Price | Free |
-| Availability | Choose all eligible storefronts, including Singapore. Complete any owner verification for the EU and skip regions with unresolved requirements on the first release. |
+| Availability | Include Singapore, the EU and other intended eligible storefronts. See Launch decisions for a compliance fallback. |
 | Support URL | `https://watchweeks.com` (public footer has the correction/contact path) |
 | Privacy Policy URL | `https://github.com/rreibstein/watchweeks-ios/blob/development/native-launch/release/PRIVACY.md` after owner confirms the wording and feed and image-host log retention. This matches the in-app link. |
 | Copyright | 2026 Reed Reibstein |
@@ -147,7 +174,8 @@ WatchWeeks is independent of the listed events and brands.
 > open “Plan your fair day” to make and copy an itinerary.
 >
 > The app saves personal selections and previously loaded guides on-device.
-> It retrieves public, read-only guide data. Account is an optional link to
+> It retrieves public, read-only guide data. This version is free and has no
+> ads, sponsored placements or in-app purchases. Account is an optional link to
 > the existing WatchWeeks website in the system browser. The iPhone app
 > has no native login or synchronization.
 >
