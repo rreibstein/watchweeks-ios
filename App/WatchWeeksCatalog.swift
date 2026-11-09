@@ -137,7 +137,7 @@ struct BrandRow: View {
                 if SingaporeStock.applies(to: guide, event: event), SingaporeStock.brandIDs.contains(brand.id) {
                     Label("On-site stock available", systemImage: "bag").font(.wwCaption)
                 }
-                let releases = guide.newReleases(for: brand.id).filter { event == nil || $0.eventID == event?.id }
+                let releases = guide.releaseCatalog(brandID: brand.id, eventID: event?.id)
                 if !releases.isEmpty {
                     DisclosureGroup {
                         VStack(alignment: .leading, spacing: 10) {
@@ -392,10 +392,9 @@ private struct ReleaseDirectory: View {
     }
 
     var body: some View {
-        let releases = guide.newReleases.filter {
-            (eventID == nil || $0.eventID == eventID)
-                && (query.isEmpty || $0.title.localizedCaseInsensitiveContains(query)
-                    || ($0.displayBrandName?.localizedCaseInsensitiveContains(query) ?? false))
+        let releases = guide.releaseCatalog(eventID: eventID).filter {
+            query.isEmpty || $0.title.localizedCaseInsensitiveContains(query)
+                || ($0.displayBrandName?.localizedCaseInsensitiveContains(query) ?? false)
         }.sorted { left, right in
             if byInterest, priority(left) != priority(right) { return priority(left) > priority(right) }
             let leftName = left.displayBrandName ?? left.title
@@ -535,7 +534,10 @@ struct ReleaseDetail: View {
                         model.set(selection, guide: guide, brand: brand)
                     }.buttonStyle(.borderedProminent).frame(minHeight: 44)
                 }
-                if let event = guide.publicEvents.first(where: { $0.id == release.eventID }) {
+                let eventIDs = Set(guide.newReleases(for: release.brandID).filter {
+                    $0.title.caseInsensitiveCompare(release.title) == .orderedSame && !$0.isNotExhibited
+                }.compactMap(\.eventID))
+                ForEach(guide.publicEvents.filter { eventIDs.contains($0.id) }) { event in
                     let others = guide.brands.count { $0.id != release.brandID && $0.eventIDs.contains(event.id) }
                     let context = release.displayBrandName.map { " (\($0) + \(others) other brands)" } ?? ""
                     NavigationLink("Explore \(event.name)\(context)") { EventInfo(guide: guide, event: event) }

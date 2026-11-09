@@ -31,6 +31,14 @@ public extension Guide {
         return releases.filter { (brandID == nil || $0.brandID == brandID) && !dealerIDs.contains($0.eventID ?? "") }.flatMap(\.individualModels)
     }
 
+    func releaseCatalog(brandID: String? = nil, eventID: String? = nil) -> [Release] {
+        var seen: Set<[String]> = []
+        return newReleases(for: brandID).filter { release in
+            guard !release.isTeaser, eventID == nil || release.eventID == eventID else { return false }
+            return seen.insert([release.brandID ?? release.displayBrandName ?? "", release.title.lowercased()]).inserted
+        }
+    }
+
     func eventStatus(_ event: Event, now: Date = .now) -> GuideStatus {
         let days = LocalSchedule.days(for: event, guideID: id).filter { !$0.isRestrictedAccess }
         let intervals = days.compactMap { LocalSchedule.interval($0, zone: timeZone) }

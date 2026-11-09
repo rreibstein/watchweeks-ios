@@ -4,6 +4,10 @@ import WatchWeeksCore
 
 struct DiscoveryView: View {
     @EnvironmentObject var model: AppModel
+    private func isPast(_ guide: Guide) -> Bool {
+        guide.id == "austin-2026" || EventDates.status(guide) == .past
+    }
+
     var ordered: [Guide] {
         // The home page highlights these guides editorially. Newly published guides
         // retain feed order within their active or past group.
@@ -11,7 +15,7 @@ struct DiscoveryView: View {
         let known = featured.compactMap { id in model.guides.first { $0.id == id } }
         let others = model.guides.filter { !featured.contains($0.id) }
         let all = known + others
-        return all.filter { EventDates.status($0) != .past } + all.filter { EventDates.status($0) == .past }
+        return all.filter { !isPast($0) } + all.filter(isPast)
     }
 
     var body: some View {
@@ -44,10 +48,10 @@ struct DiscoveryView: View {
                             if model.stale && !model.loading, let date = model.savedAt {
                                 Label("Offline copy · updated \(date.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock.arrow.circlepath").font(.wwCaption)
                             }
-                            ForEach(ordered.filter { EventDates.status($0) != .past && $0.id != "austin-2026" }) {
+                            ForEach(ordered.filter { !isPast($0) }) {
                                 GuidePreview(guide: $0, past: false).id($0.id)
                             }
-                            let past = ordered.filter { EventDates.status($0) == .past || $0.id == "austin-2026" }
+                            let past = ordered.filter(isPast)
                             if !past.isEmpty {
                                 Text("Past guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
                                 ForEach(past) { GuidePreview(guide: $0, past: true).id($0.id) }
@@ -229,7 +233,7 @@ private struct GuidePreview: View {
                     Image(systemName: "chevron.right").font(.wwHeadline)
                 }
             }.buttonStyle(.plain)
-            Text("\(guide.brands.count) brands · \(guide.publicEvents.count) events · \(guide.newReleases.count) new releases")
+            Text("\(guide.brands.count) brands · \(guide.publicEvents.count) events · \(guide.releaseCatalog().count) new releases")
                 .font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
             if past {
                 Label("Enthusiasts’ favorites", systemImage: "star").font(.wwHeadline)
@@ -249,7 +253,7 @@ private struct GuidePreview: View {
                     }
                 }
             }
-            if !guide.newReleases.isEmpty {
+            if !guide.releaseCatalog().isEmpty {
                 Divider()
                 NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").accountAccess() } label: {
                     Label("See all new releases", systemImage: "sparkles").foregroundStyle(WatchWeeksStyle.release)
@@ -379,9 +383,9 @@ struct CityView: View {
                     if events.isEmpty { Text("No public events on this day.").foregroundStyle(WatchWeeksStyle.secondary) }
                 }
                 if guide.id == "singapore-2026" { SingaporePlanner(guide: guide) }
-                if !guide.newReleases.isEmpty {
+                if !guide.releaseCatalog().isEmpty {
                     NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").accountAccess() } label: {
-                        Label("See all \(guide.newReleases.count) new releases", systemImage: "sparkles")
+                        Label("See all \(guide.releaseCatalog().count) new releases", systemImage: "sparkles")
                             .foregroundStyle(WatchWeeksStyle.release)
                     }.padding(.vertical, 8)
                 }
@@ -532,7 +536,7 @@ struct EventInfo: View {
                 Text(dateRange(event.startsAt, event.endsAt, zone: guide.timeZone)).font(.wwHeadline)
                 metadata
                 if SingaporeStock.applies(to: guide, event: event) { stock }
-                let releases = guide.newReleases.filter { $0.eventID == event.id }
+                let releases = guide.releaseCatalog(eventID: event.id)
                 if !releases.isEmpty { releasePreviews(releases) }
                 let dealers = guide.dealers(at: event)
                 if guide.isDealerShow(event) {
