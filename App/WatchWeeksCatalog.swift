@@ -300,7 +300,9 @@ private struct BrandRatingBar: View {
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
                 .foregroundStyle(selected ? .white : WatchWeeksStyle.ink)
-                .background(selected ? WatchWeeksStyle.rating(interest) : Color.clear)
+                .background {
+                    if selected { Rectangle().fill(WatchWeeksStyle.rating(interest)) }
+                }
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("\(interest.label), \(brand.displayName)")
