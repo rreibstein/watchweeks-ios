@@ -19,7 +19,7 @@ screenshots or proof of interactive parity. Compare real simulator output on Mac
 | Plan My Day | Native Singapore time-window planner and website planning tools | The native planner covers the three specified Singapore fairs and the timed IAMWATCH conversations |
 | Comparison and private notes | Full website access | Not implemented natively; no private notes in analytics |
 | Share | Native guide share sheet | Completed share tracked once; canceled share not counted |
-| Header account control / optional web account sync | Always-visible native top-right Account entry opens existing /account | No native sign-in or automatic web sync; local/website state distinction disclosed |
+| Website accounts and sync | Native checklist state stays on-device | Find occupies the trailing header and My list includes About & privacy |
 | WatchWeeks identity | Actual first-party clock icon, warm accent direction | No organizer logos. Typography/layout comparison remains a Mac release gate |
 
 Observed CSS uses Space Grotesk (400–700), JetBrains Mono 500; warm neutral
@@ -77,18 +77,23 @@ Sources: [WatchWeeks home](https://watchweeks.com/),
 The public feed does not expose all model-level stock, sellout, structured price
 or award data shown on the website, nor every release, appointment, or
 comparison. The native app uses the actual feed and verified edition details.
-Existing website tools remain available through the guide and account links.
+Guide sharing uses the public website URL.
 
 ## Guide and release data follow-up
 
-- Past cards show recap text, dates, and counts. New York also shows the
-  three brand-credited homepage photos that the public guide feed omits.
+- Past cards show recap text, dates, counts, and release highlights. New York
+  also uses three brand-credited homepage photos that the public guide feed omits.
   The fallback only applies to those exact releases and gives precedence to
   any photos in the feed. Past cards omit audience rankings.
 - Active city cards show branded stripes, a three-photo release preview
   when eligible photos are available, and public opening times in the
   city's time zone. Between sessions, the badge prioritizes upcoming hours
   today, then tomorrow's schedule, then finished for the day.
+- The home card opens its guide from the title or background, with separate
+  links for release previews and scheduled events. Event carousels keep the
+  full matching catalog and load photos close to the visible cards.
+- Rating and seen changes update the cards immediately and hold the current
+  list order until Re-sort. Checked-off cards have a muted gray background.
 - The edition-specific Austin and Miami access entries are folded into their
   parent events. The day schedule preserves those entries, including named
   slots embedded in the public feed. VIP hours are excluded from public live

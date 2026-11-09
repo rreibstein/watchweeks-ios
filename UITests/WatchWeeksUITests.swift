@@ -7,18 +7,20 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["Allow usage analytics"].exists)
         XCTAssertFalse(app.buttons["Continue without analytics"].exists)
-        let account = app.buttons["Account"]
-        XCTAssertTrue(account.waitForExistence(timeout: 2))
-        account.tap()
-        XCTAssertTrue(app.buttons["Open WatchWeeks account"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.buttons["Account"].exists)
+        XCTAssertTrue(app.buttons["Find"].exists)
+        app.tabBars.buttons["My list"].tap()
         let about = app.buttons["About & privacy"]
         if !about.isHittable { app.swipeUp() }
         about.tap()
         XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["Privacy policy"].waitForExistence(timeout: 3))
+        let privacy = app.buttons["Privacy policy"]
+        XCTAssertTrue(privacy.waitForExistence(timeout: 3))
+        privacy.tap()
+        XCTAssertTrue(XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
+            .wait(for: .runningForeground, timeout: 10))
+        app.activate()
         app.navigationBars["About"].buttons.firstMatch.tap()
-        app.buttons["Done"].tap()
-        app.tabBars.buttons["My list"].tap()
         XCTAssertTrue(app.staticTexts["My list"].exists)
     }
 
@@ -36,18 +38,43 @@ final class WatchWeeksUITests: XCTestCase {
         preview.tap()
         XCTAssertTrue(app.navigationBars["New release"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Monday Skeleton"].exists)
+        XCTAssertTrue(app.buttons["Explore at Golden Hour Singapore"].exists)
+        XCTAssertFalse(app.links["Full details"].exists)
+        XCTAssertFalse(app.buttons["Full details"].exists)
+        let photo = app.buttons["View photo"].firstMatch
+        XCTAssertTrue(photo.exists)
+        photo.tap()
+        let closePhoto = app.buttons["Close photo"]
+        XCTAssertTrue(closePhoto.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Photo: Renaud Tixier"].exists)
+        closePhoto.tap()
         capture(app, "01b-release")
+        let mustSee = app.buttons.matching(NSPredicate(format: "label IN %@", ["Mark as Must-see", "Must see"])).firstMatch
+        let resort = app.buttons["Re-sort"]
+        reveal(mustSee, in: app)
+        mustSee.tap()
+        XCTAssertTrue(resort.waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["View My list"].exists)
+        resort.tap()
+        XCTAssertFalse(resort.exists)
+        mustSee.tap()
+        XCTAssertTrue(resort.waitForExistence(timeout: 2))
+        resort.tap()
         app.navigationBars["New release"].buttons.firstMatch.tap()
 
-        app.buttons["Find"].tap()
-        let search = app.searchFields.firstMatch
-        XCTAssertTrue(search.waitForExistence(timeout: 5))
-        search.tap()
-        search.typeText("Singapore")
-        let guide = app.buttons["Open the Singapore guide"]
-        XCTAssertTrue(guide.waitForExistence(timeout: 5))
-        guide.tap()
-        XCTAssertTrue(app.staticTexts["Singapore Guide"].waitForExistence(timeout: 5))
+        let cardHeader = app.buttons["home-guide-singapore-2026"]
+        let guideTitle = app.staticTexts["Singapore Guide"]
+        reveal(cardHeader, in: app)
+        cardHeader.coordinate(withNormalizedOffset: CGVector(dx: 0.68, dy: 0.35)).tap()
+        XCTAssertTrue(guideTitle.waitForExistence(timeout: 5))
+        app.navigationBars.firstMatch.buttons.firstMatch.tap()
+
+        let summary = app.staticTexts.containing(NSPredicate(
+            format: "label CONTAINS %@ AND label CONTAINS %@", " brands · ", " events · "
+        )).firstMatch
+        reveal(summary, in: app)
+        summary.tap()
+        XCTAssertTrue(guideTitle.waitForExistence(timeout: 5))
         XCTAssertTrue(app.tabBars.buttons["Events"].exists)
         capture(app, "02-singapore")
         app.buttons["Thu"].tap()
@@ -84,6 +111,8 @@ final class WatchWeeksUITests: XCTestCase {
         let copied = app.buttons.matching(NSPredicate(format: "identifier == %@ AND label CONTAINS %@", "copy-plan", "Plan copied")).firstMatch
         XCTAssertTrue(copied.waitForExistence(timeout: 5))
         capture(app, "02b-planner")
+        XCTAssertFalse(app.buttons["Full guide and planning tools"].exists)
+        XCTAssertTrue(app.buttons["Share guide"].exists)
         app.terminate()
         app.launch()
         app.buttons["Find"].tap()
@@ -96,6 +125,12 @@ final class WatchWeeksUITests: XCTestCase {
         goldenHour.tap()
         XCTAssertTrue(app.staticTexts["Golden Hour Singapore"].waitForExistence(timeout: 5))
         capture(app, "03-golden-hour")
+        let carouselPhoto = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "event-release-card-renaudtixier"
+        )).firstMatch
+        reveal(carouselPhoto, in: app)
+        XCTAssertGreaterThan(carouselPhoto.frame.height, 190)
+        capture(app, "03b-event-releases")
         app.tabBars.buttons["New releases"].tap()
         let singaporeReleases = app.staticTexts.containing(
             NSPredicate(format: "label BEGINSWITH %@ AND label ENDSWITH %@", "Singapore ·", "new releases")
@@ -111,6 +146,8 @@ final class WatchWeeksUITests: XCTestCase {
             let previouslySeen = app.buttons["Seen ALTO"]
             reveal(previouslySeen, in: app)
             previouslySeen.tap()
+            XCTAssertTrue(resort.waitForExistence(timeout: 2))
+            resort.tap()
         }
         let rate = app.buttons["Must see, ALTO"]
         reveal(rate, in: app)
@@ -123,6 +160,9 @@ final class WatchWeeksUITests: XCTestCase {
         if seen.value as? String != "Seen" {
             if !seen.isHittable { app.swipeDown(velocity: .slow) }
             seen.tap()
+            XCTAssertTrue(resort.waitForExistence(timeout: 2))
+            capture(app, "04b-resort")
+            resort.tap()
         }
         XCTAssertTrue(app.buttons["ALTO"].waitForExistence(timeout: 3))
         capture(app, "04-rating")
@@ -142,6 +182,15 @@ final class WatchWeeksUITests: XCTestCase {
         chooser.tap()
         app.buttons["Singapore"].tap()
         XCTAssertTrue(app.staticTexts["New releases"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Interest"].exists)
+        XCTAssertTrue(app.searchFields["Search releases"].exists || app.textFields["Search releases"].exists)
+        app.buttons["Event, All events"].tap()
+        let goldenHourFilter = app.buttons["Golden Hour Singapore"]
+        XCTAssertTrue(goldenHourFilter.waitForExistence(timeout: 3))
+        goldenHourFilter.tap()
+        XCTAssertTrue(app.buttons["Event, Golden Hour Singapore"].waitForExistence(timeout: 3))
+        app.buttons["Event, Golden Hour Singapore"].tap()
+        app.buttons["All events"].tap()
         capture(app, "06-new-releases")
     }
 

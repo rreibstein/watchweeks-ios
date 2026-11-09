@@ -16,7 +16,8 @@ public struct PublicGuideService: GuideService {
     private let session: URLSession
     public init(session: URLSession = .shared) { self.session=session }
     private func json(_ url: URL) async throws -> Data {
-        var request=URLRequest(url:url); request.setValue("application/json",forHTTPHeaderField:"Accept"); request.timeoutInterval=25
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 25)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data,response)=try await session.data(for:request)
         guard let http=response as? HTTPURLResponse else { throw FeedError.invalidResponse }
         guard (200..<300).contains(http.statusCode) else { throw FeedError.http(http.statusCode) }

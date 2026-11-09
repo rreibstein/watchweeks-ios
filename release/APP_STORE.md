@@ -8,7 +8,7 @@ make a released app available. Check the Singapore storefront after release.
 This is an iPhone-only, free candidate with public guides, local visit planning
 and offline access to previously loaded guides. The iPhone app contains no
 product analytics SDK, session replay, ads, tracking, sign-in or purchases.
-Account opens the existing website in the system browser.
+Find opens the native search sheet. My list includes About & privacy.
 
 ## Launch decisions
 
@@ -61,9 +61,9 @@ Account opens the existing website in the system browser.
    unlock the iPhone 13 Pro, tap **Trust**, select it as the run destination,
    and use **Register Device** if offered. Enable Developer Mode if prompted.
    Run once with **Command-R**, then switch to **Any iOS Device (arm64)**.
-2. Confirm **Version 1.0.0**, **Build 1** if unused, or the next unused build
-   number if App Store Connect already has a build. Leave Xcode's automatic
-   version/build number adjustment off during upload if you set them explicitly.
+2. Confirm **Version 1.0.0, Build 2**. Build 1 was already uploaded and predates
+   the final fixes. Leave Xcode's automatic version/build number adjustment off
+   during upload.
    In App Store Connect, match the editable version number to the archive.
 3. Select **WatchWeeks** and **Any iOS Device (arm64)** in the toolbar, then
    **Product → Archive**. In Organizer, select the new archive and use
@@ -96,9 +96,9 @@ Trust This Computer. If Xcode asks, enable Developer Mode in iPhone
 - Enable Airplane Mode and switch Wi-Fi off. Relaunch and open the cached
   Singapore guide and My list. Turn connectivity back on and refresh.
 - Open New releases and a release detail with a retained brand-credited photo.
-  Confirm the photo and credit appear. Open Account and verify the
-  existing website opens in the browser. Return to the app and verify
-  **Account → About & privacy → Privacy policy** loads in the browser.
+  Confirm the photo and credit appear and the photo opens and closes in the
+  lightbox. Verify **My list → About & privacy → Privacy policy** loads in the
+  system browser.
 - Confirm the icon, type, native tabs and back navigation on the device.
   Record iPhone model, iOS, build number and pass/fail. A reproducible crash,
   lost selection, blocked guest flow or incorrect core schedule holds submission.
@@ -176,7 +176,7 @@ see new watch releases where available.
 - Browse previously loaded guides and your checklist offline.
 - Share guide links and copy your itinerary.
 
-No account is required. Your personal selections stay on your device. Event
+Your personal selections stay on your device. Event
 schedules may change, so confirm important details with the organizer.
 WatchWeeks is independent of the listed events and brands.
 
@@ -186,17 +186,17 @@ WatchWeeks is independent of the listed events and brands.
 
 **Review notes**
 
-> WatchWeeks 1.0.0, build [build number], is an independent watch fair guide.
-> No account or purchase is required. In Events, open Singapore, then Golden
+> WatchWeeks 1.0.0, build 2, is an independent watch fair guide.
+> In Events, open Singapore, then Golden
 > Hour Singapore for the venue, hours and exhibitor checklist. Shortlist a
 > brand, mark it seen, then open My list in the tab bar. Back in Singapore,
 > open “Plan your fair day” to make and copy an itinerary.
 >
-> The app saves personal selections and previously loaded guides on-device.
-> It retrieves public, read-only guide data. This version is free and has no
-> ads, sponsored placements or in-app purchases. Account is an optional link to
-> the existing WatchWeeks website in the system browser. The iPhone app
-> has no native login or synchronization.
+> The app retrieves public, read-only guide data. Personal selections and
+> previously loaded guides stay on-device. The app has no accounts or
+> synchronization, and this version is free with no ads, sponsored placements
+> or in-app purchases. Find is at the top right and the privacy policy is
+> under My list → About & privacy.
 >
 > The independent editorial guide displays product photos credited to
 > their brands. The app filters out photos with publication provenance.

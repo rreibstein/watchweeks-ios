@@ -84,7 +84,6 @@ public enum EventDates {
 }
 public enum PublicLinks {
     public static let home = URL(string: "https://watchweeks.com")!
-    public static let account = URL(string: "https://watchweeks.com/account")!
     public static let privacy = URL(string: "https://github.com/rreibstein/watchweeks-ios/blob/development/native-launch/release/PRIVACY.md")!
     public static func apiGuide(_ id: String) -> URL? {
         guard !id.isEmpty, id != ".", id != "..", !id.contains("/"), !id.contains("\\"), !id.contains("%"), !id.contains("?"), !id.contains("#") else { return nil }

@@ -1,5 +1,9 @@
 # Account entry and loading behavior
 
+**Current release:** The iPhone app has no Account section. Find is in the
+header and About & privacy is in My list. The observations below describe
+the website and the earlier native implementation.
+
 The public website header bundle index-Bv2ZEtaD.js was inspected read-only on
 2026-11-08. Its account control returns an empty 44×44 span while session readiness
 is false. This explains the missing icon in the SSR/reference screenshots; those

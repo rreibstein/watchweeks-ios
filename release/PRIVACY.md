@@ -9,7 +9,8 @@ privacy questions or requests about your data.
 The app saves your shortlist, ratings, seen marks, reactions and buying
 preferences in its local app storage. It also saves copies of previously loaded
 guides for offline access. The app does not upload your selections, use them for
-advertising or associate them with a website account. Local data stays in app
+advertising or associate them with a website account. The iPhone app has
+no accounts or synchronization. Local data stays in app
 storage until you delete the app. iOS may include app data in device backups
 under your Apple settings. You can remove backups using Apple's device or iCloud
 backup controls.
@@ -26,6 +27,6 @@ cross-app tracking.
 
 If you use the iOS share sheet or copy a plan, you choose where to send or paste
 that information. If you follow a link, your browser opens the destination. The
-[WatchWeeks website privacy policy](https://watchweeks.com/privacy) applies when
-you use the website, including its optional account features. Other websites
-have their own policies.
+[WatchWeeks website privacy policy](https://watchweeks.com/privacy) applies in
+the browser. Website sign-in, website analytics, and website session replay
+are features of that separate website. Other websites have their own policies.

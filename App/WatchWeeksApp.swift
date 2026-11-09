@@ -12,6 +12,7 @@ import WatchWeeksCore
     @Published var savedAt: Date?
     @Published var stale = false
     @Published var persistenceError: String?
+    @Published private(set) var pendingSort: [SelectionKey: Selection] = [:]
     private let store: LocalStore
     private let repository: GuideRepository
     private var loaded = false
@@ -36,6 +37,21 @@ import WatchWeeksCore
         catch { message=error.localizedDescription }
     }
     func selection(_ guide: Guide, _ brand: Brand) -> Selection { selections[SelectionKey(guideID: guide.id, brandID: brand.id)] ?? Selection() }
+
+    func selectionForSorting(_ guide: Guide, _ brand: Brand) -> Selection {
+        var current = selection(guide, brand)
+        if let baseline = pendingSort[SelectionKey(guideID: guide.id, brandID: brand.id)] {
+            current.shortlisted = current.isShortlisted
+            current.interest = baseline.interest
+            current.seen = baseline.seen
+        }
+        return current
+    }
+
+    func resort() {
+        if !pendingSort.isEmpty { pendingSort.removeAll() }
+    }
+
     func set(_ selection: Selection, guide: Guide, brand: Brand) {
         guard persistenceError == nil else { return }
         let previous = self.selection(guide, brand)
@@ -44,7 +60,13 @@ import WatchWeeksCore
             selection.shortlisted = previous.isShortlisted
         }
         guard previous != selection else { return }
-        selections[SelectionKey(guideID: guide.id, brandID: brand.id)] = selection
+        let key = SelectionKey(guideID: guide.id, brandID: brand.id)
+        if previous.interest != selection.interest || previous.seen != selection.seen {
+            let baseline = pendingSort[key] ?? previous
+            pendingSort[key] = baseline.interest == selection.interest && baseline.seen == selection.seen
+                ? nil : baseline
+        }
+        selections[key] = selection
         let snapshot = selections; let previousSave = saving; let store = store
         saving = Task { [weak self] in
             await previousSave?.value
@@ -83,6 +105,13 @@ struct RootView: View {
         }
         .tint(WatchWeeksStyle.link)
         .font(.wwBody)
+        .overlay(alignment: .bottom) {
+            if !model.pendingSort.isEmpty && model.persistenceError == nil {
+                sortToast.padding(.horizontal, 16).padding(.bottom, 64)
+            }
+        }
+        .onChange(of: tab) { _, _ in model.resort() }
+        .onChange(of: model.activeGuideID) { _, _ in model.resort() }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if let error = model.persistenceError {
                 VStack {
@@ -91,6 +120,39 @@ struct RootView: View {
                 }.padding().background(.regularMaterial)
             }
         }
+    }
+
+    private var sortToast: some View {
+        let count = model.pendingSort.count
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) {
+                Text(count == 1 ? "1 change" : "\(count) changes")
+                sortActions
+            }
+            VStack(spacing: 0) {
+                Text(count == 1 ? "1 change" : "\(count) changes")
+                sortActions
+            }.padding(.top, 8)
+        }
+        .font(.wwFootnote.weight(.semibold))
+        .foregroundStyle(WatchWeeksStyle.ink)
+        .padding(.horizontal, 14)
+        .watchCard(radius: 16)
+        .shadow(color: .black.opacity(0.14), radius: 8, y: 3)
+    }
+
+    private var sortActions: some View {
+        HStack(spacing: 12) {
+            Button { model.resort() } label: {
+                Text("Re-sort").frame(minHeight: 44)
+            }
+            Button {
+                model.resort()
+                tab = .list
+            } label: {
+                Text("View My list").frame(minHeight: 44)
+            }
+        }.buttonStyle(.plain).foregroundStyle(WatchWeeksStyle.link)
     }
 }
 
@@ -142,56 +204,27 @@ extension Font {
         if let font = UIFont(name: "SpaceGrotesk-SemiBold", size: 17) {
             bar.titleTextAttributes = [.font: UIFontMetrics(forTextStyle: .headline).scaledFont(for: font)]
         }
+        if let font = UIFont(name: "SpaceGrotesk-Regular", size: 17) {
+            let attributes: [NSAttributedString.Key: Any] = [.font: UIFontMetrics(forTextStyle: .body).scaledFont(for: font)]
+            UIBarButtonItem.appearance(whenContainedInInstancesOf: [UINavigationBar.self])
+                .setTitleTextAttributes(attributes, for: .normal)
+        }
 
     }
 }
 
-// Account access is local UI, never conditional on feed/auth network readiness.
-struct AccountButton: View {
-    @State private var showing = false
-    var body: some View {
-        Button { showing = true } label: {
-            Image(systemName: "person.crop.circle").frame(minWidth: 44, minHeight: 44)
-        }
-        .accessibilityLabel("Account")
-        .accessibilityHint("Manage your existing WatchWeeks account on the website")
-        .sheet(isPresented: $showing) { AccountView() }
-    }
-}
-struct AccountView: View {
-    @Environment(\.dismiss) private var dismiss
-    var body: some View {
-        NavigationStack {
-            List {
-                Section("Your WatchWeeks account") {
-                    Text("Use your existing WatchWeeks account on the website to sign in, manage your account and access website synchronization.")
-                    WebsiteLink(title: "Open WatchWeeks account", url: PublicLinks.account)
-                }
-                Section("On this iPhone") {
-                    Text("You can use the native app without signing in. Your native ratings and seen selections are stored on this device. Signing in on the website does not sign you into this app or synchronize these native selections.")
-                    Text("The account website needs an internet connection. Your previously loaded guides and native checklist remain available offline.")
-                    NavigationLink("About & privacy") { AboutView() }
-                }
-            }
-            .font(.wwBody)
-            .scrollContentBackground(.hidden).watchPage()
-            .navigationTitle("Account")
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-        }
-    }
-}
 extension View {
     func guideToolbar() -> some View {
         toolbar(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .principal) { WatchWordmark(compact: true) }
-                ToolbarItemGroup(placement: .topBarTrailing) { WatchFindButton(compact: true); AccountButton() }
+                ToolbarItem(placement: .topBarTrailing) { WatchFindButton(compact: true) }
             }
     }
 
-    func accountAccess() -> some View {
+    func findAccess() -> some View {
         toolbar(.visible, for: .navigationBar)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { AccountButton() } }
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { WatchFindButton(compact: true) } }
     }
 }
 

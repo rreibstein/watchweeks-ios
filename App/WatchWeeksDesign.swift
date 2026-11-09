@@ -5,6 +5,7 @@ import WatchWeeksCore
 enum WatchWeeksStyle {
     static let paper = adaptive(0xF8F5EF, 0x1D1916)
     static let card = adaptive(0xFFFFFF, 0x28231F)
+    static let seenCard = adaptive(0xEFEFEB, 0x323232)
     static let ink = adaptive(0x191412, 0xF8F3ED)
     static let secondary = adaptive(0x514942, 0xD1C3B7)
     static let border = adaptive(0xD5D0C7, 0x554B43)
@@ -55,9 +56,10 @@ private extension Color {
 }
 
 extension View {
-    func watchCard(radius: CGFloat = 16, accent: Color? = nil, stripeWidth: CGFloat = 0) -> some View {
+    func watchCard(radius: CGFloat = 16, accent: Color? = nil, stripeWidth: CGFloat = 0,
+                   fill: Color = WatchWeeksStyle.card) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius)
-        return background(WatchWeeksStyle.card, in: shape)
+        return background(fill, in: shape)
             .overlay { shape.strokeBorder(WatchWeeksStyle.border).allowsHitTesting(false) }
             .overlay {
                 if let accent {
@@ -75,10 +77,10 @@ extension View {
 struct WatchHeader: View {
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: 8) { WatchWordmark(); Spacer(minLength: 4); WatchFindButton(); AccountButton() }
+            HStack(spacing: 8) { WatchWordmark(); Spacer(minLength: 4); WatchFindButton() }
             VStack(alignment: .leading, spacing: 8) {
                 WatchWordmark()
-                HStack { WatchFindButton(); AccountButton() }
+                WatchFindButton().frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
         .padding(.horizontal, 16)
@@ -264,5 +266,57 @@ struct WatchSegments<Value: Hashable>: View {
                 .background(selection == value ? WatchWeeksStyle.card : Color.clear, in: RoundedRectangle(cornerRadius: 12))
         }.buttonStyle(.plain)
             .accessibilityAddTraits(selection == value ? .isSelected : [])
+    }
+}
+
+struct WatchDropdown<Value: Hashable, Trigger: View>: View {
+    let choices: [Value]
+    var selection: Value? = nil
+    let title: (Value) -> String
+    let select: (Value) -> Void
+    @ViewBuilder let label: () -> Trigger
+    @State private var showing = false
+
+    var body: some View {
+        Button { showing = true } label: { label().font(.wwSubheadline) }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showing) {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(choices, id: \.self) { choice in
+                            let selected = selection == choice
+                            Button {
+                                showing = false
+                                select(choice)
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Text(title(choice)).multilineTextAlignment(.leading)
+                                    Spacer(minLength: 0)
+                                    if selected { Image(systemName: "checkmark").accessibilityHidden(true) }
+                                }
+                                .frame(minHeight: 44)
+                                .padding(.horizontal, 10)
+                                .contentShape(Rectangle())
+                            }.buttonStyle(.plain)
+                                .accessibilityAddTraits(selected ? .isSelected : [])
+                        }
+                    }.padding(6)
+                }
+                .frame(width: 270, height: min(340, CGFloat(choices.count) * 44 + 12))
+                .font(.wwSubheadline)
+                .foregroundStyle(WatchWeeksStyle.ink)
+                .presentationCompactAdaptation(.popover)
+            }
+    }
+}
+
+struct WatchDropdownLabel: View {
+    let title: String
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Text(title).multilineTextAlignment(.leading)
+            Image(systemName: "chevron.up.chevron.down").font(.wwCaption2).accessibilityHidden(true)
+        }.frame(minHeight: 44).contentShape(Rectangle())
     }
 }

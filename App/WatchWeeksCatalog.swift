@@ -37,15 +37,16 @@ struct BrandDirectory: View {
         let releases = releaseBrands
         let brands = eligible
         let shortlist = brands.count { model.selection(guide, $0).isShortlisted }
-        let filtered = Browsing.brands(brands, query: query, filter: filter) { model.selection(guide, $0) }.filter {
+        let filtered = Browsing.brands(brands, query: query, filter: filter) { model.selectionForSorting(guide, $0) }.filter {
             (!shortlistOnly || model.selection(guide, $0).isShortlisted)
                 && (!releasesOnly || releases.contains($0.id))
                 && (!stockOnly || SingaporeStock.brandIDs.contains($0.id))
         }
         let ordered = filtered.enumerated().sorted {
-            let left = model.selection(guide, $0.element)
-            let right = model.selection(guide, $1.element)
+            let left = model.selectionForSorting(guide, $0.element)
+            let right = model.selectionForSorting(guide, $1.element)
             if left.isShortlisted != right.isShortlisted { return left.isShortlisted }
+            if byInterest, left.seen != right.seen { return !left.seen }
             if byInterest, left.interest.priority != right.interest.priority {
                 return left.interest.priority > right.interest.priority
             }
@@ -57,11 +58,8 @@ struct BrandDirectory: View {
             WatchSegments(selection: $byInterest, choices: [true, false]) { $0 ? "Interest" : "A–Z" }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
-                    Menu {
-                        Picker("Filters", selection: $filter) {
-                            ForEach(BrandFilter.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-                        }
-                    } label: {
+                    WatchDropdown(choices: BrandFilter.allCases, selection: filter,
+                                  title: { $0.rawValue }, select: { filter = $0 }) {
                         Label(filter == .all ? "Filters" : filter.rawValue, systemImage: "slider.horizontal.3")
                             .font(.wwSubheadline).padding(.horizontal, 12).frame(minHeight: 44).watchCard(radius: 12)
                     }
@@ -78,7 +76,7 @@ struct BrandDirectory: View {
                 BrandRow(guide: guide, brand: brand, event: event)
             }
             if ordered.isEmpty { ContentUnavailableView("No matching brands", systemImage: "magnifyingglass") }
-        }
+        }.onChange(of: byInterest) { _, _ in model.resort() }
     }
 
     private func filterChip(_ title: String, icon: String, selected: Binding<Bool>) -> some View {
@@ -112,7 +110,7 @@ struct BrandRow: View {
                     }
                         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                         .padding(.horizontal, 16)
-                        .watchCard(accent: ratingStripe, stripeWidth: 8)
+                        .watchCard(accent: ratingStripe, stripeWidth: 8, fill: cardFill)
                 }.buttonStyle(.plain).accessibilityLabel(brand.displayName)
                     .accessibilityHint("Expand the seen brand")
             } else {
@@ -123,6 +121,10 @@ struct BrandRow: View {
 
     private var ratingStripe: Color? {
         selection.interest == .none ? nil : WatchWeeksStyle.rating(selection.interest)
+    }
+
+    private var cardFill: Color {
+        selection.seen ? WatchWeeksStyle.seenCard : WatchWeeksStyle.card
     }
 
     @ViewBuilder private var mustBadge: some View {
@@ -213,14 +215,8 @@ struct BrandRow: View {
                         .accessibilityAddTraits(selection.seen ? .isSelected : [])
                 }
                 if selection.seen || selection.reaction != nil || selection.buyingIntent != nil {
-                    Picker("Reaction", selection: feedback(\.reaction)) {
-                        Text("None").tag(nil as VisitReaction?)
-                        ForEach(VisitReaction.allCases, id: \.self) { Text($0.rawValue).tag(Optional($0)) }
-                    }
-                    Picker("Buying intent", selection: feedback(\.buyingIntent)) {
-                        Text("None").tag(nil as BuyingIntent?)
-                        ForEach(BuyingIntent.allCases, id: \.self) { Text($0.rawValue).tag(Optional($0)) }
-                    }
+                    feedbackPicker("Reaction", selection: feedback(\.reaction), values: VisitReaction.allCases)
+                    feedbackPicker("Buying intent", selection: feedback(\.buyingIntent), values: BuyingIntent.allCases)
                 }
                 if let url = PublicLinks.safeExternal(brand.webURL) {
                     Link("Brand website", destination: url).font(.wwFootnote)
@@ -237,7 +233,7 @@ struct BrandRow: View {
                     }
                 }.fixedSize(horizontal: false, vertical: true)
             }
-        }.watchCard(accent: ratingStripe, stripeWidth: 8)
+        }.watchCard(accent: ratingStripe, stripeWidth: 8, fill: cardFill)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .disabled(model.persistenceError != nil)
     }
@@ -248,6 +244,20 @@ struct BrandRow: View {
             updated[keyPath: field] = value
             model.set(updated, guide: guide, brand: brand)
         })
+    }
+
+    private func feedbackPicker<Value: RawRepresentable & Hashable>(_ title: String, selection: Binding<Value?>,
+                                                                  values: [Value]) -> some View where Value.RawValue == String {
+        let value = selection.wrappedValue
+        return HStack {
+            Text(title).font(.wwSubheadline)
+            Spacer()
+            WatchDropdown(choices: [nil] + values.map(Optional.some), selection: .some(value),
+                          title: { $0?.rawValue ?? "None" }, select: { selection.wrappedValue = $0 }) {
+                WatchDropdownLabel(title: value?.rawValue ?? "None")
+                    .foregroundStyle(WatchWeeksStyle.link)
+            }.accessibilityLabel("\(title), \(value?.rawValue ?? "None")")
+        }
     }
 
     private func rating(_ interest: Interest) -> some View {
@@ -275,12 +285,15 @@ private struct CityPicker: View {
     var showAll = false
 
     var body: some View {
-        Picker("Guide", selection: $choice) {
-            if showAll { Text("All guides").tag(nil as String?) }
-            else if choice == nil { Text("Choose a guide").tag(nil as String?) }
-            ForEach(guides) { guide in Text(guide.city).tag(Optional(guide.id)) }
-        }
-        .pickerStyle(.menu).padding(.horizontal, 12).frame(minHeight: 44).watchCard(radius: 12)
+        let options = (showAll ? [nil as String?] : []) + guides.map { Optional($0.id) }
+        WatchDropdown(choices: options, selection: .some(choice), title: name, select: { choice = $0 }) {
+            WatchDropdownLabel(title: name(choice)).foregroundStyle(WatchWeeksStyle.link)
+        }.accessibilityLabel("Guide, \(name(choice))")
+            .padding(.horizontal, 12).watchCard(radius: 12)
+    }
+
+    private func name(_ id: String?) -> String {
+        guides.first { $0.id == id }?.city ?? (showAll ? "All guides" : "Choose a guide")
     }
 }
 
@@ -306,7 +319,11 @@ struct VisitView: View {
                             Toggle("Shortlist only", isOn: $shortlistedOnly)
                             Toggle("Show remaining only", isOn: $remaining)
                         }.padding(12).watchCard()
-                        Text("Your list is saved on this device.").font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
+                        HStack {
+                            Text("Your list is saved on this device.").foregroundStyle(WatchWeeksStyle.secondary)
+                            Spacer(minLength: 8)
+                            NavigationLink("About & privacy") { AboutView() }.frame(minHeight: 44)
+                        }.font(.wwFootnote)
                         let guides = model.visitGuides.filter { guideID == nil || $0.id == guideID }
                         if let draft = picks(in: guides) {
                             ShareLink(item: draft) { Label("Share My Picks", systemImage: "square.and.arrow.up") }
@@ -322,17 +339,18 @@ struct VisitView: View {
                 .onAppear {
                     guideID = model.visitGuides.contains(where: { $0.id == model.activeGuideID }) ? model.activeGuideID : nil
                 }
-        }
+        }.onChange(of: byInterest) { _, _ in model.resort() }
     }
 
     private func saved(in guide: Guide) -> [Brand] {
         guide.brands.filter { brand in
-            let selection = model.selection(guide, brand)
+            let selection = model.selectionForSorting(guide, brand)
             if shortlistedOnly { return selection.isShortlisted }
             return selection.isShortlisted || selection.interest != .none || selection.seen || selection.reaction != nil || selection.buyingIntent != nil
         }.sorted { left, right in
-            let first = model.selection(guide, left), second = model.selection(guide, right)
+            let first = model.selectionForSorting(guide, left), second = model.selectionForSorting(guide, right)
             if first.isShortlisted != second.isShortlisted { return first.isShortlisted }
+            if byInterest, first.seen != second.seen { return !first.seen }
             if byInterest, first.interest.priority != second.interest.priority { return first.interest.priority > second.interest.priority }
             return left.displayName.localizedStandardCompare(right.displayName) == .orderedAscending
         }
@@ -362,7 +380,7 @@ struct VisitView: View {
             let seen = guide.brands.count { model.selection(guide, $0).seen }
             ProgressView("\(seen) of \(total) seen", value: Double(seen), total: Double(total))
                 .padding(12).watchCard()
-            let visible = all.filter { !remaining || !model.selection(guide, $0).seen }
+            let visible = all.filter { !remaining || !model.selectionForSorting(guide, $0).seen }
             if visible.isEmpty { Text("You’ve seen every brand on this list.").font(.wwSubheadline) }
             let pinned = visible.filter { model.selection(guide, $0).isShortlisted }
             if !pinned.isEmpty {
@@ -399,12 +417,10 @@ struct ReleasesView: View {
 }
 
 private struct ReleaseDirectory: View {
-    @EnvironmentObject var model: AppModel
     let guide: Guide
     let proxy: ScrollViewProxy
     @State private var query = ""
     @State private var eventID: String?
-    @State private var byInterest = false
 
     init(guide: Guide, eventID: String? = nil, proxy: ScrollViewProxy) {
         self.guide = guide
@@ -412,17 +428,11 @@ private struct ReleaseDirectory: View {
         _eventID = State(initialValue: eventID)
     }
 
-    private func priority(_ release: Release) -> Int {
-        guard let brand = guide.brands.first(where: { $0.id == release.brandID }) else { return 0 }
-        return model.selection(guide, brand).interest.priority
-    }
-
     var body: some View {
         let releases = guide.releaseCatalog(eventID: eventID).filter {
             query.isEmpty || $0.title.localizedCaseInsensitiveContains(query)
                 || ($0.displayBrandName?.localizedCaseInsensitiveContains(query) ?? false)
         }.sorted { left, right in
-            if byInterest, priority(left) != priority(right) { return priority(left) > priority(right) }
             let leftName = left.displayBrandName ?? left.title
             let rightName = right.displayBrandName ?? right.title
             if leftName != rightName { return leftName.localizedStandardCompare(rightName) == .orderedAscending }
@@ -436,20 +446,18 @@ private struct ReleaseDirectory: View {
                 .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
             HStack {
                 TextField("Search releases", text: $query)
-                Picker("Event", selection: $eventID) {
-                    Text("All events").tag(nil as String?)
-                    ForEach(guide.publicEvents) { event in Text(event.name).tag(Optional(event.id)) }
-                }.pickerStyle(.menu)
+                WatchDropdown(choices: [nil] + guide.publicEvents.map { Optional($0.id) },
+                              selection: .some(eventID), title: eventName, select: { eventID = $0 }) {
+                    WatchDropdownLabel(title: eventName(eventID)).foregroundStyle(WatchWeeksStyle.link)
+                }.accessibilityLabel("Event, \(eventName(eventID))")
             }.padding(.horizontal, 12).frame(minHeight: 44).watchCard()
-            WatchSegments(selection: $byInterest, choices: [false, true]) { $0 ? "Interest" : "A–Z" }
             if !releases.isEmpty {
-                Menu {
-                    ForEach(releases) { release in
-                        Button("\(release.displayBrandName ?? "Watch") — \(release.title)") {
-                            withAnimation { proxy.scrollTo(release.id, anchor: .top) }
-                        }
-                    }
-                } label: {
+                let titles = Dictionary(uniqueKeysWithValues: releases.map {
+                    ($0.id, "\($0.displayBrandName ?? "Watch") — \($0.title)")
+                })
+                WatchDropdown(choices: releases.map(\.id), title: { titles[$0] ?? "" }, select: { id in
+                    withAnimation { proxy.scrollTo(id, anchor: .top) }
+                }) {
                     Label("Jump to brand or model", systemImage: "arrow.down.to.line").frame(minHeight: 44)
                 }
             }
@@ -460,6 +468,10 @@ private struct ReleaseDirectory: View {
             }
             if releases.isEmpty { ContentUnavailableView("No matching releases", systemImage: "sparkles") }
         }
+    }
+
+    private func eventName(_ id: String?) -> String {
+        guide.publicEvents.first { $0.id == id }?.name ?? "All events"
     }
 }
 
@@ -486,15 +498,8 @@ private struct ReleaseGallery: View {
     var skipFirst = false
 
     var body: some View {
-        ForEach(Array(images.enumerated()), id: \.offset) { index, image in
-            if index > 0 || !skipFirst { ReleaseImage(url: image.resolvedURL).frame(height: 200) }
-            if let credit = image.credit {
-                if let url = PublicLinks.safeExternal(image.link.flatMap(URL.init(string:))) {
-                    Link("Photo: \(credit)", destination: url).font(.wwCaption)
-                } else {
-                    Text("Photo: \(credit)").font(.wwCaption).foregroundStyle(.secondary)
-                }
-            }
+        ForEach(Array(images.dropFirst(skipFirst ? 1 : 0).enumerated()), id: \.offset) { _, image in
+            ReleasePhoto(image: image, height: 200)
         }
     }
 }
@@ -503,13 +508,21 @@ struct ReleaseCard: View {
     let release: Release
     let guide: Guide
     var compact = false
+    @State private var photoNearViewport = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             if let url = release.displayImages.first?.resolvedURL {
-                Color.clear.aspectRatio(4.0 / 3.0, contentMode: .fit)
-                    .overlay { ReleaseImage(url: url) }
-                    .clipped()
+                if compact {
+                    photo(url, load: photoNearViewport)
+                        .onGeometryChange(for: Bool.self) { proxy in
+                            guard let bounds = proxy.bounds(of: .scrollView(axis: .horizontal)) else { return false }
+                            let frame = proxy.frame(in: .scrollView(axis: .horizontal))
+                            return frame.maxX > -160 && frame.minX < bounds.width + 160
+                        } action: { photoNearViewport = $0 }
+                } else {
+                    photo(url, load: true)
+                }
             }
             if let brand = release.displayBrandName {
                 Text(brand).font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
@@ -525,6 +538,12 @@ struct ReleaseCard: View {
             }
         }.padding(12).frame(maxWidth: .infinity, alignment: .leading).watchCard()
     }
+
+    private func photo(_ url: URL, load: Bool) -> some View {
+        WatchWeeksStyle.control.aspectRatio(4.0 / 3.0, contentMode: .fit)
+            .overlay { if load { ReleaseImage(url: url) } }
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
 }
 
 struct ReleaseImage: View {
@@ -537,55 +556,102 @@ struct ReleaseImage: View {
         }.accessibilityHidden(true)
     }
 }
+
+private struct ReleasePhoto: View {
+    let image: ReleaseImageData
+    var height: CGFloat? = nil
+    @State private var showing = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Button { showing = true } label: {
+                Group {
+                    if let height { Color.clear.frame(height: height) }
+                    else { Color.clear.aspectRatio(4.0 / 3.0, contentMode: .fit) }
+                }
+                .overlay { ReleaseImage(url: image.resolvedURL) }
+                .clipped()
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("View photo")
+            if let credit = image.credit {
+                Text("Photo: \(credit)").font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
+            }
+        }
+        .fullScreenCover(isPresented: $showing) {
+            VStack(spacing: 12) {
+                HStack {
+                    Spacer()
+                    Button { showing = false } label: {
+                        Image(systemName: "xmark").frame(width: 44, height: 44)
+                    }.buttonStyle(.plain).accessibilityLabel("Close photo")
+                }
+                ReleaseImage(url: image.resolvedURL)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if let credit = image.credit {
+                    Text("Photo: \(credit)").font(.wwFootnote)
+                }
+            }
+            .padding()
+            .foregroundStyle(.white)
+            .background { Color.black.ignoresSafeArea() }
+        }
+    }
+}
+
 struct ReleaseDetail: View {
     @EnvironmentObject var model: AppModel
     let guide: Guide
     let release: Release
     var body: some View {
         ScrollView { VStack(alignment: .leading, spacing: 20) {
-            if let url = release.displayImages.first?.resolvedURL {
-                Color.clear.aspectRatio(4.0 / 3.0, contentMode: .fit)
-                    .overlay { ReleaseImage(url: url) }.clipped()
-            }
+            if let image = release.displayImages.first { ReleasePhoto(image: image) }
             ReleaseBadges(release: release)
             Text(release.title).font(.wwLargeTitle)
             if let brand = release.displayBrandName { Text(brand).font(.wwTitle2) }
             if let price = release.displayedPrice { Text(price).font(.wwHeadline) }
-            if !release.isNotExhibited && !release.isTeaser {
-                if let brand = guide.brands.first(where: { $0.id == release.brandID }) {
-                    let mustSee = model.selection(guide, brand).interest == .mustSee
-                    Button {
-                        var selection = model.selection(guide, brand)
-                        selection.interest = mustSee ? .none : .mustSee
-                        model.set(selection, guide: guide, brand: brand)
-                    } label: {
-                        if mustSee { Label("Must see", systemImage: "checkmark").frame(minHeight: 32) }
-                        else { Text("Mark as Must-see").frame(minHeight: 32) }
-                    }.buttonStyle(.borderedProminent)
-                        .tint(mustSee ? WatchWeeksStyle.live : WatchWeeksStyle.rating(.mustSee))
-                        .foregroundStyle(.white)
-                        .accessibilityAddTraits(mustSee ? .isSelected : [])
-                }
-                let eventIDs = Set(guide.newReleases(for: release.brandID).filter {
-                    $0.title.caseInsensitiveCompare(release.title) == .orderedSame && !$0.isNotExhibited
-                }.compactMap(\.eventID))
-                ForEach(guide.publicEvents.filter { eventIDs.contains($0.id) }) { event in
-                    let others = guide.brands.count { $0.id != release.brandID && $0.eventIDs.contains(event.id) }
-                    let context = release.displayBrandName.map { " (\($0) + \(others) other brands)" } ?? ""
-                    NavigationLink("Explore \(event.name)\(context)") { EventInfo(guide: guide, event: event) }
-                }
-            }
+            if !release.isNotExhibited && !release.isTeaser { releaseActions }
             if let details = release.details { Text(details).textSelection(.enabled) }
             ReleaseGallery(images: release.displayImages, skipFirst: !release.displayImages.isEmpty)
             if !release.displaySharedImages.isEmpty {
                 Text("Other photos from this release group").font(.wwHeadline)
                 ReleaseGallery(images: release.displaySharedImages)
             }
-            if let url = PublicLinks.safeExternal(release.webURL) { Link("Full details", destination: url); ShareLink(item: url) }
-        }.padding() }.watchPage().navigationTitle("New release").navigationBarTitleDisplayMode(.inline).accountAccess()
+        }.padding() }.watchPage().navigationTitle("New release").navigationBarTitleDisplayMode(.inline).findAccess()
             .task {
                 model.activeGuideID = guide.id
             }
+    }
+
+    private var releaseActions: some View {
+        let eventIDs = Set(guide.newReleases(for: release.brandID).filter {
+            $0.title.caseInsensitiveCompare(release.title) == .orderedSame && !$0.isNotExhibited
+        }.compactMap(\.eventID))
+        return VStack(spacing: 8) {
+            if let brand = guide.brands.first(where: { $0.id == release.brandID }) {
+                let mustSee = model.selection(guide, brand).interest == .mustSee
+                Button {
+                    var selection = model.selection(guide, brand)
+                    selection.interest = mustSee ? .none : .mustSee
+                    model.set(selection, guide: guide, brand: brand)
+                } label: {
+                    Group {
+                        if mustSee { Label("Must see", systemImage: "checkmark") }
+                        else { Text("Mark as Must-see") }
+                    }.frame(maxWidth: .infinity, minHeight: 44)
+                }.buttonStyle(.borderedProminent)
+                    .tint(mustSee ? WatchWeeksStyle.live : WatchWeeksStyle.rating(.mustSee))
+                    .foregroundStyle(.white)
+                    .accessibilityAddTraits(mustSee ? .isSelected : [])
+            }
+            ForEach(guide.publicEvents.filter { eventIDs.contains($0.id) }) { event in
+                NavigationLink { EventInfo(guide: guide, event: event) } label: {
+                    Label("Explore at \(event.name)", systemImage: "arrow.right")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }.buttonStyle(.bordered).tint(WatchWeeksStyle.release)
+            }
+        }.font(.wwSubheadline.weight(.semibold))
     }
 }
 struct AboutView: View {
@@ -594,14 +660,16 @@ struct AboutView: View {
             Section("WatchWeeks") {
                 Text("WatchWeeks is an independent guide to watch fairs and events. It is not affiliated with or endorsed by the listed event organizers or brands.")
                 WebsiteLink(title: "Privacy policy", url: PublicLinks.privacy)
+                if let email = URL(string: "mailto:reed.reibstein@gmail.com") {
+                    Link("Email support", destination: email)
+                }
             }
             Section("Your visit, your device") {
                 Text("Your shortlist, ratings and seen selections are saved on this device. The iPhone app sends no product analytics.")
                 Text("Previously loaded guides work offline. Links and content you have not loaded may require a connection.")
             }
             Section("Explore more") {
-                WebsiteLink(title: "Full WatchWeeks website", url: PublicLinks.home)
-                Text("Use the website for accounts, synchronization and advanced planning.").font(.wwFootnote)
+                WebsiteLink(title: "WatchWeeks website", url: PublicLinks.home)
             }
             Section {
                 if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
@@ -619,7 +687,7 @@ struct BrandInfo: View {
     let brand: Brand
     var body: some View {
         ScrollView { BrandRow(guide:guide,brand:brand,showDetails:false).padding(16) }.watchPage()
-            .navigationTitle(brand.displayName).accountAccess()
+            .navigationTitle(brand.displayName).findAccess()
             .task {
                 model.activeGuideID = guide.id
             }

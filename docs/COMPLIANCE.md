@@ -12,9 +12,9 @@ Current source: [Apple App Review Guidelines](https://developer.apple.com/app-st
   credited watch photographs. Confirm the right to show them in the app.
 - **4.2 Minimum functionality.** Review notes should point to the native visit
   checklist, offline guide and itinerary planner.
-- **4.8 and 5.1.1 Account and privacy.** Guest use is complete. The Account
-  action opens the website in the browser. There is no native registration,
-  login or synchronization. The launch build contains no product analytics
+- **4.8 and 5.1.1 Account and privacy.** Guest use is complete. My list links
+  to About & privacy. There is no native registration, login or synchronization.
+  The launch build contains no product analytics
   SDK or replay. Verify the native policy and actual request log retention
   before setting App Store privacy answers.
 

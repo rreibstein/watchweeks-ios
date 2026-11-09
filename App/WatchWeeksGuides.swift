@@ -175,16 +175,14 @@ private struct SingaporePlanner: View {
                 Text(LocalSchedule.hoursLabel(window.hours)).font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
                 Toggle("Build around a talk", isOn: $includeTalk)
                 if includeTalk {
-                    Menu {
-                        ForEach(talks, id: \.self) { session in
-                            Button("\(LocalSchedule.timeLabel(session.hours.lowerBound)) · \(session.title)") { selectedTalk = session }
-                        }
-                        Link("Official IAMWATCH program", destination: Self.program)
-                    } label: {
+                    WatchDropdown(choices: talks, selection: talk, title: {
+                        "\(LocalSchedule.timeLabel($0.hours.lowerBound)) · \($0.title)"
+                    }, select: { selectedTalk = $0 }) {
                         Label(talk?.title ?? "Choose an IAMWATCH talk", systemImage: "chevron.up.chevron.down")
                             .font(.wwSubheadline).multilineTextAlignment(.leading).frame(minHeight: 44)
                     }
                     .accessibilityIdentifier("planner-talk-menu")
+                    Link("Official IAMWATCH program", destination: Self.program).font(.wwFootnote)
                     Text(tradeOff(keeping: stops, skipping: noTalk)).font(.wwFootnote)
                     if let talk {
                         Text("Talk: \(LocalSchedule.hoursLabel(talk.hours)) · Wonder Room")
@@ -279,7 +277,7 @@ private struct GuidePreview: View {
                 Text(guide.summary ?? "A recap of \(guide.city)’s watch events, exhibitors and new releases.")
                     .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
             }
-            if !releases.isEmpty && (!past || guide.id == "nyww-2026") {
+            if !releases.isEmpty {
                 CityReleases(guide: guide, releases: releases, past: past)
             }
             if !past {
@@ -293,7 +291,15 @@ private struct GuidePreview: View {
                 }
             }
         }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .watchCard(accent: WatchWeeksStyle.city(guide), stripeWidth: 6)
+            .background {
+                NavigationLink { CityView(guide: guide) } label: {
+                    Color.clear
+                        .watchCard(accent: WatchWeeksStyle.city(guide), stripeWidth: 6)
+                        .contentShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+                .accessibilityHidden(true)
+            }
     }
 
     private var guideLink: some View {
@@ -306,7 +312,10 @@ private struct GuidePreview: View {
                 Spacer()
                 Image(systemName: "chevron.right").font(.wwHeadline)
             }
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .topLeading)
+            .contentShape(Rectangle())
         }.buttonStyle(.plain)
+            .accessibilityIdentifier("home-guide-\(guide.id)")
     }
 
     private func todaySchedule(_ slots: [LiveEvent.Slot], now: Date) -> some View {
@@ -353,6 +362,7 @@ private struct CityReleases: View {
         case "singapore-2026": featured = ["renaudtixier", "czapek", "dennison"]
         case "hong-kong-2026": featured = ["earthencompany", "straum", "gronefeld"]
         case "miami-2026": featured = ["arminstrom", "arnoldson", "beauregard"]
+        case "austin-2026": featured = ["circula", "elliotbrown", "formex"]
         case "nyww-2026": featured = ["bremont", "brewwatchco", "bulova"]
         default: featured = []
         }
@@ -393,7 +403,7 @@ private struct CityReleases: View {
                 }
             }
         }
-        NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").accountAccess() } label: {
+        NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").findAccess() } label: {
             HStack(spacing: 6) {
                 Text("See all new releases")
                 Image(systemName: "arrow.right").accessibilityHidden(true)
@@ -469,13 +479,12 @@ struct CityView: View {
                 }
                 if guide.id == "singapore-2026" { SingaporePlanner(guide: guide) }
                 if !guide.releaseCatalog().isEmpty {
-                    NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").accountAccess() } label: {
+                    NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").findAccess() } label: {
                         Label("See all \(guide.releaseCatalog().count) new releases", systemImage: "sparkles")
                             .foregroundStyle(WatchWeeksStyle.release)
                     }.padding(.vertical, 8)
                 }
                 if let url = PublicLinks.safeExternal(guide.webURL) {
-                    WebsiteLink(title: "Full guide and planning tools", url: url)
                     ShareLink(item: url) { Label("Share guide", systemImage: "square.and.arrow.up") }
                 }
             }.padding(16)
@@ -701,15 +710,20 @@ struct EventInfo: View {
     }
 
     private func releasePreviews(_ releases: [Release]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let pictured = releases.filter { !$0.displayImages.isEmpty }
+        let textOnly = releases.filter { $0.displayImages.isEmpty }
+        return VStack(alignment: .leading, spacing: 10) {
             Text("New releases").font(.wwTitle2).accessibilityAddTraits(.isHeader)
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 12) {
-                    ForEach(releases) { release in
+                // Measure the tallest card up front. A lazy horizontal stack
+                // can size the scroll view to its first card's shorter height.
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(pictured + textOnly) { release in
                         NavigationLink { ReleaseDetail(guide: guide, release: release) } label: {
                             ReleaseCard(release: release, guide: guide, compact: true)
                                 .frame(width: 205, alignment: .leading)
-                        }.buttonStyle(.plain)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }.buttonStyle(.plain).accessibilityIdentifier("event-release-card-\(release.id)")
                     }
                 }
             }

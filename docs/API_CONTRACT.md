@@ -38,8 +38,9 @@ identity. New content with repeated tuples requires contract enhancement. No use
 selection is keyed by release ID. Dealers currently not rendered natively.
 
 Unknown guide probe returned HTTP 404 JSON `{"error":"not_found"}`, also cacheable
-300 seconds. No ETag/Last-Modified observed in index/404 probes. URLSession uses
-standard protocol caching; local snapshots additionally support offline browsing.
+300 seconds. No ETag/Last-Modified observed in index/404 probes. Refresh requests
+bypass the device's URL cache, while server and CDN caching still apply. Local
+snapshots support offline browsing.
 All detail requests must succeed and validate before replacing current snapshot;
 a failed refresh restores cached data with warning. No fabricated fallback content.
 
