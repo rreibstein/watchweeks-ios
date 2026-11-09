@@ -9,9 +9,10 @@ public enum LocalSchedule {
         return hours * 60 + minutes
     }
 
-    public static func timeLabel(_ minute: Int) -> String {
+    public static func timeLabel(_ minute: Int, compact: Bool = false) -> String {
         let hour = (minute / 60) % 24
-        return "\(hour % 12 == 0 ? 12 : hour % 12):\(String(format: "%02d", minute % 60)) \(hour < 12 ? "AM" : "PM")"
+        let minutes = compact && minute % 60 == 0 ? "" : ":" + String(format: "%02d", minute % 60)
+        return "\(hour % 12 == 0 ? 12 : hour % 12)\(minutes) \(hour < 12 ? "AM" : "PM")"
     }
 
     public static func dateLabel(_ value: String, zone: String) -> String? {
@@ -48,12 +49,13 @@ public enum LocalSchedule {
         return start..<(end > start ? end : end + 24 * 60)
     }
 
-    public static func hoursLabel(_ hours: Range<Int>) -> String {
-        "\(timeLabel(hours.lowerBound)) – \(timeLabel(hours.upperBound))"
+    public static func hoursLabel(_ hours: Range<Int>, compact: Bool = false) -> String {
+        let separator = compact ? "–" : " – "
+        return timeLabel(hours.lowerBound, compact: compact) + separator + timeLabel(hours.upperBound, compact: compact)
     }
 
     public static func label(_ day: EventDay, zone: String) -> String {
-        [dateLabel(day.date, zone: zone), day.session, hours(day).map(hoursLabel), accessLabel(day.access)]
+        [dateLabel(day.date, zone: zone), day.session, hours(day).map { hoursLabel($0) }, accessLabel(day.access)]
             .compactMap { $0 }.joined(separator: " · ")
     }
 
@@ -72,36 +74,74 @@ public enum LocalSchedule {
 }
 
 public struct LiveEvent: Sendable {
-    public enum Status: String, Sendable { case now = "Happening now", today = "Happening today", tomorrow = "More tomorrow" }
+    public enum Status: String, Sendable {
+        case now = "Happening now", today = "Happening today"
+        case finished = "Finished today", tomorrow = "More tomorrow"
+    }
+
+    public struct Slot: Sendable {
+        public let event: Event
+        public let day: EventDay
+        public let interval: Range<Date>
+    }
+
     public let guide: Guide
     public let event: Event
     public let day: EventDay
     public let status: Status
 
+    public static func citySchedule(in guide: Guide, now: Date = .now) -> (status: Status, today: [Slot])? {
+        guard let calendar = calendar(for: guide) else { return nil }
+        let start = calendar.startOfDay(for: now)
+        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: start),
+              let dayAfter = calendar.date(byAdding: .day, value: 1, to: tomorrow) else { return nil }
+        let slots = publicSlots(in: guide)
+        let today = slots.filter { $0.interval.overlaps(start..<tomorrow) }
+            .sorted { $0.interval.lowerBound < $1.interval.lowerBound }
+        if today.contains(where: { $0.interval.contains(now) }) { return (.now, today) }
+        if today.contains(where: { $0.interval.lowerBound > now }) { return (.today, today) }
+        if slots.contains(where: { (tomorrow..<dayAfter).contains($0.interval.lowerBound) }) {
+            return (.tomorrow, today)
+        }
+        return today.isEmpty ? nil : (.finished, today)
+    }
+
     public static func next(in guides: [Guide], now: Date = .now) -> LiveEvent? {
         var candidates: [(LiveEvent, Date)] = []
         for guide in guides {
-            guard let zone = TimeZone(identifier: guide.timeZone) else { continue }
-            var calendar = Calendar(identifier: .gregorian)
-            calendar.timeZone = zone
-            for event in guide.publicEvents {
-                for day in LocalSchedule.days(for: event, guideID: guide.id) where !day.isRestrictedAccess {
-                    guard let interval = LocalSchedule.interval(day, zone: guide.timeZone), interval.upperBound > now else { continue }
-                    let status: Status
-                    if interval.contains(now) { status = .now }
-                    else if calendar.isDate(interval.lowerBound, inSameDayAs: now) { status = .today }
-                    else if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
-                            calendar.isDate(interval.lowerBound, inSameDayAs: tomorrow) { status = .tomorrow }
-                    else { continue }
-                    candidates.append((LiveEvent(guide: guide, event: event, day: day, status: status),
-                                       status == .now ? interval.upperBound : interval.lowerBound))
-                }
+            guard let calendar = calendar(for: guide) else { continue }
+            for slot in publicSlots(in: guide) where slot.interval.upperBound > now {
+                let interval = slot.interval
+                let status: Status
+                if interval.contains(now) { status = .now }
+                else if calendar.isDate(interval.lowerBound, inSameDayAs: now) { status = .today }
+                else if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
+                        calendar.isDate(interval.lowerBound, inSameDayAs: tomorrow) { status = .tomorrow }
+                else { continue }
+                candidates.append((LiveEvent(guide: guide, event: slot.event, day: slot.day, status: status),
+                                   status == .now ? interval.upperBound : interval.lowerBound))
             }
         }
         for status in [Status.now, .today, .tomorrow] {
             if let first = candidates.filter({ $0.0.status == status }).min(by: { $0.1 < $1.1 }) { return first.0 }
         }
         return nil
+    }
+
+    private static func calendar(for guide: Guide) -> Calendar? {
+        guard let zone = TimeZone(identifier: guide.timeZone) else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = zone
+        return calendar
+    }
+
+    private static func publicSlots(in guide: Guide) -> [Slot] {
+        guide.publicEvents.flatMap { event in
+            LocalSchedule.days(for: event, guideID: guide.id).compactMap { day in
+                guard !day.isRestrictedAccess, let interval = LocalSchedule.interval(day, zone: guide.timeZone) else { return nil }
+                return Slot(event: event, day: day, interval: interval)
+            }
+        }
     }
 }
 

@@ -39,18 +39,15 @@ Account opens the existing website in the system browser.
 
 ## 1. Create the App Store Connect record
 
-1. Sign in to [App Store Connect](https://appstoreconnect.apple.com/). If Business
-   shows a pending Apple Developer Program agreement, the Account Holder
-   reviews and accepts it. Use the existing WatchWeeks record if one exists.
-2. If needed, register an explicit App ID under Apple Developer → Certificates,
-   Identifiers & Profiles → Identifiers → **+** → App IDs → App. Use
-   `com.watchweeks.app`, description **WatchWeeks**, and the existing owner team.
-3. In App Store Connect → Apps → **+** → **New App**, select iOS, English (U.S.),
-   the registered bundle ID and SKU `watchweeks-ios`. Try **WatchWeeks** as the
-   public name. If unavailable, try **WatchWeeks: Watch Event Guide**.
-4. Copy the numeric Apple ID from **App Information** to make the direct product
-   page link after launch. Keep the business-card QR pointed to the live
-   [Singapore guide](https://watchweeks.com/singapore).
+1. Open the existing [WatchWeeks app record](https://appstoreconnect.apple.com/apps/6832395283).
+   It is registered as iOS, English (U.S.), bundle ID `com.watchweeks.app`,
+   SKU `watchweeks-ios`. Its App Information page shows a non-trader declaration.
+2. Use **WatchWeeks: Watch Event Guide** as the listing name and
+   **Watch fairs & new releases** as the subtitle. The installed app is
+   **WatchWeeks**. Keep the business-card QR pointed to the live
+   [Singapore guide](https://watchweeks.com/singapore). The direct listing URL
+   will be [WatchWeeks on the App Store](https://apps.apple.com/app/id6832395283)
+   once it is live.
 
 ## 2. Archive and upload from Xcode
 
@@ -60,9 +57,14 @@ Account opens the existing website in the system browser.
    **Signing & Capabilities** and leave **Automatically manage signing** on.
    Keep `com.watchweeks.app` unless the actual existing app record uses a
    different ID. Avoid committing personal signing settings.
+   If Xcode reports that the team has no registered device, connect and
+   unlock the iPhone 13 Pro, tap **Trust**, select it as the run destination,
+   and use **Register Device** if offered. Enable Developer Mode if prompted.
+   Run once with **Command-R**, then switch to **Any iOS Device (arm64)**.
 2. Confirm **Version 1.0.0**, **Build 1** if unused, or the next unused build
    number if App Store Connect already has a build. Leave Xcode's automatic
    version/build number adjustment off during upload if you set them explicitly.
+   In App Store Connect, match the editable version number to the archive.
 3. Select **WatchWeeks** and **Any iOS Device (arm64)** in the toolbar, then
    **Product → Archive**. In Organizer, select the new archive and use
    **Validate App** if offered. Resolve any validation errors.
@@ -105,10 +107,21 @@ Trust This Computer. If Xcode asks, enable Developer Mode in iPhone
 
 ## 4. Fill the version page while the build processes
 
+In App Store Connect, set category, content rights and age rating under
+**Distribution → App Information**. Use **Pricing and Availability** for
+price and storefronts. Use **App Privacy** for the policy URL and data
+disclosures, then publish those answers. Under **iOS App → Prepare for
+Submission**, enter the listing copy, screenshots, review contact and notes.
+When the upload has processed, use the **+** in the **Build** section to
+attach the exact build that passed TestFlight QA, then click **Save**.
+
 | App Store Connect field | Entry or action |
 | --- | --- |
-| Subtitle | Independent watch event guide |
-| Category | Lifestyle |
+| Name | WatchWeeks: Watch Event Guide |
+| Subtitle | Watch fairs & new releases |
+| Primary category | Lifestyle |
+| Secondary category | Leave blank |
+| License agreement | Apple's Standard License Agreement |
 | Price | Free |
 | Availability | Include Singapore, the EU and other intended eligible storefronts. See Launch decisions for a compliance fallback. |
 | Support URL | `https://watchweeks.com` (public footer has the correction/contact path) |
@@ -118,9 +131,15 @@ Trust This Computer. If Xcode asks, enable Developer Mode in iPhone
 | Content Rights | Answer Yes for third-party content. The app displays brand-credited watch photos and excludes images with publication provenance. Confirm the source and applicable native usage terms for the retained photos and keep documentation ready. The listing should only show photos with verified listing rights. |
 | Export Compliance | The candidate uses system HTTPS, with no app or third-party encryption library. The build declares no non-exempt encryption. Answer any remaining territory questions using Apple's questionnaire. |
 | App Privacy | The app stores visit data locally. Confirm feed, CDN and image-host logging and retention before deciding what to disclose. See the request below. Apple excludes data discarded after servicing the request in real time. Disclose relevant retained data and purposes. The app has no tracking. |
-| Screenshots | Use actual, final-build iPhone Dynamic Island medium PNGs. See [screenshot instructions](SCREENSHOTS.md). |
+| Screenshots | Use actual, final-build iPhone Dynamic Island medium PNGs. See [screenshot instructions](SCREENSHOTS.md) for upload order and photo rights. |
 | App Review Information | Provide a real contact name, phone and email. Leave Sign-in required off. Paste the review notes below and replace the build placeholder. |
 | Version Release | Manually release this version. Be ready to release as soon as Apple approves it. |
+
+In-app purchase server URLs and a shared secret are unnecessary for this
+release. In the age questionnaire, personal selections stay private, there
+is no in-app messaging or social feed, and links open in the system browser.
+Answer the remaining questions based on the live editorial content and let
+App Store Connect determine the rating.
 
 **Read-only hosting question for Lovable**
 
@@ -198,13 +217,24 @@ WatchWeeks is independent of the listed events and brands.
    **Add for Review → Submit for Review**. Only the owner or authorized release
    manager should take this step.
 2. With the app in **Waiting for Review**, use Apple's **Request an Expedited
-   App Review** form. Select WatchWeeks and iOS. State that it is a first release
-   for the November 13–15 Singapore fairs and repeat the opening time and links
-   from Review Notes. Apple's decision and turnaround are discretionary.
+   App Review** form. Select the WatchWeeks listing and iOS. Paste the
+   request below. Apple's decision and turnaround are discretionary.
 3. Watch App Review messages. If Apple requests information or a fix, resolve
    that exact request. At **Pending Developer Release**, use **Release This
    Version → Confirm**. Verify availability on the Singapore storefront.
 
+**Expedited review request**
+
+> Please consider expedited review of WatchWeeks: Watch Event Guide, Apple ID
+> 6832395283, for the Singapore watch fairs on November 13–15, 2026. Golden
+> Hour Singapore opens Friday, November 13 at 11 a.m. Singapore time. The app
+> helps attendees plan across Golden Hour, IAMWATCH and Spring Sprang Sprung
+> with local event hours, a visit planner and a checklist available offline
+> after loading. The guide is independent of the event organizers.
+>
+> Guide: https://watchweeks.com/singapore
+> Organizer schedule: https://goldenhour.delugs.com/singapore
+
 [Submit an app](https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app)
-· [Request expedited review](https://developer.apple.com/help/app-review/after-submitting-for-review/request-expedited-review/)
+· [Expedited review form](https://developer.apple.com/contact/app-store/?topic=expedite)
 · [Release timing](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/select-an-app-store-version-release-option)

@@ -31,6 +31,13 @@ final class WatchWeeksUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["Singapore"].waitForExistence(timeout: 40))
         capture(app, "01-home")
+        let preview = app.buttons["Renaud Tixier, Monday Skeleton"]
+        reveal(preview, in: app)
+        preview.tap()
+        XCTAssertTrue(app.navigationBars["New release"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Monday Skeleton"].exists)
+        capture(app, "01b-release")
+        app.navigationBars["New release"].buttons.firstMatch.tap()
 
         app.buttons["Find"].tap()
         let search = app.searchFields.firstMatch
@@ -105,7 +112,7 @@ final class WatchWeeksUITests: XCTestCase {
             reveal(previouslySeen, in: app)
             previouslySeen.tap()
         }
-        let rate = app.buttons["Must-see, ALTO"]
+        let rate = app.buttons["Must see, ALTO"]
         reveal(rate, in: app)
         if !rate.isSelected { rate.tap() }
         let shortlist = app.buttons["shortlist-alto"]

@@ -81,10 +81,14 @@ Existing website tools remain available through the guide and account links.
 
 ## Guide and release data follow-up
 
-- The New York past card displays the fixed public snapshot `nyww-2026-event-v1`
-  for October 14–20, 2026. Its ordering uses the production bundle's frozen
-  scores and tie breakers. Austin has no published frozen snapshot in the
-  public sources reviewed, so the past card reports that gap.
+- Past cards show recap text, dates, and counts. New York also shows the
+  three brand-credited homepage photos that the public guide feed omits.
+  The fallback only applies to those exact releases and gives precedence to
+  any photos in the feed. Past cards omit audience rankings.
+- Active city cards show branded stripes, a three-photo release preview
+  when eligible photos are available, and public opening times in the
+  city's time zone. Between sessions, the badge prioritizes upcoming hours
+  today, then tomorrow's schedule, then finished for the day.
 - The edition-specific Austin and Miami access entries are folded into their
   parent events. The day schedule preserves those entries, including named
   slots embedded in the public feed. VIP hours are excluded from public live
@@ -94,8 +98,7 @@ Existing website tools remain available through the guide and account links.
   unmatched photographs as release-group photos. The app does not infer
   missing awards, prices, or model-specific image associations.
 
-[New York guide](https://watchweeks.com/newyork#audience-favorites) ·
-[Published ranking bundle](https://watchweeks.com/assets/topBrands-ihB13dQ1.js) ·
+[WatchWeeks home](https://watchweeks.com/) ·
 [Miami guide](https://watchweeks.com/miami) ·
 [Austin new releases](https://watchweeks.com/austin/new-releases)
 

@@ -11,6 +11,31 @@ enum WatchWeeksStyle {
     static let control = adaptive(0xEBE7E0, 0x352D27)
     static let link = adaptive(0xA52D1B, 0xFF9F89)
     static let release = adaptive(0x6A3CB0, 0xC9A8FF)
+    static let live = Color(rgb: 0x16A34A)
+    static let today = Color(rgb: 0xD97706)
+    static let quiet = Color(rgb: 0x71717A)
+
+    static func city(_ guide: Guide) -> Color {
+        switch guide.city.lowercased() {
+        case "singapore": Color(rgb: 0xE35335)
+        case "hong kong": Color(rgb: 0xA82D7C)
+        case "miami": Color(rgb: 0x2EA884)
+        case "austin": Color(rgb: 0xC8621E)
+        case "new york": Color(rgb: 0x2C5FB8)
+        default: release
+        }
+    }
+
+    static func rating(_ interest: Interest) -> Color {
+        switch interest {
+        case .mustSee: Color(rgb: 0x7C3AED)
+        case .interested: Color(rgb: 0x4F46E5)
+        case .little: Color(rgb: 0x475569)
+        case .unfamiliar: Color(rgb: 0x64748B)
+        case .skip: quiet
+        case .none: .clear
+        }
+    }
 
     private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
         Color(uiColor: UIColor { traits in
@@ -22,10 +47,24 @@ enum WatchWeeksStyle {
     }
 }
 
+private extension Color {
+    init(rgb: UInt32) {
+        self.init(red: Double((rgb >> 16) & 255) / 255,
+                  green: Double((rgb >> 8) & 255) / 255, blue: Double(rgb & 255) / 255)
+    }
+}
+
 extension View {
-    func watchCard(radius: CGFloat = 16) -> some View {
-        background(WatchWeeksStyle.card, in: RoundedRectangle(cornerRadius: radius))
-            .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(WatchWeeksStyle.border).allowsHitTesting(false) }
+    func watchCard(radius: CGFloat = 16, accent: Color? = nil, stripeWidth: CGFloat = 0) -> some View {
+        let shape = RoundedRectangle(cornerRadius: radius)
+        return background(WatchWeeksStyle.card, in: shape)
+            .overlay { shape.strokeBorder(WatchWeeksStyle.border).allowsHitTesting(false) }
+            .overlay {
+                if let accent {
+                    shape.fill(accent).mask(alignment: .leading) { Rectangle().frame(width: stripeWidth) }
+                        .allowsHitTesting(false)
+                }
+            }
     }
 
     func watchPage() -> some View {

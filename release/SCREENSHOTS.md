@@ -5,10 +5,11 @@ Use the actual iPhone 17 simulator captures in
 for the **iPhone with Dynamic Island (medium display)** slot. The app targets
 iPhone only. Apple's current size reference applies.
 
-For the listing, upload **01-home**, **02-singapore**, **03-golden-hour**, and
-**05-my-list** if they show no photo that still needs listing rights. The other
-captures are for QA. Upload a photo-forward capture such as **06-new-releases**
-only after confirming rights for the featured photos in App Store marketing.
+For the listing, start with **02-singapore**, **03-golden-hour**, and
+**05-my-list**, in that order. **02b-planner** is an optional fourth screen.
+The updated home screen now includes brand photos. Upload **01-home**,
+**01b-release**, or **06-new-releases** after confirming rights for the
+featured photos in App Store marketing. **04-rating** is a QA reference.
 
 [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)
 

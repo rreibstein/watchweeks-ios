@@ -73,4 +73,14 @@ extension PublicContractTests {
         XCTAssertEqual(release.displayImages, [pressPhoto])
         XCTAssertEqual(release.displaySharedImages, [pressPhoto])
     }
+
+    func testNewYorkHighlightFallbackRequiresAnExactReleaseAndNoFeedPhoto() {
+        let release = Release(id: "bulova", title: "A-11 Jimmy", brandID: "bulova", eventID: "windup")
+        let guide = Guide(id: "nyww-2026", city: "New York", timeZone: "America/New_York", releases: [release])
+        XCTAssertEqual(guide.releaseCatalog().first?.displayImages.first?.credit, "Bulova")
+        let source = ReleaseImageData(url: "/watchtime-photo.webp", credit: "WatchTime", link: nil)
+        let updated = Release(id: release.id, title: release.title, brandID: release.brandID,
+                              eventID: release.eventID, images: [source])
+        XCTAssertTrue(updated.withNewYorkHighlightPhoto.displayImages.isEmpty)
+    }
 }

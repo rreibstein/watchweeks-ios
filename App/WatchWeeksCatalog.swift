@@ -106,14 +106,32 @@ struct BrandRow: View {
         Group {
             if selection.isShortlisted && selection.seen && showDetails && !expanded {
                 Button { expanded = true } label: {
-                    Text(brand.displayName).font(.wwHeadline)
+                    HStack(spacing: 8) {
+                        mustBadge
+                        Text(brand.displayName).font(.wwHeadline)
+                    }
                         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        .padding(.horizontal, 16).watchCard()
-                }.buttonStyle(.plain).accessibilityHint("Expand the seen brand")
+                        .padding(.horizontal, 16)
+                        .watchCard(accent: ratingStripe, stripeWidth: 8)
+                }.buttonStyle(.plain).accessibilityLabel(brand.displayName)
+                    .accessibilityHint("Expand the seen brand")
             } else {
                 expandedCard
             }
         }.onChange(of: selection.seen) { _, seen in if seen { expanded = false } }
+    }
+
+    private var ratingStripe: Color? {
+        selection.interest == .none ? nil : WatchWeeksStyle.rating(selection.interest)
+    }
+
+    @ViewBuilder private var mustBadge: some View {
+        if selection.interest == .mustSee {
+            Text("MUST").font(.wwCaption2.bold()).foregroundStyle(.white)
+                .padding(.horizontal, 6).padding(.vertical, 3)
+                .background(WatchWeeksStyle.rating(.mustSee), in: Capsule())
+                .accessibilityLabel("Must see")
+        }
     }
 
     private var expandedCard: some View {
@@ -121,10 +139,17 @@ struct BrandRow: View {
             VStack(alignment: .leading, spacing: 12) {
                 if selection.isShortlisted && selection.seen && showDetails {
                     Button { expanded = false } label: {
-                        Label(brand.displayName, systemImage: "chevron.up").font(.wwTitle3).frame(minHeight: 44)
-                    }.buttonStyle(.plain).accessibilityHint("Collapse the seen brand")
+                        HStack(spacing: 8) {
+                            mustBadge
+                            Label(brand.displayName, systemImage: "chevron.up").font(.wwTitle3)
+                        }.frame(minHeight: 44)
+                    }.buttonStyle(.plain).accessibilityLabel(brand.displayName)
+                        .accessibilityHint("Collapse the seen brand")
                 } else {
-                    Text(brand.displayName).font(.wwTitle3).accessibilityAddTraits(.isHeader)
+                    HStack(spacing: 8) {
+                        mustBadge
+                        Text(brand.displayName).font(.wwTitle3).accessibilityAddTraits(.isHeader)
+                    }
                 }
                 if let summary = brand.summary { Text(summary).font(.wwSubheadline) }
                 if event == nil {
@@ -212,7 +237,7 @@ struct BrandRow: View {
                     }
                 }.fixedSize(horizontal: false, vertical: true)
             }
-        }.watchCard()
+        }.watchCard(accent: ratingStripe, stripeWidth: 8)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .disabled(model.persistenceError != nil)
     }
@@ -233,11 +258,12 @@ struct BrandRow: View {
             model.set(updated, guide: guide, brand: brand)
         } label: {
             Text(interest.label)
-                .font(typeSize.isAccessibilitySize ? .wwBody : .wwCaption2)
-                .multilineTextAlignment(.center).padding(.horizontal, 3)
-                .frame(maxWidth: .infinity, minHeight: 48)
-                .background(selected ? WatchWeeksStyle.control : Color.clear)
-                .foregroundStyle(selected ? WatchWeeksStyle.link : WatchWeeksStyle.ink)
+                .font(typeSize.isAccessibilitySize ? .wwBody.weight(.semibold) : .wwCaption2.weight(.semibold))
+                .multilineTextAlignment(.center).padding(.horizontal, 2).padding(.vertical, 4)
+                .frame(maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
+                .background(selected ? WatchWeeksStyle.rating(interest) : Color.clear)
+                .foregroundStyle(selected ? .white : WatchWeeksStyle.ink)
+                .contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityLabel("\(interest.label), \(brand.displayName)")
             .accessibilityAddTraits(selected ? .isSelected : [])
     }
@@ -317,7 +343,7 @@ struct VisitView: View {
             let lines = guide.brands.compactMap { brand -> String? in
                 let selection = model.selection(guide, brand)
                 var labels: [String] = []
-                if selection.interest == .mustSee { labels.append("Must-see") }
+                if selection.interest == .mustSee { labels.append(Interest.mustSee.label) }
                 if selection.isShortlisted { labels.append("Shortlist") }
                 if selection.reaction == .loved { labels.append("Loved") }
                 guard !labels.isEmpty else { return nil }
@@ -503,9 +529,10 @@ struct ReleaseCard: View {
 
 struct ReleaseImage: View {
     let url: URL?
+    var contentMode: ContentMode = .fit
     var body: some View {
         AsyncImage(url: PublicLinks.safeExternal(url)) { phase in
-            if let image = phase.image { image.resizable().scaledToFit() }
+            if let image = phase.image { image.resizable().aspectRatio(contentMode: contentMode) }
             else { Color.secondary.opacity(0.08) }
         }.accessibilityHidden(true)
     }
@@ -527,11 +554,17 @@ struct ReleaseDetail: View {
             if !release.isNotExhibited && !release.isTeaser {
                 if let brand = guide.brands.first(where: { $0.id == release.brandID }) {
                     let mustSee = model.selection(guide, brand).interest == .mustSee
-                    Button(mustSee ? "Clear Must-see" : "Mark as Must-see") {
+                    Button {
                         var selection = model.selection(guide, brand)
                         selection.interest = mustSee ? .none : .mustSee
                         model.set(selection, guide: guide, brand: brand)
-                    }.buttonStyle(.borderedProminent).frame(minHeight: 44)
+                    } label: {
+                        if mustSee { Label("Must see", systemImage: "checkmark").frame(minHeight: 32) }
+                        else { Text("Mark as Must-see").frame(minHeight: 32) }
+                    }.buttonStyle(.borderedProminent)
+                        .tint(mustSee ? WatchWeeksStyle.live : WatchWeeksStyle.rating(.mustSee))
+                        .foregroundStyle(.white)
+                        .accessibilityAddTraits(mustSee ? .isSelected : [])
                 }
                 let eventIDs = Set(guide.newReleases(for: release.brandID).filter {
                     $0.title.caseInsensitiveCompare(release.title) == .orderedSame && !$0.isNotExhibited

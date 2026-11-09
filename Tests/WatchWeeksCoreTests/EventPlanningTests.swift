@@ -29,6 +29,34 @@ final class EventPlanningTests: XCTestCase {
         }
     }
 
+    func testCitySchedulePrioritizesPublicOpenSlotsAndLocalDayBoundaries() throws {
+        let fair = Event(id: "fair", name: "Fair", days: [
+            EventDay(date: "2026-11-13", open: "11:00", close: "20:00", access: nil),
+            EventDay(date: "2026-11-14", open: "11:00", close: "20:00", access: nil)
+        ])
+        let overnight = Event(id: "late", name: "Late", days: [
+            EventDay(date: "2026-11-12", open: "23:00", close: "01:00", access: nil)
+        ])
+        let privateEvent = Event(id: "private", name: "Private", days: [
+            EventDay(date: "2026-11-13", open: "09:00", close: "22:00", access: "invitation")
+        ])
+        var guide = Guide(id: "singapore", city: "Singapore", timeZone: "Asia/Singapore",
+                          events: [fair, privateEvent, overnight])
+        let utc = ISO8601DateFormatter()
+        let midnight = try XCTUnwrap(utc.date(from: "2026-11-12T16:15:00Z"))
+        let beforeOpen = try XCTUnwrap(utc.date(from: "2026-11-13T02:59:00Z"))
+        let atOpen = try XCTUnwrap(utc.date(from: "2026-11-13T03:00:00Z"))
+        let atClose = try XCTUnwrap(utc.date(from: "2026-11-13T12:00:00Z"))
+        XCTAssertEqual(LiveEvent.citySchedule(in: guide, now: midnight)?.status, .now)
+        XCTAssertEqual(LiveEvent.citySchedule(in: guide, now: beforeOpen)?.status, .today)
+        XCTAssertEqual(LiveEvent.citySchedule(in: guide, now: atOpen)?.status, .now)
+        XCTAssertEqual(LiveEvent.citySchedule(in: guide, now: atClose)?.status, .tomorrow)
+        XCTAssertEqual(LiveEvent.citySchedule(in: guide, now: atClose)?.today.map(\.event.id), ["late", "fair"])
+        guide.events = [Event(id: "fair", name: "Fair", days: [fair.days[0]])]
+        XCTAssertEqual(LiveEvent.citySchedule(in: guide, now: atClose)?.status, .finished)
+        XCTAssertEqual(LocalSchedule.hoursLabel(660..<1140, compact: true), "11 AM–7 PM")
+    }
+
     func testSingaporePlannerShowsSaturdayTalkTradeOffWithoutOverlappingTravel() throws {
         let fixture = try XCTUnwrap(Bundle.module.url(forResource: "singapore", withExtension: "json", subdirectory: "Fixtures"))
         let detail = try JSONDecoder().decode(PublicDetail.self, from: Data(contentsOf: fixture))

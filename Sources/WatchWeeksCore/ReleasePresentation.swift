@@ -91,6 +91,32 @@ public extension Release {
     }
 }
 
+extension Release {
+    // The New York v1 feed omits images. These are the three brand-credited
+    // highlights published on the WatchWeeks home page for the 2026 edition.
+    var withNewYorkHighlightPhoto: Release {
+        guard images.isEmpty, eventID == "windup" else { return self }
+        let asset: String
+        let credit: String
+        switch (brandID, title) {
+        case ("bremont", "Supermarine Full Ceramic Deep Blue"):
+            asset = "bb2bb298-cae4-4760-bcf5-690b3b26dd37/windup-bremont-supermarine-full-ceramic-deep-blue-2.jpg"
+            credit = "Bremont"
+        case ("brewwatchco", "Metric Chrono Taxi"):
+            asset = "1075c0a9-8cc4-435f-a08b-90e284abc287/windup-brew-nyc-edition-2.png"
+            credit = "Brew Watch Co."
+        case ("bulova", "A-11 Jimmy"):
+            asset = "5b283932-17b1-4b2c-966c-8fdae537c411/windup-bulova-a-11-jimmy-1.jpg"
+            credit = "Bulova"
+        default: return self
+        }
+        let photo = ReleaseImageData(url: "/__l5e/assets-v1/" + asset, credit: credit, link: webURL?.absoluteString)
+        return Release(id: id, title: title, brandName: brandName, details: details, imageURL: photo.resolvedURL,
+                       webURL: webURL, brandID: brandID, eventID: eventID, kind: kind, images: [photo],
+                       awards: awards, sharedImages: sharedImages)
+    }
+}
+
 private extension ReleaseImageData {
     // Editorial source links at the release level can refer to reporting while the
     // photo comes from the brand. Only inspect the individual photo's provenance.

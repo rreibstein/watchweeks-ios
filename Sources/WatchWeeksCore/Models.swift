@@ -98,7 +98,7 @@ public enum BrandFilter: String, CaseIterable, Sendable { case all = "All", must
 public enum Interest: Int, Codable, CaseIterable, Sendable { case none, interested, mustSee, little, unfamiliar, skip
     public var priority: Int { switch self { case .mustSee: 3; case .interested: 2; case .little: 1; default: 0 } }
     public var category: String { switch self { case .none: "unrated"; case .interested: "moderate"; case .mustSee: "must"; case .little: "little"; case .unfamiliar: "unknown"; case .skip: "none" } }
-    public var label: String { switch self { case .none: "No rating"; case .interested: "Moderate"; case .mustSee: "Must-see"; case .little: "A little"; case .unfamiliar: "Unfamiliar"; case .skip: "Not for me" } }
+    public var label: String { switch self { case .none: "No rating"; case .interested: "Interested"; case .mustSee: "Must see"; case .little: "If time"; case .unfamiliar: "Unfamiliar"; case .skip: "Skip" } }
 }
 public enum VisitReaction: String, Codable, CaseIterable, Sendable {
     case loved = "Loved", liked = "Liked", notForMe = "Not for me"

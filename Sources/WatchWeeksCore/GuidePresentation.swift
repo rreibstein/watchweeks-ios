@@ -28,7 +28,9 @@ public extension Guide {
 
     func newReleases(for brandID: String?) -> [Release] {
         let dealerIDs = Set(events.filter(isDealerShow).flatMap { [$0.id] + accessSessions(for: $0).map(\.id) })
-        return releases.filter { (brandID == nil || $0.brandID == brandID) && !dealerIDs.contains($0.eventID ?? "") }.flatMap(\.individualModels)
+        return releases.filter { (brandID == nil || $0.brandID == brandID) && !dealerIDs.contains($0.eventID ?? "") }
+            .flatMap(\.individualModels)
+            .map { id == "nyww-2026" ? $0.withNewYorkHighlightPhoto : $0 }
     }
 
     func releaseCatalog(brandID: String? = nil, eventID: String? = nil) -> [Release] {

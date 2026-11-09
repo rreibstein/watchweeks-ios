@@ -4,6 +4,8 @@ import WatchWeeksCore
 
 struct DiscoveryView: View {
     @EnvironmentObject var model: AppModel
+    @State private var selectedCity: String?
+
     private func isPast(_ guide: Guide) -> Bool {
         guide.id == "austin-2026" || EventDates.status(guide) == .past
     }
@@ -33,9 +35,22 @@ struct DiscoveryView: View {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack {
                                     ForEach(ordered) { guide in
-                                        Button(guide.city) { withAnimation { scroll.scrollTo(guide.id, anchor: .top) } }
-                                            .font(.wwSubheadline).padding(.horizontal, 12).frame(minHeight: 44)
-                                            .watchCard(radius: 22).buttonStyle(.plain)
+                                        let selected = selectedCity == guide.id
+                                        Button {
+                                            selectedCity = guide.id
+                                            withAnimation { scroll.scrollTo(guide.id, anchor: .top) }
+                                        } label: {
+                                            Text(guide.city).font(.wwSubheadline)
+                                                .padding(.horizontal, 12).frame(minHeight: 44)
+                                                .watchCard(radius: 22)
+                                                .overlay {
+                                                    if selected {
+                                                        Capsule().strokeBorder(WatchWeeksStyle.city(guide), lineWidth: 2)
+                                                            .allowsHitTesting(false)
+                                                    }
+                                                }
+                                        }.buttonStyle(.plain)
+                                            .accessibilityAddTraits(selected ? .isSelected : [])
                                     }
                                 }
                             }
@@ -78,10 +93,7 @@ private struct LiveStatusCard: View {
                 NavigationLink { EventInfo(guide: item.guide, event: item.event) } label: {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Today").font(.wwHeadline)
-                        Text(item.status.rawValue).font(.wwCaption.weight(.bold))
-                            .foregroundStyle(Color(red: 0.24, green: 0.15, blue: 0.05))
-                            .padding(.horizontal, 10).padding(.vertical, 6)
-                            .background(Color(red: 1, green: 0.83, blue: 0.53), in: Capsule())
+                        ActivityPill(title: item.status.rawValue, color: item.status.color)
                         Text(item.event.name).font(.wwTitle3)
                         Text(item.status == .now
                              ? "Closes at \(LocalSchedule.timeLabel(hours.upperBound)) · \(item.guide.city) time"
@@ -91,6 +103,27 @@ private struct LiveStatusCard: View {
                 }.buttonStyle(.plain)
             }
         }
+    }
+}
+
+private extension LiveEvent.Status {
+    var color: Color {
+        switch self {
+        case .now: WatchWeeksStyle.live
+        case .today: WatchWeeksStyle.today
+        case .finished, .tomorrow: WatchWeeksStyle.quiet
+        }
+    }
+}
+
+private struct ActivityPill: View {
+    let title: String
+    let color: Color
+
+    var body: some View {
+        Text(title).font(.wwCaption2.bold()).foregroundStyle(.white)
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(color, in: Capsule())
     }
 }
 
@@ -222,28 +255,34 @@ private struct GuidePreview: View {
         return guideDateRange(guide)
     }
     var body: some View {
+        let releases = guide.releaseCatalog()
         VStack(alignment: .leading, spacing: 12) {
-            NavigationLink { CityView(guide: guide) } label: {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(guide.city).font(.wwTitle)
-                        Text(homeDates).font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
+            if past {
+                guideLink
+            } else {
+                TimelineView(.periodic(from: .now, by: 30)) { context in
+                    let activity = LiveEvent.citySchedule(in: guide, now: context.date)
+                    VStack(alignment: .leading, spacing: 8) {
+                        if let activity {
+                            ActivityPill(title: activity.status.rawValue, color: activity.status.color)
+                        }
+                        guideLink
+                        if let activity, !activity.today.isEmpty {
+                            todaySchedule(activity.today, now: context.date)
+                        }
                     }
-                    Spacer()
-                    Image(systemName: "chevron.right").font(.wwHeadline)
                 }
-            }.buttonStyle(.plain)
-            Text("\(guide.brands.count) brands · \(guide.publicEvents.count) events · \(guide.releaseCatalog().count) new releases")
+            }
+            Text("\(guide.brands.count) brands · \(guide.publicEvents.count) events · \(releases.count) new releases")
                 .font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
             if past {
-                Label("Enthusiasts’ favorites", systemImage: "star").font(.wwHeadline)
-                if guide.id == "nyww-2026", let snapshot = URL(string: "https://watchweeks.com/newyork#audience-favorites") {
-                    NewYorkFavorites(guide: guide)
-                    WebsiteLink(title: "View the published snapshot", url: snapshot)
-                } else {
-                    Text("A frozen audience snapshot hasn’t been published here.").font(.wwFootnote)
-                }
-            } else {
+                Text(guide.summary ?? "A recap of \(guide.city)’s watch events, exhibitors and new releases.")
+                    .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
+            }
+            if !releases.isEmpty && (!past || guide.id == "nyww-2026") {
+                CityReleases(guide: guide, releases: releases, past: past)
+            }
+            if !past {
                 ForEach(guide.publicEvents.sorted { brandCount(guide, $0) > brandCount(guide, $1) }.prefix(3)) { event in
                     if guide.isDealerShow(event) {
                         Text("\(event.name) · \(guide.dealers(at: event).count) dealers").font(.wwFootnote)
@@ -253,67 +292,114 @@ private struct GuidePreview: View {
                     }
                 }
             }
-            if !guide.releaseCatalog().isEmpty {
-                Divider()
-                NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").accountAccess() } label: {
-                    Label("See all new releases", systemImage: "sparkles").foregroundStyle(WatchWeeksStyle.release)
+        }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            .watchCard(accent: WatchWeeksStyle.city(guide), stripeWidth: 6)
+    }
+
+    private var guideLink: some View {
+        NavigationLink { CityView(guide: guide) } label: {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(guide.city).font(.wwTitle)
+                    Text(homeDates).font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.wwHeadline)
+            }
+        }.buttonStyle(.plain)
+    }
+
+    private func todaySchedule(_ slots: [LiveEvent.Slot], now: Date) -> some View {
+        let zone = TimeZone(identifier: guide.timeZone)
+        let abbreviation: String? = switch guide.timeZone {
+        case "Asia/Singapore": "SGT"
+        case "Asia/Hong_Kong": "HKT"
+        default: zone?.abbreviation(for: now)
+        }
+        return VStack(alignment: .leading, spacing: 0) {
+            Text(abbreviation.map { "Today · \($0)" } ?? "Today · local time")
+                .font(.wwCaption.bold()).foregroundStyle(WatchWeeksStyle.secondary)
+            ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
+                if let hours = LocalSchedule.hours(slot.day) {
+                    NavigationLink { EventInfo(guide: guide, event: slot.event) } label: {
+                        HStack(spacing: 8) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(slot.event.name).font(.wwFootnote.weight(.semibold))
+                                Text(LocalSchedule.hoursLabel(hours, compact: true)).font(.wwCaption)
+                                    .foregroundStyle(WatchWeeksStyle.secondary)
+                            }
+                            Spacer(minLength: 0)
+                            if slot.interval.contains(now) {
+                                ActivityPill(title: "Now", color: WatchWeeksStyle.live)
+                            }
+                        }.frame(minHeight: 44).contentShape(Rectangle())
+                    }.buttonStyle(.plain)
                 }
             }
-        }.padding(16).frame(maxWidth: .infinity, alignment: .leading).watchCard()
+        }.padding(10).background(WatchWeeksStyle.control, in: RoundedRectangle(cornerRadius: 10))
     }
 }
 
-private struct NewYorkFavorites: View {
+private struct CityReleases: View {
     let guide: Guide
-    private struct Favorite: Identifiable {
-        let id: String
-        let name: String
-        let count: Int
+    let releases: [Release]
+    let past: Bool
+
+    private var highlights: [Release] {
+        // Match the web home page's featured brands when their photos pass the
+        // provenance filter, then fill any open slots from the city's catalog.
+        let featured: [String]
+        switch guide.id {
+        case "singapore-2026": featured = ["renaudtixier", "czapek", "dennison"]
+        case "hong-kong-2026": featured = ["earthencompany", "straum", "gronefeld"]
+        case "miami-2026": featured = ["arminstrom", "arnoldson", "beauregard"]
+        case "nyww-2026": featured = ["bremont", "brewwatchco", "bulova"]
+        default: featured = []
+        }
+        let preferred = featured.compactMap { brandID in
+            releases.first { $0.brandID == brandID && !$0.displayImages.isEmpty }
+        }
+        var photos: Set<URL> = []
+        var result: [Release] = []
+        for release in preferred + releases {
+            guard let url = release.displayImages.first?.resolvedURL, photos.insert(url).inserted else { continue }
+            result.append(release)
+            if result.count == 3 { break }
+        }
+        return result
     }
 
-    // Published WatchWeeks snapshot nyww-2026-event-v1, including the tie
-    // at the website's top-20 cutoff. Keep the published order frozen.
-    private static let ranking: [Favorite] = [
-        .init(id: "chopard", name: "Chopard", count: 5),
-        .init(id: "ming", name: "Ming", count: 5),
-        .init(id: "fears", name: "Fears", count: 5),
-        .init(id: "traska", name: "TRASKA", count: 5),
-        .init(id: "arminstrom", name: "Armin Strom", count: 4),
-        .init(id: "ressence", name: "Ressence", count: 4),
-        .init(id: "angelusmayexhibitwitharnoldson", name: "Angelus", count: 4),
-        .init(id: "gshock", name: "G-SHOCK", count: 4),
-        .init(id: "kollokium", name: "Kollokium", count: 4),
-        .init(id: "straum", name: "Straum", count: 4),
-        .init(id: "autodromo", name: "Autodromo", count: 4),
-        .init(id: "hron", name: "Héron", count: 4),
-        .init(id: "marathonwatchcompany", name: "Marathon Watch Company", count: 4),
-        .init(id: "oris", name: "Oris", count: 4),
-        .init(id: "christopherward", name: "Christopher Ward", count: 3),
-        .init(id: "czapek", name: "Czapek", count: 3),
-        .init(id: "arnoldson", name: "Arnold & Son", count: 3),
-        .init(id: "frederiqueconstant", name: "Frederique Constant", count: 3),
-        .init(id: "pequignet", name: "Pequignet", count: 3),
-        .init(id: "mauricelacroix", name: "Maurice Lacroix", count: 3),
-        .init(id: "ulyssenardin", name: "Ulysse Nardin", count: 3),
-    ]
-
     var body: some View {
-        DisclosureGroup("Oct 14–20, 2026 · Frozen rankings") {
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(Self.ranking) { row in
-                    HStack {
-                        if let brand = guide.brands.first(where: { $0.id == row.id }) {
-                            NavigationLink(brand.displayName) { BrandInfo(guide: guide, brand: brand) }
-                        } else {
-                            Text(row.name)
-                        }
-                        Spacer()
-                        Text("\(row.count)").monospacedDigit()
-                            .accessibilityLabel("\(row.count) must-see or highlight votes")
-                    }
+        let items = highlights
+        Divider()
+        Text(past ? "New release highlights" : "\(releases.count) new releases")
+            .font(.wwCaption.weight(.semibold)).foregroundStyle(WatchWeeksStyle.secondary)
+        if !items.isEmpty {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 8), count: 3), alignment: .leading) {
+                ForEach(items) { release in
+                    NavigationLink { ReleaseDetail(guide: guide, release: release) } label: {
+                        VStack(alignment: .leading, spacing: 3) {
+                            WatchWeeksStyle.control.aspectRatio(6.0 / 5.0, contentMode: .fit)
+                                .overlay {
+                                    ReleaseImage(url: release.displayImages.first?.resolvedURL, contentMode: .fill)
+                                }
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                            Text(release.displayBrandName ?? "Watch").font(.wwCaption.bold()).lineLimit(1)
+                            Text(release.title).font(.wwCaption2).lineLimit(1)
+                                .foregroundStyle(WatchWeeksStyle.secondary)
+                        }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+                    }.buttonStyle(.plain)
+                        .accessibilityLabel("\(release.displayBrandName ?? "Watch"), \(release.title)")
                 }
-            }.font(.wwSubheadline).padding(.top, 8)
-        }.font(.wwSubheadline)
+            }
+        }
+        NavigationLink { ReleasesView(guide: guide).navigationTitle("New releases").accountAccess() } label: {
+            HStack(spacing: 6) {
+                Text("See all new releases")
+                Image(systemName: "arrow.right").accessibilityHidden(true)
+            }.font(.wwSubheadline.weight(.semibold))
+                .foregroundStyle(WatchWeeksStyle.release).frame(minHeight: 44)
+        }
     }
 }
 
