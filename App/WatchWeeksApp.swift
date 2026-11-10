@@ -24,7 +24,11 @@ import WatchWeeksCore
         self.store=store; self.repository=GuideRepository(service: PublicGuideService(), store: store)
     }
     func start() async {
-        guard !loaded else { return }; loaded = true
+        if loaded {
+            await refresh()
+            return
+        }
+        loaded = true
         do { selections = try await store.selections() }
         catch { selectionsReadable = false; persistenceError = "Saved selections could not be read. They have not been replaced. Restart after checking device storage."; return }
         visitGuides = (try? await store.rememberedGuides()) ?? []
@@ -97,11 +101,15 @@ import WatchWeeksCore
     @Environment(\.scenePhase) private var phase
     var body: some Scene {
         WindowGroup {
-            RootView().environmentObject(model).task { await model.start() }
-                .onChange(of: phase, initial: true) { previous, phase in
-                    if phase == .active {
-                        UsageAnalytics.shared.record(.opened)
-                        if previous != phase { Task { await model.refresh() } }
+            RootView().environmentObject(model)
+                .task(id: phase) {
+                    guard phase == .active else { return }
+                    UsageAnalytics.shared.record(.opened)
+                    await model.start()
+                    while !Task.isCancelled {
+                        do { try await Task.sleep(for: .seconds(300)) }
+                        catch { return }
+                        await model.refresh()
                     }
                 }
         }

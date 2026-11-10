@@ -7,7 +7,7 @@ public struct PublicIndex: Decodable, Sendable {
 public struct PublicGuideHeader: Decodable, Sendable {
     public let id: String; public let slug: String; public let city: String
     public let dates: String; public let timezone: String
-    public let start_date: String; public let end_date: String; public let url: URL
+    public let start_date: String?; public let end_date: String?; public let url: URL
     func model(events: [Event] = [], brands: [Brand] = [], releases: [Release] = [], dealers: [Dealer]? = nil) -> Guide {
         Guide(id:id,city:city,startDate:start_date,endDate:end_date,timeZone:timezone,webURL:url,events:events,brands:brands,releases:releases,dealers:dealers)
     }

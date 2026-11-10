@@ -9,8 +9,9 @@ those notes through analytics. No website data was changed.
 
 Index: `{v:1,guides:[...]}`. Headers include public Cache-Control max-age=300 and
 Access-Control-Allow-Origin *. No pagination fields, cursor, total or next link
-were observed; do not invent them. Index supplies published guides, no launch flag
-is exposed. New York, Austin, Miami, Singapore and Hong Kong are currently listed.
+were observed. New York, Austin, Miami, Singapore and Hong Kong were listed at
+inspection. The app discovers guide IDs from the index. A configured city can
+appear before its published detail exists, with null start and end dates.
 
 Guide fields: id, slug, city, dates, timezone, start_date, end_date, url.
 `id` is the stable guide key (e.g. singapore-2026); New York slug is empty and
@@ -41,8 +42,12 @@ Unknown guide probe returned HTTP 404 JSON `{"error":"not_found"}`, also cacheab
 300 seconds. No ETag/Last-Modified observed in index/404 probes. Refresh requests
 bypass the device's URL cache, while server and CDN caching still apply. Local
 snapshots support offline browsing.
-All detail requests must succeed and validate before replacing current snapshot;
-a failed refresh restores cached data with warning. No fabricated fallback content.
+A guide detail returning 404 is skipped so a configured city awaiting publication
+does not block the rest. If a nonempty index yields no details, or any other
+request or decode fails, the last good snapshot is used with a warning. The app
+refreshes at launch, on return to the foreground, on pull to refresh, and every
+five minutes while active. Per-guide live status uses public slots in that
+guide's local timezone.
 
 Observed counts: Singapore 4 events, 112 brand appearances, 47 releases; Austin
 3/119/44. Mobile Singapore website advertised 56 releases at inspection time.

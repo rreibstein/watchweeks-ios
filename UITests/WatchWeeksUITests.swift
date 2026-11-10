@@ -14,15 +14,16 @@ final class WatchWeeksUITests: XCTestCase {
         if !about.isHittable { app.swipeUp() }
         about.tap()
         XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout: 2))
+        app.navigationBars["About"].buttons.firstMatch.tap()
+        XCTAssertTrue(app.navigationBars["About"].waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.buttons["My list"].isSelected)
+        if !about.isHittable { app.swipeUp() }
+        about.tap()
         let privacy = app.buttons["Privacy policy"]
         XCTAssertTrue(privacy.waitForExistence(timeout: 3))
         privacy.tap()
         XCTAssertTrue(XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
             .wait(for: .runningForeground, timeout: 10))
-        app.activate()
-        app.navigationBars["About"].buttons.firstMatch.tap()
-        XCTAssertTrue(app.navigationBars["About"].waitForNonExistence(timeout: 5))
-        XCTAssertTrue(app.tabBars.buttons["My list"].isSelected)
     }
 
     @MainActor func testOptionalAnalyticsConsent() async throws {
@@ -147,9 +148,7 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(guideTitle.waitForExistence(timeout: 5))
         app.navigationBars.firstMatch.buttons.firstMatch.tap()
 
-        let summary = app.staticTexts.containing(NSPredicate(
-            format: "label CONTAINS %@ AND label CONTAINS %@", " brands · ", " events · "
-        )).firstMatch
+        let summary = app.staticTexts["home-guide-summary-singapore-2026"]
         reveal(summary, in: app)
         summary.tap()
         XCTAssertTrue(guideTitle.waitForExistence(timeout: 5))
@@ -176,14 +175,13 @@ final class WatchWeeksUITests: XCTestCase {
 
         let shareGuide = app.buttons["Share guide"]
         reveal(shareGuide, in: app)
-        XCTAssertFalse(app.buttons["Find"].isHittable)
+        XCTAssertTrue(app.navigationBars.firstMatch.buttons["Find"].isHittable)
+        XCTAssertFalse(app.staticTexts["WatchWeeks"].exists)
         XCTAssertFalse(app.staticTexts["Plan your fair day"].exists)
         XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Plan your fair day")).firstMatch.exists)
         XCTAssertFalse(app.buttons["Full guide and planning tools"].exists)
         XCTAssertTrue(releases.exists)
-        app.terminate()
-        app.launch()
-        app.buttons["Find"].tap()
+        app.navigationBars.firstMatch.buttons["Find"].tap()
         let eventSearch = app.searchFields.firstMatch
         XCTAssertTrue(eventSearch.waitForExistence(timeout: 5))
         eventSearch.tap()
@@ -209,14 +207,21 @@ final class WatchWeeksUITests: XCTestCase {
         capture(app, "03b-event-releases")
         let calendar = app.buttons["Add to Calendar"]
         if calendar.exists {
+            XCTAssertTrue(app.buttons["Choose a day"].exists)
             for _ in 0..<4 where !calendar.isHittable { app.swipeDown(velocity: .slow) }
             XCTAssertTrue(calendar.isHittable)
             calendar.tap()
-            app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "11:00 AM")).firstMatch.tap()
             let cancel = app.navigationBars.buttons["Cancel"].firstMatch
             XCTAssertTrue(cancel.waitForExistence(timeout: 5))
             cancel.tap()
+            let discard = app.buttons["Discard Changes"].firstMatch
+            if discard.waitForExistence(timeout: 3) { discard.tap() }
             XCTAssertTrue(cancel.waitForNonExistence(timeout: 5))
+            let tabsRestored = XCTNSPredicateExpectation(
+                predicate: NSPredicate { _, _ in app.tabBars.buttons["New releases"].isHittable },
+                object: nil
+            )
+            XCTAssertEqual(XCTWaiter.wait(for: [tabsRestored], timeout: 5), .completed)
         }
         app.tabBars.buttons["New releases"].tap()
         let singaporeReleases = app.staticTexts.containing(

@@ -1,6 +1,43 @@
-# WatchWeeks website handoff for the iOS update
+# Paste this into Lovable: WatchWeeks iOS integration
 
-Paste this into Lovable. Ask for a preview and a report with sample responses before deploying website changes.
+Please do the read-only audit and draft contract first. Return a single report with
+an **Urgent: Singapore** section, an **Other current guides** section, and a
+**Later: links and accounts** section. Reply with exact paths and sample JSON.
+Make any code changes in a preview only. Do not deploy, change production
+configuration, rotate credentials, or send real user data.
+
+On November 10, 2026, the public home page and the five unauthenticated v1 feed
+responses showed these counts. The website's model count can legitimately
+differ from API release rows, and some brand rows are multiple appearances.
+Please show which differences are expected under the counting rules and which
+public records are actually missing:
+
+| Guide | Web brands / releases | API distinct brand keys / release rows | Events with a structured address |
+| --- | --- | --- | --- |
+| Singapore | 148 / 60 | 111 / 48 | 0 / 4 |
+| Miami | 39 / 33 | 39 / 29 | 0 / 3 |
+| Hong Kong | 38 / 14 | 38 / 13 | 0 / 8 |
+| Austin | 114 / 52 | 114 / 44 | 0 / 3 |
+| New York | 279 / 60 | 279 / 67 | 0 / 20 |
+
+We read `GET /api/public/guides` and `GET /api/public/guides/{id}`. A release row
+currently has `awards, brand, brandKey, eventId, images, kind, source, text, url`.
+We split prose into models in the app and deduplicate by brand/model. Please
+propose additive `releaseId` and model-level fields rather than changing types of
+existing fields. For Singapore, confirm which fair hours are public and which are
+invite-only. The iPhone app currently uses organizer-confirmed street-address
+fallbacks for Golden Hour, IAMWATCH and Spring Sprang Sprung. Supply structured
+addresses and canonical links for all other venues. Say whether photos are
+replaceable by a changed URL and how to invalidate a withdrawn image. For email,
+the home page already has a “Notify me” form; send the best URL/deep link that
+gets a phone user there directly, plus the current “send a correction” target.
+
+If you manage the existing PostHog integration, give the project **region/ingest
+host only**, whether client IPs are discarded or retained, retention, and whether
+native events can be reported with `platform=ios_native` without joining web user
+identities or changing website replay. Can you provide an isolated non-production
+test project or ingestion endpoint for QA? Do not expose tokens in the report,
+change shared PostHog settings, or submit synthetic production events.
 
 > Audit the current WatchWeeks public iOS feed and website routes. Keep the existing v1 guide response backwards compatible. Return the changes as a preview first, with production deployment as a separate owner decision.
 >
