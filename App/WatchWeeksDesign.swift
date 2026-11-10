@@ -75,57 +75,77 @@ extension View {
 }
 
 struct WatchHeader: View {
-    var compact = false
-
     var body: some View {
         ViewThatFits(in: .horizontal) {
             HStack(spacing: 8) {
-                WatchWordmark(compact: compact)
+                WatchWordmark()
                 Spacer(minLength: 4)
-                WatchFindButton(compact: compact)
+                WatchFindButton()
             }
             VStack(alignment: .leading, spacing: 8) {
-                WatchWordmark(compact: compact)
-                WatchFindButton(compact: compact).frame(maxWidth: .infinity, alignment: .trailing)
+                WatchWordmark()
+                WatchFindButton().frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, compact ? 0 : 8)
+        .padding(.vertical, 8)
     }
 }
 
 struct WatchWordmark: View {
-    var compact = false
     @ScaledMetric(relativeTo: .headline) private var markSize = 28.0
 
     var body: some View {
-        let size = compact ? markSize * 6 / 7 : markSize
         HStack(spacing: 6) {
             Image("WatchWeeksMark")
                 .resizable()
                 .scaledToFit()
-                .frame(width: size, height: size)
+                .frame(width: markSize, height: markSize)
                 .accessibilityHidden(true)
-            Text("WatchWeeks").font(compact ? .wwHeadline : .wwTitle2)
+            Text("WatchWeeks").font(.wwTitle2)
         }
     }
 }
 
-struct WatchFindButton: View {
-    var compact = false
+private struct WatchFindButton: View {
     @State private var finding = false
-    @State private var pending: WatchDestination?
-    @State private var destination: WatchDestination?
 
     var body: some View {
         Button { finding = true } label: {
-            if compact {
-                Image(systemName: "magnifyingglass").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
-            } else {
-                Label("Find", systemImage: "magnifyingglass")
-                    .font(.wwSubheadline).padding(.horizontal, 12).frame(minHeight: 44).watchCard(radius: 24)
+            Label("Find", systemImage: "magnifyingglass")
+                .font(.wwSubheadline).padding(.horizontal, 12).frame(minHeight: 44).watchCard(radius: 24)
+        }.buttonStyle(.plain)
+            .modifier(WatchFindPresentation(finding: $finding))
+    }
+}
+
+extension View {
+    func watchFindToolbar() -> some View { modifier(WatchFindToolbar()) }
+}
+
+private struct WatchFindToolbar: ViewModifier {
+    @State private var finding = false
+
+    func body(content: Content) -> some View {
+        content
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { finding = true } label: {
+                        Label("Find", systemImage: "magnifyingglass").labelStyle(.iconOnly)
+                    }
+                }
             }
-        }.buttonStyle(.plain).accessibilityLabel("Find")
+            .modifier(WatchFindPresentation(finding: $finding))
+    }
+}
+
+private struct WatchFindPresentation: ViewModifier {
+    @Binding var finding: Bool
+    @State private var pending: WatchDestination?
+    @State private var destination: WatchDestination?
+
+    func body(content: Content) -> some View {
+        content
             .sheet(isPresented: $finding, onDismiss: {
                 destination = pending
                 pending = nil

@@ -289,7 +289,6 @@ private struct BrandRatingBar: View {
         } label: {
             Text(interest.label)
                 .font(typeSize.isAccessibilitySize ? .wwBody.weight(.semibold) : .wwCaption2.weight(.semibold))
-                .underline(selected)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 3)
                 .padding(.vertical, 4)
@@ -435,10 +434,9 @@ struct ReleasesView: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                WatchHeader(compact: true)
                 ReleaseDirectory(guide: guide, eventID: eventID, proxy: proxy).padding(16)
             }
-        }.watchPage().navigationBarTitleDisplayMode(.inline)
+        }.watchPage().navigationBarTitleDisplayMode(.inline).watchFindToolbar()
     }
 }
 
@@ -646,7 +644,6 @@ struct ReleaseDetail: View {
     let release: Release
     var body: some View {
         ScrollView {
-            WatchHeader(compact: true)
             VStack(alignment: .leading, spacing: 20) {
                 if let image = release.displayImages.first { ReleasePhoto(image: image) }
                 ReleaseBadges(release: release)
@@ -668,7 +665,7 @@ struct ReleaseDetail: View {
                     ReleaseGallery(images: release.displaySharedImages)
                 }
             }.padding()
-        }.watchPage().navigationBarTitleDisplayMode(.inline)
+        }.watchPage().navigationBarTitleDisplayMode(.inline).watchFindToolbar()
             .task { model.activeGuideID = guide.id }
     }
 
@@ -722,9 +719,8 @@ struct BrandInfo: View {
     let brand: Brand
     var body: some View {
         ScrollView {
-            WatchHeader(compact: true)
             BrandRow(guide: guide, brand: brand, collapsesWhenSeen: false).padding(16)
-        }.watchPage().navigationBarTitleDisplayMode(.inline)
+        }.watchPage().navigationBarTitleDisplayMode(.inline).watchFindToolbar()
             .task {
                 model.activeGuideID = guide.id
             }

@@ -333,7 +333,6 @@ struct CityView: View {
 
     var body: some View {
         ScrollView {
-            WatchHeader(compact: true)
             LazyVStack(alignment: .leading, spacing: 16) {
                 Text("\(guide.city) Guide").font(.wwLargeTitle).accessibilityAddTraits(.isHeader)
                 Text(guideDateRange(guide)).font(.wwHeadline).foregroundStyle(WatchWeeksStyle.secondary)
@@ -367,7 +366,7 @@ struct CityView: View {
                 }
             }.padding(16)
         }
-        .watchPage().navigationBarTitleDisplayMode(.inline)
+        .watchPage().navigationBarTitleDisplayMode(.inline).watchFindToolbar()
         .task {
             model.activeGuideID = guide.id
         }
@@ -496,13 +495,12 @@ struct EventInfo: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.openURL) private var openURL
     @State private var choosingMaps = false
-    @State private var calendarSlot: EventCalendarSlot?
+    @State private var calendarSelection: EventCalendarSelection?
     let guide: Guide
     let event: Event
 
     var body: some View {
         ScrollView {
-            WatchHeader(compact: true)
             LazyVStack(alignment: .leading, spacing: 16) {
                 Text("\(guide.city.uppercased()) GUIDE").font(.wwCaption).tracking(1)
                     .foregroundStyle(WatchWeeksStyle.link)
@@ -521,10 +519,10 @@ struct EventInfo: View {
                 }
             }.padding(16)
         }
-        .watchPage().navigationBarTitleDisplayMode(.inline)
-        .sheet(item: $calendarSlot) { slot in
-            EventCalendarEditor(event: event, address: address, timeZone: guide.timeZone, slot: slot) {
-                calendarSlot = nil
+        .watchPage().navigationBarTitleDisplayMode(.inline).watchFindToolbar()
+        .sheet(item: $calendarSelection) { selection in
+            EventCalendarEditor(event: event, address: address, timeZone: guide.timeZone, selection: selection) {
+                calendarSelection = nil
             }
         }
         .task {
@@ -595,12 +593,22 @@ struct EventInfo: View {
             }
             let slots = calendarSlots
             if !slots.isEmpty {
-                Menu {
-                    ForEach(slots) { slot in
-                        Button(LocalSchedule.label(slot.day, zone: guide.timeZone)) { calendarSlot = slot }
-                    }
+                Button {
+                    calendarSelection = EventCalendarSelection(slots: slots)
                 } label: {
                     Label("Add to Calendar", systemImage: "calendar.badge.plus").frame(minHeight: 44)
+                }
+                .accessibilityHint(slots.count > 1 ? "Adds all remaining public days" : "Adds the public session")
+                if slots.count > 1 {
+                    Menu {
+                        ForEach(slots) { slot in
+                            Button(LocalSchedule.label(slot.day, zone: guide.timeZone)) {
+                                calendarSelection = EventCalendarSelection(slots: [slot])
+                            }
+                        }
+                    } label: {
+                        Label("Choose a day", systemImage: "calendar").frame(minHeight: 44)
+                    }
                 }
             }
             let sessions = guide.accessSessions(for: event)
@@ -647,11 +655,16 @@ private struct EventCalendarSlot: Identifiable {
     var id: String { "\(day.date)|\(day.open ?? "")|\(day.close ?? "")|\(day.session ?? "")" }
 }
 
+private struct EventCalendarSelection: Identifiable {
+    let slots: [EventCalendarSlot]
+    var id: String { slots.map(\.id).joined(separator: ";") }
+}
+
 private struct EventCalendarEditor: UIViewControllerRepresentable {
     let event: Event
     let address: String?
     let timeZone: String
-    let slot: EventCalendarSlot
+    let selection: EventCalendarSelection
     let onDismiss: @MainActor () -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(onDismiss: onDismiss) }
@@ -660,12 +673,44 @@ private struct EventCalendarEditor: UIViewControllerRepresentable {
         let store = context.coordinator.store
         let draft = EKEvent(eventStore: store)
         draft.title = event.name
-        draft.startDate = slot.interval.lowerBound
-        draft.endDate = slot.interval.upperBound
-        draft.timeZone = TimeZone(identifier: timeZone)
+        let slots = selection.slots.sorted { $0.interval.lowerBound < $1.interval.lowerBound }
+        if let first = slots.first {
+            let zone = TimeZone(identifier: timeZone) ?? .gmt
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = zone
+            draft.startDate = first.interval.lowerBound
+            draft.endDate = first.interval.upperBound
+            draft.timeZone = zone
+            if slots.count == 1 {
+                draft.notes = LocalSchedule.accessLabel(first.day.access)
+            } else {
+                let isDaily = zip(slots, slots.dropFirst()).allSatisfy { previous, next in
+                    let previousDay = calendar.startOfDay(for: previous.interval.lowerBound)
+                    let nextDay = calendar.startOfDay(for: next.interval.lowerBound)
+                    return calendar.date(byAdding: .day, value: 1, to: previousDay) == nextDay
+                        && previous.day.open == next.day.open && previous.day.close == next.day.close
+                }
+                if isDaily {
+                    draft.addRecurrenceRule(EKRecurrenceRule(
+                        recurrenceWith: .daily, interval: 1,
+                        end: EKRecurrenceEnd(occurrenceCount: slots.count)
+                    ))
+                } else if let last = slots.last {
+                    // Preserve varying opening hours in the notes, without reserving
+                    // overnight hours as one continuous timed appointment.
+                    draft.isAllDay = true
+                    draft.startDate = calendar.startOfDay(for: first.interval.lowerBound)
+                    let lastDay = calendar.startOfDay(for: last.interval.lowerBound)
+                    draft.endDate = calendar.date(byAdding: .day, value: 1, to: lastDay) ?? last.interval.upperBound
+                    draft.availability = .free
+                }
+                draft.notes = (["Public hours (local time):"] + slots.map {
+                    LocalSchedule.label($0.day, zone: timeZone)
+                }).joined(separator: "\n")
+            }
+        }
         draft.location = address ?? event.venue
         draft.url = PublicLinks.safeExternal(event.webURL)
-        draft.notes = LocalSchedule.accessLabel(slot.day.access)
 
         let editor = EKEventEditViewController()
         editor.eventStore = store
