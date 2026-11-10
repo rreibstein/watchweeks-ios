@@ -128,7 +128,8 @@ final class WatchWeeksUITests: XCTestCase {
         directions.tap()
         XCTAssertTrue(app.buttons["Apple Maps"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["Google Maps"].exists)
-        app.buttons["Cancel"].tap()
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
+        XCTAssertFalse(app.buttons["Apple Maps"].exists)
 
         let calendar = app.buttons["Add to Calendar"]
         if calendar.exists {
