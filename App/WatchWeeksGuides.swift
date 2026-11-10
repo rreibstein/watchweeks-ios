@@ -523,7 +523,9 @@ struct EventInfo: View {
         }
         .watchPage().navigationBarTitleDisplayMode(.inline)
         .sheet(item: $calendarSlot) { slot in
-            EventCalendarEditor(event: event, address: address, timeZone: guide.timeZone, slot: slot)
+            EventCalendarEditor(event: event, address: address, timeZone: guide.timeZone, slot: slot) {
+                calendarSlot = nil
+            }
         }
         .task {
             model.activeGuideID = guide.id
@@ -650,9 +652,9 @@ private struct EventCalendarEditor: UIViewControllerRepresentable {
     let address: String?
     let timeZone: String
     let slot: EventCalendarSlot
-    @Environment(\.dismiss) private var dismiss
+    let onDismiss: @MainActor () -> Void
 
-    func makeCoordinator() -> Coordinator { Coordinator(dismiss: dismiss) }
+    func makeCoordinator() -> Coordinator { Coordinator(onDismiss: onDismiss) }
 
     func makeUIViewController(context: Context) -> EKEventEditViewController {
         let store = context.coordinator.store
@@ -676,12 +678,12 @@ private struct EventCalendarEditor: UIViewControllerRepresentable {
 
     @MainActor final class Coordinator: NSObject, EKEventEditViewDelegate {
         let store = EKEventStore()
-        let dismiss: DismissAction
+        let onDismiss: @MainActor () -> Void
 
-        init(dismiss: DismissAction) { self.dismiss = dismiss }
+        init(onDismiss: @escaping @MainActor () -> Void) { self.onDismiss = onDismiss }
 
         nonisolated func eventEditViewController(_ controller: EKEventEditViewController, didCompleteWith action: EKEventEditViewAction) {
-            Task { @MainActor in self.dismiss() }
+            Task { @MainActor in self.onDismiss() }
         }
     }
 }

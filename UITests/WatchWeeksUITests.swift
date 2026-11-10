@@ -21,7 +21,8 @@ final class WatchWeeksUITests: XCTestCase {
             .wait(for: .runningForeground, timeout: 10))
         app.activate()
         app.navigationBars["About"].buttons.firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["My list"].exists)
+        XCTAssertTrue(app.navigationBars["About"].waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.buttons["My list"].isSelected)
     }
 
     @MainActor func testLiveMobileDesign() throws {
@@ -131,21 +132,23 @@ final class WatchWeeksUITests: XCTestCase {
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
         XCTAssertFalse(app.buttons["Apple Maps"].exists)
 
-        let calendar = app.buttons["Add to Calendar"]
-        if calendar.exists {
-            reveal(calendar, in: app)
-            calendar.tap()
-            app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "11:00 AM")).firstMatch.tap()
-            let cancel = app.navigationBars.buttons["Cancel"].firstMatch
-            XCTAssertTrue(cancel.waitForExistence(timeout: 5))
-            cancel.tap()
-        }
         let carouselPhoto = app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", "event-release-card-renaudtixier"
         )).firstMatch
         reveal(carouselPhoto, in: app)
         XCTAssertGreaterThan(carouselPhoto.frame.height, 190)
         capture(app, "03b-event-releases")
+        let calendar = app.buttons["Add to Calendar"]
+        if calendar.exists {
+            for _ in 0..<4 where !calendar.isHittable { app.swipeDown(velocity: .slow) }
+            XCTAssertTrue(calendar.isHittable)
+            calendar.tap()
+            app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "11:00 AM")).firstMatch.tap()
+            let cancel = app.navigationBars.buttons["Cancel"].firstMatch
+            XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+            cancel.tap()
+            XCTAssertTrue(cancel.waitForNonExistence(timeout: 5))
+        }
         app.tabBars.buttons["New releases"].tap()
         let singaporeReleases = app.staticTexts.containing(
             NSPredicate(format: "label BEGINSWITH %@ AND label ENDSWITH %@", "Singapore ·", "new releases")
