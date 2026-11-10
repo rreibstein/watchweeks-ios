@@ -106,26 +106,39 @@ public struct LiveEvent: Sendable {
         return today.isEmpty ? nil : (.finished, today)
     }
 
-    public static func next(in guides: [Guide], now: Date = .now) -> LiveEvent? {
-        var candidates: [(LiveEvent, Date)] = []
-        for guide in guides {
-            guard let calendar = calendar(for: guide) else { continue }
-            for slot in publicSlots(in: guide) where slot.interval.upperBound > now {
+    /// One current or upcoming public slot per guide, ordered by urgency.
+    public static func highlights(in guides: [Guide], now: Date = .now) -> [LiveEvent] {
+        func priority(_ status: Status) -> Int {
+            switch status {
+            case .now: 0
+            case .today: 1
+            case .tomorrow: 2
+            case .finished: 3
+            }
+        }
+        func precedes(_ first: (event: LiveEvent, time: Date),
+                      _ second: (event: LiveEvent, time: Date)) -> Bool {
+            let left = priority(first.event.status), right = priority(second.event.status)
+            if left != right { return left < right }
+            if first.time != second.time { return first.time < second.time }
+            return first.event.guide.id < second.event.guide.id
+        }
+        let candidates = guides.compactMap { guide -> (event: LiveEvent, time: Date)? in
+            guard let calendar = calendar(for: guide),
+                  let tomorrow = calendar.date(byAdding: .day, value: 1, to: now) else { return nil }
+            return publicSlots(in: guide).compactMap { slot -> (event: LiveEvent, time: Date)? in
                 let interval = slot.interval
+                guard interval.upperBound > now else { return nil }
                 let status: Status
                 if interval.contains(now) { status = .now }
                 else if calendar.isDate(interval.lowerBound, inSameDayAs: now) { status = .today }
-                else if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
-                        calendar.isDate(interval.lowerBound, inSameDayAs: tomorrow) { status = .tomorrow }
-                else { continue }
-                candidates.append((LiveEvent(guide: guide, event: slot.event, day: slot.day, status: status),
-                                   status == .now ? interval.upperBound : interval.lowerBound))
-            }
+                else if calendar.isDate(interval.lowerBound, inSameDayAs: tomorrow) { status = .tomorrow }
+                else { return nil }
+                return (LiveEvent(guide: guide, event: slot.event, day: slot.day, status: status),
+                        status == .now ? interval.upperBound : interval.lowerBound)
+            }.min(by: precedes)
         }
-        for status in [Status.now, .today, .tomorrow] {
-            if let first = candidates.filter({ $0.0.status == status }).min(by: { $0.1 < $1.1 }) { return first.0 }
-        }
-        return nil
+        return candidates.sorted(by: precedes).map(\.event)
     }
 
     private static func calendar(for guide: Guide) -> Calendar? {

@@ -79,9 +79,7 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(guideTitle.waitForExistence(timeout: 5))
         app.navigationBars.firstMatch.buttons.firstMatch.tap()
 
-        let summary = app.staticTexts.containing(NSPredicate(
-            format: "label CONTAINS %@ AND label CONTAINS %@", " brands · ", " events · "
-        )).firstMatch
+        let summary = app.staticTexts["home-guide-summary-singapore-2026"]
         reveal(summary, in: app)
         summary.tap()
         XCTAssertTrue(guideTitle.waitForExistence(timeout: 5))

@@ -25,8 +25,23 @@ final class EventPlanningTests: XCTestCase {
         let utc = ISO8601DateFormatter()
         for (instant, expected) in [("02:59", LiveEvent.Status.today), ("03:00", .now), ("12:00", .tomorrow)] {
             let now = try XCTUnwrap(utc.date(from: "2026-11-13T\(instant):00Z"))
-            XCTAssertEqual(LiveEvent.next(in: [guide], now: now)?.status, expected)
+            XCTAssertEqual(LiveEvent.highlights(in: [guide], now: now).first?.status, expected)
         }
+    }
+
+    func testHighlightsIncludeOverlappingGuidesAndUseEachLocalClock() throws {
+        func fair(_ id: String, _ city: String, _ zone: String, _ day: String, _ open: String, _ close: String) -> Guide {
+            Guide(id: id, city: city, timeZone: zone, events: [
+                Event(id: "fair", name: city, days: [EventDay(date: day, open: open, close: close, access: nil)])
+            ])
+        }
+        let singapore = fair("singapore", "Singapore", "Asia/Singapore", "2026-11-13", "11:00", "20:00")
+        let hongKong = fair("hong-kong", "Hong Kong", "Asia/Hong_Kong", "2026-11-13", "11:00", "18:00")
+        let geneva = fair("new-guide", "Geneva", "Europe/Zurich", "2026-11-13", "11:00", "18:00")
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-11-13T04:00:00Z"))
+        let highlights = LiveEvent.highlights(in: [singapore, geneva, hongKong], now: now)
+        XCTAssertEqual(highlights.map(\.guide.id), ["hong-kong", "singapore", "new-guide"])
+        XCTAssertEqual(highlights.map(\.status), [.now, .now, .today])
     }
 
     func testCitySchedulePrioritizesPublicOpenSlotsAndLocalDayBoundaries() throws {

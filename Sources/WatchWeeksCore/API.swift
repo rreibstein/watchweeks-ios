@@ -28,14 +28,18 @@ public struct PublicGuideService: GuideService {
         let index=try JSONDecoder().decode(PublicIndex.self,from:await json(PublicLinks.home.appendingPathComponent("api/public/guides")))
         guard index.v == 1 else { throw FeedError.invalidResponse }
         var results:[Guide]=[]
-        // At five currently published cities this is modest; never drop a failed
-        // detail silently. The repository can restore the last complete snapshot.
+        // A configured city can appear in the index before its edition is
+        // published. Its 404 should not block the other published guides.
         for header in index.guides {
             guard let url=PublicLinks.apiGuide(header.id) else { throw FeedError.invalidResponse }
-            let detail=try JSONDecoder().decode(PublicDetail.self,from:await json(url))
+            let data: Data
+            do { data = try await json(url) }
+            catch FeedError.http(404) { continue }
+            let detail = try JSONDecoder().decode(PublicDetail.self, from: data)
             guard detail.guide.id == header.id else { throw FeedError.invalidResponse }
             results.append(try detail.model())
         }
+        guard index.guides.isEmpty || !results.isEmpty else { throw FeedError.invalidResponse }
         return results
     }
 }

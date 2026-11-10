@@ -6,10 +6,6 @@ struct DiscoveryView: View {
     @EnvironmentObject var model: AppModel
     @State private var selectedCity: String?
 
-    private func isPast(_ guide: Guide) -> Bool {
-        guide.id == "austin-2026" || EventDates.status(guide) == .past
-    }
-
     var ordered: [Guide] {
         // The home page highlights these guides editorially. Newly published guides
         // retain feed order within their active or past group.
@@ -17,7 +13,7 @@ struct DiscoveryView: View {
         let known = featured.compactMap { id in model.guides.first { $0.id == id } }
         let others = model.guides.filter { !featured.contains($0.id) }
         let all = known + others
-        return all.filter { !isPast($0) } + all.filter(isPast)
+        return all.filter { EventDates.status($0) != .past } + all.filter { EventDates.status($0) == .past }
     }
 
     var body: some View {
@@ -30,7 +26,7 @@ struct DiscoveryView: View {
                             .font(.wwLargeTitle).accessibilityAddTraits(.isHeader)
                         Text("The independent guide to watch events around the world. Discover the brands exhibiting, explore the new releases, and plan your must-sees.")
                             .foregroundStyle(WatchWeeksStyle.secondary)
-                        LiveStatusCard(guides: model.guides)
+                        LiveStatusPanel(guides: model.guides)
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack {
                                 ForEach(ordered) { guide in
@@ -62,10 +58,10 @@ struct DiscoveryView: View {
                         if model.stale && !model.loading, let date = model.savedAt {
                             Label("Offline copy · updated \(date.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock.arrow.circlepath").font(.wwCaption)
                         }
-                        ForEach(ordered.filter { !isPast($0) }) {
+                        ForEach(ordered.filter { EventDates.status($0) != .past }) {
                             GuidePreview(guide: $0, past: false).id($0.id)
                         }
-                        let past = ordered.filter(isPast)
+                        let past = ordered.filter { EventDates.status($0) == .past }
                         if !past.isEmpty {
                             Text("Past guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
                             ForEach(past) { GuidePreview(guide: $0, past: true).id($0.id) }
@@ -82,23 +78,30 @@ struct DiscoveryView: View {
     }
 }
 
-private struct LiveStatusCard: View {
+private struct LiveStatusPanel: View {
     let guides: [Guide]
+
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 60)) { context in
-            if let item = LiveEvent.next(in: guides, now: context.date),
-               let hours = LocalSchedule.hours(item.day) {
-                NavigationLink { EventInfo(guide: item.guide, event: item.event) } label: {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Today").font(.wwHeadline)
-                        ActivityPill(title: item.status.rawValue, color: item.status.color)
-                        Text(item.event.name).font(.wwTitle3)
-                        Text(item.status == .now
-                             ? "Closes at \(LocalSchedule.timeLabel(hours.upperBound)) · \(item.guide.city) time"
-                             : "Opens at \(LocalSchedule.timeLabel(hours.lowerBound)) · \(item.guide.city) time")
-                            .font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
-                    }.padding(14).frame(maxWidth: .infinity, alignment: .leading).watchCard()
-                }.buttonStyle(.plain)
+        TimelineView(.periodic(from: .now, by: 30)) { context in
+            let highlights = LiveEvent.highlights(in: guides, now: context.date)
+            if !highlights.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Around the fairs").font(.wwHeadline).accessibilityAddTraits(.isHeader)
+                    ForEach(highlights, id: \.guide.id) { item in
+                        if let hours = LocalSchedule.hours(item.day) {
+                            NavigationLink { EventInfo(guide: item.guide, event: item.event) } label: {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    ActivityPill(title: item.status.rawValue, color: item.status.color)
+                                    Text(item.event.name).font(.wwTitle3)
+                                    Text(item.status == .now
+                                         ? "Closes at \(LocalSchedule.timeLabel(hours.upperBound)) · \(item.guide.city) time"
+                                         : "Opens at \(LocalSchedule.timeLabel(hours.lowerBound)) · \(item.guide.city) time")
+                                        .font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
+                                }.padding(14).frame(maxWidth: .infinity, alignment: .leading).watchCard()
+                            }.buttonStyle(.plain)
+                        }
+                    }
+                }
             }
         }
     }
@@ -155,6 +158,7 @@ private struct GuidePreview: View {
             }
             Text("\(guide.brands.count) brands · \(guide.publicEvents.count) events · \(releases.count) new releases")
                 .font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
+                .accessibilityIdentifier("home-guide-summary-\(guide.id)")
             if past {
                 Text(guide.summary ?? "A recap of \(guide.city)’s watch events, exhibitors and new releases.")
                     .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
