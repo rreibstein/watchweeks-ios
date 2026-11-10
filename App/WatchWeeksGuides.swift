@@ -370,6 +370,7 @@ struct CityView: View {
         .watchPage().navigationBarTitleDisplayMode(.inline)
         .task {
             model.activeGuideID = guide.id
+            UsageAnalytics.shared.record(.guide, guideID: guide.id)
         }
     }
 
@@ -529,6 +530,7 @@ struct EventInfo: View {
         }
         .task {
             model.activeGuideID = guide.id
+            UsageAnalytics.shared.record(.event, guideID: guide.id, eventID: event.id)
         }
     }
 

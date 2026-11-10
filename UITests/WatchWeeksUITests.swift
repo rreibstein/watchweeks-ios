@@ -25,6 +25,75 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["My list"].isSelected)
     }
 
+    @MainActor func testOptionalAnalyticsConsent() async throws {
+        guard ProcessInfo.processInfo.environment["WW_ANALYTICS_QA"] == "1" else {
+            throw XCTSkip("Requires the local analytics receiver and TEST_RUNNER_WW_ANALYTICS_QA=1.")
+        }
+        let app = XCUIApplication()
+        app.launchEnvironment["WW_ANALYTICS_QA"] = "1"
+        app.launchEnvironment["WW_ANALYTICS_QA_SUITE"] = "watchweeks.analytics.qa.\(UUID())"
+        let receiver = try XCTUnwrap(URL(string: "http://localhost:8766/events"))
+        func events() async throws -> [[String: String]] {
+            let (data, _) = try await URLSession.shared.data(from: receiver)
+            return try JSONDecoder().decode([[String: String]].self, from: data)
+        }
+        func waitForEvents(_ count: Int) async throws -> [[String: String]] {
+            for _ in 0..<25 {
+                let current = try await events()
+                if current.count >= count { return current }
+                try await Task.sleep(for: .milliseconds(200))
+            }
+            return try await events()
+        }
+        let baseline = try await events().count
+        func about() {
+            XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout: 10))
+            XCTAssertFalse(app.alerts.firstMatch.exists)
+            app.tabBars.buttons["My list"].tap()
+            let link = app.buttons["About & privacy"]
+            if !link.isHittable { app.swipeUp() }
+            link.tap()
+            XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout: 5))
+        }
+        func choose(_ name: String) {
+            let learn = app.buttons["Learn about usage analytics"]
+            if !learn.isHittable { app.swipeUp() }
+            learn.tap()
+            XCTAssertTrue(app.navigationBars["Optional usage analytics"].waitForExistence(timeout: 5))
+            let preference = app.buttons["Choose a preference"]
+            if !preference.isHittable { app.swipeUp() }
+            preference.tap()
+            let button = app.alerts.buttons[name]
+            XCTAssertTrue(button.waitForExistence(timeout: 4))
+            button.tap()
+        }
+        app.launch()
+        about()
+        choose("Keep off")
+        var received = try await events()
+        XCTAssertEqual(received.count, baseline)
+        choose("Share usage")
+        received = try await waitForEvents(baseline + 1)
+        XCTAssertEqual(received.count, baseline + 1)
+        let first = try XCTUnwrap(received.last)
+        XCTAssertEqual(first["event"], "usage_analytics_enabled")
+        let firstID = try XCTUnwrap(first["id"])
+        let off = app.buttons["Turn off usage analytics"]
+        if !off.isHittable { app.swipeUp() }
+        off.tap()
+        app.terminate()
+        app.launch()
+        about()
+        received = try await events()
+        XCTAssertEqual(received.count, baseline + 1)
+        choose("Share usage")
+        received = try await waitForEvents(baseline + 2)
+        XCTAssertEqual(received.count, baseline + 2)
+        XCTAssertNotEqual(received.last?["id"], firstID)
+        if !off.isHittable { app.swipeUp() }
+        off.tap()
+    }
+
     @MainActor func testLiveMobileDesign() throws {
         guard ProcessInfo.processInfo.environment["WW_CAPTURE"] == "1" else {
             throw XCTSkip("Set TEST_RUNNER_WW_CAPTURE=1 to exercise the live Singapore guide.")

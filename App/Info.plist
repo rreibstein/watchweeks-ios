@@ -11,5 +11,7 @@
 		<string>SpaceGrotesk-SemiBold.ttf</string>
 		<string>SpaceGrotesk-Bold.ttf</string>
 	</array>
+    <key>WatchWeeksPostHogToken</key>
+    <string>phc_zsJhuThJ5wJFBnFGqfbETLSHBdjmXKMk6pdFZaWzXWun</string>
 </dict>
 </plist>

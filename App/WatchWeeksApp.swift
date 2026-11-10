@@ -75,6 +75,12 @@ import WatchWeeksCore
                 if feedbackOnSeen, !previous.seen, self?.selections[key]?.seen == true {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                 }
+                if previous.interest != selection.interest {
+                    UsageAnalytics.shared.record(.rating, guideID: guide.id)
+                }
+                if previous.seen != selection.seen {
+                    UsageAnalytics.shared.record(.seen, guideID: guide.id)
+                }
             } catch { self?.persistenceError = "Your latest changes could not be saved. Keep the app open, free device storage, then tap Retry saving." }
         }
     }
@@ -92,7 +98,12 @@ import WatchWeeksCore
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(model).task { await model.start() }
-                .onChange(of: phase) { _, phase in if phase == .active { Task { await model.refresh() } } }
+                .onChange(of: phase, initial: true) { previous, phase in
+                    if phase == .active {
+                        UsageAnalytics.shared.record(.opened)
+                        if previous != phase { Task { await model.refresh() } }
+                    }
+                }
         }
     }
 }
@@ -230,5 +241,121 @@ struct WebsiteLink: View {
 
     var body: some View {
         Button(title) { openURL(url) }
+    }
+}
+
+@MainActor final class UsageAnalytics: ObservableObject {
+    enum Action: String {
+        case optedIn = "usage_analytics_enabled"
+        case opened = "app_opened"
+        case guide = "guide_viewed"
+        case event = "event_viewed"
+        case release = "release_viewed"
+        case rating = "brand_rating_set"
+        case seen = "brand_seen_toggled"
+    }
+
+    static let shared = UsageAnalytics()
+    @Published private(set) var enabled = false
+    private let token: String?
+    private let endpoint: URL
+    private let defaults: UserDefaults
+    private let consentKey = "usageAnalytics.consent"
+    private let identityKey = "usageAnalytics.installID"
+    private var identity: String?
+    private var requests: [URLRequest] = []
+    private var delivery: Task<Void, Never>?
+    private var session: URLSession?
+
+    var isAvailable: Bool { token != nil }
+
+    private init() {
+        #if DEBUG && targetEnvironment(simulator)
+        defaults = ProcessInfo.processInfo.environment["WW_ANALYTICS_QA_SUITE"]
+            .flatMap(UserDefaults.init(suiteName:)) ?? .standard
+        token = ProcessInfo.processInfo.environment["WW_ANALYTICS_QA"] == "1" ? "phc_watchweeks_qa" : nil
+        endpoint = URL(string: "http://localhost:8766/i/v0/e/")!
+        #elseif DEBUG || targetEnvironment(simulator)
+        defaults = .standard
+        token = nil
+        endpoint = URL(string: "http://localhost:8766/i/v0/e/")!
+        #else
+        defaults = .standard
+        token = (Bundle.main.object(forInfoDictionaryKey: "WatchWeeksPostHogToken") as? String)
+            .flatMap { $0.hasPrefix("phc_") ? $0 : nil }
+        endpoint = URL(string: "https://us.i.posthog.com/i/v0/e/")!
+        #endif
+        if isAvailable, defaults.bool(forKey: consentKey) { start() }
+    }
+
+    func setEnabled(_ value: Bool) {
+        guard isAvailable, value != enabled else { return }
+        defaults.set(value, forKey: consentKey)
+        if value {
+            start()
+            record(.optedIn)
+        } else {
+            enabled = false
+            identity = nil
+            defaults.removeObject(forKey: identityKey)
+            requests.removeAll()
+            delivery?.cancel()
+            delivery = nil
+            session?.invalidateAndCancel()
+            session = nil
+        }
+    }
+
+    private func start() {
+        let id = defaults.string(forKey: identityKey) ?? UUID().uuidString
+        defaults.set(id, forKey: identityKey)
+        identity = id
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.waitsForConnectivity = true
+        configuration.timeoutIntervalForResource = 90
+        session = URLSession(configuration: configuration)
+        enabled = true
+    }
+
+    func record(_ action: Action, guideID: String? = nil, eventID: String? = nil,
+                releaseID: String? = nil) {
+        guard let token, let identity, requests.count < 100 else { return }
+        var properties: [String: Any] = [
+            "platform": "ios_native",
+            "$geoip_disable": true, "$process_person_profile": false
+        ]
+        properties["app_version"] = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString")
+        properties["app_build"] = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion")
+        properties["guide_id"] = guideID
+        properties["event_id"] = eventID
+        properties["release_id"] = releaseID
+        let body: [String: Any] = ["api_key": token, "event": action.rawValue, "distinct_id": identity, "properties": properties,
+                                   "timestamp": ISO8601DateFormatter().string(from: .now), "uuid": UUID().uuidString]
+        guard let data = try? JSONSerialization.data(withJSONObject: body) else { return }
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = data
+        requests.append(request)
+        if delivery == nil, let session {
+            delivery = Task { await flush(session: session, identity: identity) }
+        }
+    }
+
+    private func flush(session: URLSession, identity: String) async {
+        var retryDelay = 2
+        while self.identity == identity, let request = requests.first, !Task.isCancelled {
+            let response = try? await session.data(for: request)
+            guard self.identity == identity, !Task.isCancelled else { return }
+            let status = (response?.1 as? HTTPURLResponse)?.statusCode ?? 503
+            if status < 500 && status != 429 {
+                requests.removeFirst()
+                retryDelay = 2
+            } else {
+                try? await Task.sleep(for: .seconds(retryDelay))
+                retryDelay = min(retryDelay * 2, 60)
+            }
+        }
+        if self.identity == identity { delivery = nil }
     }
 }

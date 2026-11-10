@@ -22,8 +22,7 @@ and the providers that host the guides or photos receive request information,
 such as your IP address and the requested resource, to deliver this content and
 operate and protect the service. Cloudflare uses a bot-management cookie to
 protect the guide and photo endpoints. These requests do not carry your checklist
-or ratings. The app does not include product analytics, session replay, ads or
-cross-app tracking.
+or ratings. The app offers optional usage analytics through PostHog. It is off until enabled in My list → About & privacy. When enabled, the app sends a random installation identifier, app version, and events such as guide views, release views, use of the rating and Seen controls. It does not send the selected rating or Seen value. It does not join these events to an account or use them for advertising or session replay. Turning analytics off clears queued events and cancels pending requests. Information already delivered remains subject to the service's retention policy.
 
 If you use the iOS share sheet or copy a plan, you choose where to send or paste
 that information. If you follow a link, your browser opens the destination. The
