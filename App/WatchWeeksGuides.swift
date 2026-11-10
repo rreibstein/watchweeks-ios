@@ -1,5 +1,6 @@
 import SwiftUI
 import EventKitUI
+import UserNotifications
 import WatchWeeksCore
 
 struct DiscoveryView: View {
@@ -603,6 +604,9 @@ struct EventInfo: View {
                     Label("Add to Calendar", systemImage: "calendar.badge.plus").frame(minHeight: 44)
                 }
             }
+            if !slots.isEmpty {
+                LocalEventReminder(guide: guide, event: event, slots: slots)
+            }
             let sessions = guide.accessSessions(for: event)
             let specialHours = LocalSchedule.days(for: event, guideID: guide.id).filter(\.isRestrictedAccess)
             if event.note != nil || !sessions.isEmpty || !specialHours.isEmpty {
@@ -645,6 +649,126 @@ private struct EventCalendarSlot: Identifiable {
     let day: EventDay
     let interval: Range<Date>
     var id: String { "\(day.date)|\(day.open ?? "")|\(day.close ?? "")|\(day.session ?? "")" }
+}
+
+private struct LocalEventReminder: View {
+    @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var phase
+    @State private var showingChoices = false
+    @State private var hasReminder = false
+    @State private var updating = false
+    @State private var message: ReminderMessage?
+    let guide: Guide
+    let event: Event
+    let slots: [EventCalendarSlot]
+    private let center = UNUserNotificationCenter.current()
+    private let leadTime: TimeInterval = 30 * 60
+
+    private struct ReminderMessage {
+        let text: String
+        var showsSettings = false
+    }
+
+    private var identifier: String { "watchweeks.event.\(guide.id).\(event.id)" }
+    private var upcoming: [EventCalendarSlot] {
+        slots.filter { $0.interval.lowerBound.timeIntervalSinceNow > leadTime }
+    }
+
+    var body: some View {
+        Group {
+            if hasReminder {
+                Button {
+                    center.removePendingNotificationRequests(withIdentifiers: [identifier])
+                    hasReminder = false
+                } label: {
+                    Label("Remove event reminder", systemImage: "bell.slash").frame(minHeight: 44)
+                }
+                Text("Your reminder uses the hours shown when you set it. Check the organizer for schedule changes.")
+                    .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
+            } else if !upcoming.isEmpty {
+                Button { showingChoices = true } label: {
+                    Label("Remind me", systemImage: "bell").frame(minHeight: 44)
+                }
+                .confirmationDialog("Remind me 30 minutes before opening", isPresented: $showingChoices, titleVisibility: .visible) {
+                    ForEach(upcoming) { slot in
+                        Button(LocalSchedule.label(slot.day, zone: guide.timeZone)) {
+                            updating = true
+                            Task {
+                                await schedule(slot)
+                                updating = false
+                            }
+                        }
+                    }
+                } message: {
+                    Text("Choose a day. The reminder stays on this device.")
+                }
+                .disabled(updating)
+            }
+        }
+        .task { await reload() }
+        .onChange(of: phase) { _, phase in
+            if phase == .active { Task { await reload() } }
+        }
+        .alert("Event reminder", isPresented: Binding(
+            get: { message != nil },
+            set: { if !$0 { message = nil } }
+        )) {
+            if message?.showsSettings == true {
+                Button("Open Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                }
+                Button("Cancel", role: .cancel) {}
+            } else {
+                Button("OK", role: .cancel) {}
+            }
+        } message: {
+            if let message { Text(message.text) }
+        }
+    }
+
+    private func reload() async {
+        hasReminder = await center.pendingNotificationRequests().contains { $0.identifier == identifier }
+    }
+
+    private func schedule(_ slot: EventCalendarSlot) async {
+        do {
+            let status = await center.notificationSettings().authorizationStatus
+            switch status {
+            case .notDetermined:
+                guard try await center.requestAuthorization(options: [.alert, .sound]) else {
+                    message = ReminderMessage(text: "Notifications are off. Enable them in Settings if you want event reminders.", showsSettings: true)
+                    return
+                }
+            case .denied:
+                message = ReminderMessage(text: "Notifications are off. Enable them in Settings if you want event reminders.", showsSettings: true)
+                return
+            case .authorized, .provisional, .ephemeral:
+                break
+            @unknown default:
+                message = ReminderMessage(text: "Notification permission is unavailable.")
+                return
+            }
+            let reminderDate = slot.interval.lowerBound.addingTimeInterval(-leadTime)
+            guard reminderDate > .now else {
+                message = ReminderMessage(text: "This reminder time has passed. Choose a later opening.")
+                return
+            }
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = .gmt
+            var date = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: reminderDate)
+            date.timeZone = .gmt
+            let trigger = UNCalendarNotificationTrigger(dateMatching: date, repeats: false)
+            let content = UNMutableNotificationContent()
+            content.title = event.name
+            content.body = "Opens in 30 minutes in \(guide.city). Check the organizer for schedule changes."
+            content.sound = .default
+            try await center.add(UNNotificationRequest(identifier: identifier, content: content, trigger: trigger))
+            hasReminder = true
+            message = ReminderMessage(text: "You’ll be reminded 30 minutes before opening.")
+        } catch {
+            message = ReminderMessage(text: "Couldn’t set the reminder. Please try again.")
+        }
+    }
 }
 
 private struct EventCalendarEditor: UIViewControllerRepresentable {
