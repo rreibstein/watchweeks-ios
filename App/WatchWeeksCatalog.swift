@@ -1,4 +1,5 @@
 import SwiftUI
+import ImageIO
 import UIKit
 import WatchWeeksCore
 
@@ -589,11 +590,95 @@ struct ReleaseCard: View {
 struct ReleaseImage: View {
     let url: URL?
     var contentMode: ContentMode = .fit
+    @State private var photo: CGImage?
+    @State private var renderedURL: URL?
+
     var body: some View {
-        AsyncImage(url: PublicLinks.safeExternal(url)) { phase in
-            if let image = phase.image { image.resizable().aspectRatio(contentMode: contentMode) }
-            else { Color.secondary.opacity(0.08) }
-        }.accessibilityHidden(true)
+        Group {
+            if let photo, renderedURL == url {
+                Image(decorative: photo, scale: 1).resizable().aspectRatio(contentMode: contentMode)
+            } else {
+                Color.secondary.opacity(0.08)
+            }
+        }
+        .accessibilityHidden(true)
+        .task(id: url) {
+            guard let url = PublicLinks.safeExternal(url) else { return }
+            let result = await OfflineReleasePhotos.shared.thumbnail(for: url)
+            guard !Task.isCancelled else { return }
+            photo = result
+            renderedURL = url
+        }
+    }
+}
+
+private actor OfflineReleasePhotos {
+    static let shared = OfflineReleasePhotos()
+    private let cache: URLCache
+    private let session: URLSession
+    private let maxPhotoBytes = 10 * 1024 * 1024
+    private var pending: [URL: Task<CGImage?, Never>] = [:]
+
+    private init() {
+        let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("WatchWeeksReleasePhotos", isDirectory: true)
+        cache = URLCache(memoryCapacity: 8 * 1024 * 1024, diskCapacity: 48 * 1024 * 1024, directory: cacheDir)
+        let configuration = URLSessionConfiguration.default
+        configuration.urlCache = cache
+        configuration.requestCachePolicy = .useProtocolCachePolicy
+        configuration.timeoutIntervalForRequest = 12
+        configuration.timeoutIntervalForResource = 18
+        configuration.httpCookieStorage = nil
+        configuration.httpShouldSetCookies = false
+        configuration.urlCredentialStorage = nil
+        session = URLSession(configuration: configuration)
+    }
+
+    func thumbnail(for url: URL) async -> CGImage? {
+        if let task = pending[url] { return await task.value }
+        let task = Task { await fetch(url) }
+        pending[url] = task
+        let image = await task.value
+        pending[url] = nil
+        return image
+    }
+
+    private func fetch(_ url: URL) async -> CGImage? {
+        let request = URLRequest(url: url)
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse else { return nil }
+            guard http.statusCode == 200, http.url?.scheme?.lowercased() == "https",
+                  http.mimeType?.hasPrefix("image/") == true else {
+                if (400..<500).contains(http.statusCode) { cache.removeCachedResponse(for: request) }
+                return nil
+            }
+            return decode(data)
+        } catch let error as URLError {
+            switch error.code {
+            case .notConnectedToInternet, .networkConnectionLost, .timedOut,
+                    .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
+                guard let fallback = cache.cachedResponse(for: request),
+                      fallback.response.url?.scheme?.lowercased() == "https" else { return nil }
+                return decode(fallback.data)
+            default:
+                return nil
+            }
+        } catch {
+            return nil
+        }
+    }
+
+    private func decode(_ data: Data) -> CGImage? {
+        guard data.count <= maxPhotoBytes,
+              let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: 1600,
+            kCGImageSourceShouldCacheImmediately: true
+        ]
+        return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
     }
 }
 
