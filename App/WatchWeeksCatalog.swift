@@ -206,7 +206,7 @@ struct BrandRow: View {
                     Button {
                         var updated = selection
                         updated.seen.toggle()
-                        model.set(updated, guide: guide, brand: brand)
+                        model.set(updated, guide: guide, brand: brand, feedbackOnSeen: true)
                     } label: {
                         Image(systemName: selection.seen ? "checkmark.circle.fill" : "checkmark.circle")
                             .font(.system(size: 30)).frame(minWidth: 48, minHeight: 48)
@@ -694,6 +694,9 @@ struct AboutView: View {
                 WebsiteLink(title: "Privacy policy", url: PublicLinks.privacy)
                 if let email = URL(string: "mailto:reed.reibstein@gmail.com") {
                     Link("Email support", destination: email)
+                    if let correction = URL(string: "mailto:reed.reibstein@gmail.com?subject=WatchWeeks%20correction") {
+                        Link("Report a correction", destination: correction)
+                    }
                 }
             }
             Section("Your visit, your device") {

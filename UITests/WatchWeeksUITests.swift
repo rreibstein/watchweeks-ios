@@ -123,6 +123,22 @@ final class WatchWeeksUITests: XCTestCase {
         goldenHour.tap()
         XCTAssertTrue(app.staticTexts["Golden Hour Singapore"].waitForExistence(timeout: 5))
         capture(app, "03-golden-hour")
+        let directions = app.buttons["Directions"]
+        reveal(directions, in: app)
+        directions.tap()
+        XCTAssertTrue(app.buttons["Apple Maps"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Google Maps"].exists)
+        app.buttons["Cancel"].tap()
+
+        let calendar = app.buttons["Add to Calendar"]
+        if calendar.exists {
+            reveal(calendar, in: app)
+            calendar.tap()
+            app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "11:00 AM")).firstMatch.tap()
+            let cancel = app.navigationBars.buttons["Cancel"].firstMatch
+            XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+            cancel.tap()
+        }
         let carouselPhoto = app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", "event-release-card-renaudtixier"
         )).firstMatch

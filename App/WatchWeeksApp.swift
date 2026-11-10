@@ -52,7 +52,7 @@ import WatchWeeksCore
         if !pendingSort.isEmpty { pendingSort.removeAll() }
     }
 
-    func set(_ selection: Selection, guide: Guide, brand: Brand) {
+    func set(_ selection: Selection, guide: Guide, brand: Brand, feedbackOnSeen: Bool = false) {
         guard persistenceError == nil else { return }
         let previous = self.selection(guide, brand)
         var selection = selection
@@ -70,8 +70,12 @@ import WatchWeeksCore
         let snapshot = selections; let previousSave = saving; let store = store
         saving = Task { [weak self] in
             await previousSave?.value
-            do { try await store.saveSelections(snapshot) }
-            catch { self?.persistenceError = "Your latest changes could not be saved. Keep the app open, free device storage, then tap Retry saving." }
+            do {
+                try await store.saveSelections(snapshot)
+                if feedbackOnSeen, !previous.seen, self?.selections[key]?.seen == true {
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            } catch { self?.persistenceError = "Your latest changes could not be saved. Keep the app open, free device storage, then tap Retry saving." }
         }
     }
     func retrySaving() async {

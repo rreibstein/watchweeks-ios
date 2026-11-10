@@ -1,4 +1,5 @@
 import SwiftUI
+import EventKitUI
 import WatchWeeksCore
 
 struct DiscoveryView: View {
@@ -493,6 +494,9 @@ enum SingaporeStock {
 
 struct EventInfo: View {
     @EnvironmentObject var model: AppModel
+    @Environment(\.openURL) private var openURL
+    @State private var choosingMaps = false
+    @State private var calendarSlot: EventCalendarSlot?
     let guide: Guide
     let event: Event
 
@@ -518,13 +522,26 @@ struct EventInfo: View {
             }.padding(16)
         }
         .watchPage().navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $calendarSlot) { slot in
+            EventCalendarEditor(event: event, address: address, timeZone: guide.timeZone, slot: slot)
+        }
         .task {
             model.activeGuideID = guide.id
         }
     }
 
+    private var calendarSlots: [EventCalendarSlot] {
+        LocalSchedule.days(for: event, guideID: guide.id).compactMap { day in
+            guard !day.isRestrictedAccess, let interval = LocalSchedule.interval(day, zone: guide.timeZone),
+                  interval.upperBound > .now else { return nil }
+            return EventCalendarSlot(day: day, interval: interval)
+        }
+    }
+
     private var address: String? {
-        if let address = event.address { return address }
+        if let address = event.address?.trimmingCharacters(in: .whitespacesAndNewlines), !address.isEmpty {
+            return address
+        }
         guard guide.id == "singapore-2026" else { return nil }
         switch event.id {
         case "golden-hour": return "1 Beach Road, Singapore 189673"
@@ -534,10 +551,34 @@ struct EventInfo: View {
         }
     }
 
+    private func openDirections(_ base: String, items: [URLQueryItem]) {
+        var components = URLComponents(string: base)
+        components?.queryItems = items
+        if let url = components?.url { openURL(url) }
+    }
+
     private var metadata: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let venue = event.venue { Label(venue, systemImage: "mappin.and.ellipse").font(.wwHeadline) }
-            if let address { Text(address).font(.wwSubheadline).textSelection(.enabled) }
+            if let address {
+                Text(address).font(.wwSubheadline).textSelection(.enabled)
+                let destination = address.localizedCaseInsensitiveContains(guide.city) ? address : "\(address), \(guide.city)"
+                Button {
+                    choosingMaps = true
+                } label: {
+                    Label("Directions", systemImage: "arrow.turn.up.right").frame(minHeight: 44)
+                }
+                .confirmationDialog("Open directions", isPresented: $choosingMaps, titleVisibility: .visible) {
+                    Button("Apple Maps") {
+                        openDirections("https://maps.apple.com/", items: [URLQueryItem(name: "daddr", value: destination)])
+                    }
+                    Button("Google Maps") {
+                        openDirections("https://www.google.com/maps/dir/", items: [
+                            URLQueryItem(name: "api", value: "1"), URLQueryItem(name: "destination", value: destination)
+                        ])
+                    }
+                }
+            }
             ForEach(Array(LocalSchedule.days(for: event, guideID: guide.id).filter { !$0.isRestrictedAccess }.enumerated()), id: \.offset) { _, day in
                 let label = LocalSchedule.label(day, zone: guide.timeZone)
                 if !label.isEmpty { Text(label).font(.wwSubheadline) }
@@ -548,6 +589,16 @@ struct EventInfo: View {
             if let url = PublicLinks.safeExternal(event.webURL) {
                 Link(destination: url) {
                     Label("Official event information", systemImage: "arrow.up.right.square").frame(minHeight: 44)
+                }
+            }
+            let slots = calendarSlots
+            if !slots.isEmpty {
+                Menu {
+                    ForEach(slots) { slot in
+                        Button(LocalSchedule.label(slot.day, zone: guide.timeZone)) { calendarSlot = slot }
+                    }
+                } label: {
+                    Label("Add to Calendar", systemImage: "calendar.badge.plus").frame(minHeight: 44)
                 }
             }
             let sessions = guide.accessSessions(for: event)
@@ -585,6 +636,53 @@ struct EventInfo: View {
                 .foregroundStyle(WatchWeeksStyle.secondary)
         }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
             .background(WatchWeeksStyle.control, in: RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+private struct EventCalendarSlot: Identifiable {
+    let day: EventDay
+    let interval: Range<Date>
+    var id: String { "\(day.date)|\(day.open ?? "")|\(day.close ?? "")|\(day.session ?? "")" }
+}
+
+private struct EventCalendarEditor: UIViewControllerRepresentable {
+    let event: Event
+    let address: String?
+    let timeZone: String
+    let slot: EventCalendarSlot
+    @Environment(\.dismiss) private var dismiss
+
+    func makeCoordinator() -> Coordinator { Coordinator(dismiss: dismiss) }
+
+    func makeUIViewController(context: Context) -> EKEventEditViewController {
+        let store = context.coordinator.store
+        let draft = EKEvent(eventStore: store)
+        draft.title = event.name
+        draft.startDate = slot.interval.lowerBound
+        draft.endDate = slot.interval.upperBound
+        draft.timeZone = TimeZone(identifier: timeZone)
+        draft.location = address ?? event.venue
+        draft.url = PublicLinks.safeExternal(event.webURL)
+        draft.notes = LocalSchedule.accessLabel(slot.day.access)
+
+        let editor = EKEventEditViewController()
+        editor.eventStore = store
+        editor.event = draft
+        editor.editViewDelegate = context.coordinator
+        return editor
+    }
+
+    func updateUIViewController(_ controller: EKEventEditViewController, context: Context) {}
+
+    @MainActor final class Coordinator: NSObject, EKEventEditViewDelegate {
+        let store = EKEventStore()
+        let dismiss: DismissAction
+
+        init(dismiss: DismissAction) { self.dismiss = dismiss }
+
+        nonisolated func eventEditViewController(_ controller: EKEventEditViewController, didCompleteWith action: EKEventEditViewAction) {
+            Task { @MainActor in self.dismiss() }
+        }
     }
 }
 
