@@ -5,7 +5,10 @@ rail, moves the promo above Past guides, coalesces guide loads and hides cancell
 errors. TestFlight enrollment uses verified StoreKit sandbox evidence as well as
 legacy receipts; production remains remotely gated. The API still reports
 available=false/reason=delivery_unverified. 77 portable Swift tests and nine export
-checks pass; new native verification/upload follows. No real notification or Apple
+checks pass. Source 5eca70f6b1042274859949d0bce298a550a86703 passed Xcode Cloud
+Verify in 6m 59s with zero errors, test failures, analysis issues or warnings.
+That exact source was promoted to release/cloud-upload; Archive started at 16:00:40
+UTC. New processing/build number and physical push receipt remain unconfirmed. No real notification or Apple
 credential change is made here.
 
 # Publication-alert update — verified, signed upload running

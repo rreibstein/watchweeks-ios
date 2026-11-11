@@ -1,5 +1,19 @@
 # Build history
 
+## Home and TestFlight setup correction — verified, archive triggered
+
+Source: 5eca70f6b1042274859949d0bce298a550a86703. Version 1.0.2.
+Removes the city rail, puts the promo above Past guides, suppresses canceled-request
+errors/coalesces refresh, and uses verified StoreKit download metadata for TestFlight
+access. Signed APNs environment remains production; StoreKit sandbox metadata does
+not change the APNs host. No transaction/JWS/account data is transmitted.
+
+77 core tests and nine export tests pass. Xcode Cloud Verify passed in 6m 59s with
+zero errors/failures/analysis issues/warnings, including foreground/browsing and
+consent QA. The exact source was promoted to Upload; Archive began 16:00:40 UTC.
+New TestFlight number, processing and actual remote receipt are not yet confirmed.
+
+
 ## Publication-alert release — corrected archive succeeded
 
 App source verified: dbb61b790793f08911cd53be5c08dc2ccfb7e0c4.
