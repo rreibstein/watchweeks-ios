@@ -1,4 +1,4 @@
-# One-tap notification permission — new candidate
+# One-tap notification permission — Xcode verified, upload triggered
 
 Home Notify me now requests Apple's native authorization directly; no intermediate
 page or second enable action. Already granted permission continues silently; denial
@@ -8,8 +8,12 @@ retry timing survive restart; token bytes never enter ordinary preferences.
 Service acknowledgement is required for On, and the public activation gate remains.
 Preferences and internal test-ID copying are under About & privacy separately.
 85 portable tests, nine export-validator checks and source/resource checks pass.
-New UI QA uses the real simulator permission dialog, with APNs/enrollment disabled;
-native Xcode validation/upload for this change are not yet confirmed.
+Source 88307bedae4404d91b620c2d9890669a667c2bac passed Xcode Cloud Verify
+in 9m 35s, with zero errors, test failures, analysis issues or warnings. UI QA uses
+the real simulator permission dialog with APNs/enrollment disabled and confirms
+that no interstitial opens. The exact source was promoted to release/cloud-upload
+on Nov 11 at 19:27 UTC. Archive/Apple processing/new build number and actual device
+delivery remain unconfirmed. No provider notification or App Review submission.
 
 # Early-engagement analytics choice — verified, signed upload triggered
 

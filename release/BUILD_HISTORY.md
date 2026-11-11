@@ -1,5 +1,23 @@
 # Build history
 
+## One-tap native notification permission — Xcode verified, upload triggered
+
+Source: 88307bedae4404d91b620c2d9890669a667c2bac. Version 1.0.2.
+Home Notify me calls Apple's native authorization directly, without opening the
+guide-updates page or a second enable button. Authorized intent survives restart;
+late APNs tokens are accepted and failures retry quietly with bounded backoff.
+Revocation/unsubscribe cancels that intent. Server acknowledgement still gates On;
+public activation and internal signed TestFlight remain separate. Analytics and
+previous Home/cancellation fixes are retained.
+
+85 portable Swift tests and nine export-validator tests pass. Xcode Cloud Verify
+succeeded in 9m 35s with zero errors, failures, analysis issues or warnings,
+including the real simulator permission flow, browsing and analytics consent QA.
+The simulator test never registers a device token or enrolls with the backend.
+That exact source was promoted to Upload at 19:27 UTC on Nov 11. Signed archive,
+processed build number and physical receipt remain unconfirmed; no App Review
+submission, public activation or provider notification was performed.
+
 ## Early-engagement analytics choice — verified, signed upload triggered
 
 Source: 21f824dc7327ce8ef1a873455d9a9d3838b9e38a. Marketing version 1.0.2.
