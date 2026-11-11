@@ -1,3 +1,9 @@
+Home and alert setup update
+
+The city shortcut strip is removed. The guide-alert promo is above Past guides. Check that returning from the background on a slow connection keeps browsing usable and shows no CancellationError text.
+
+TestFlight setup now checks Apple's verified download environment; the legacy receipt filename is only a fallback. Alert setup checks the service without waiting for all city guides.
+
 Publication alerts — internal TestFlight verification
 
 On Home (Events), scroll to Get guide updates. Choose Enable notifications, then Allow. Browsing and your checklist still work if you decline.

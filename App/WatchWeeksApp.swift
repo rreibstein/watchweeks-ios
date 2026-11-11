@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import UserNotifications
 import Security
+import StoreKit
 import WatchWeeksCore
 
 @MainActor final class AppModel: ObservableObject {
@@ -24,6 +25,7 @@ import WatchWeeksCore
     private var loaded = false
     private var selectionsReadable = true
     private var saving: Task<Void, Never>?
+    private var refreshTask: Task<Void,Never>?
     init() {
         let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("WatchWeeks", isDirectory: true)
         let store = LocalStore(directory: root)
@@ -43,18 +45,23 @@ import WatchWeeksCore
         await refresh()
     }
     func refresh() async {
-        guard !loading else { return }; loading=true; defer { loading=false }
+        if let refreshTask { await refreshTask.value;return }
+        let work=Task { await self.performRefresh() }
+        refreshTask=work
+        await work.value
+        refreshTask=nil
+    }
+    private func performRefresh() async {
+        loading=true;defer { loading=false }
+        async let alertRefresh: Void = refreshUpcoming()
         do { let result = try await repository.load(); guides=result.guides; publishedGuideIDs=result.publishedIDs; savedAt=result.fetchedAt; stale=result.stale; message=result.warning; visitGuides = (try? await store.rememberedGuides()) ?? result.guides }
-        catch { message=error.localizedDescription }
-        // Cached editorial content is useful offline. Cached capabilities never
-        // activate permission prompts or enrollment.
-        GuidePublicationAlerts.shared.updateAvailability(false)
-        hasLiveUpcomingFeed=false
-        do {
-            let feed=try await PublicGuideService().upcoming()
+        catch { if !GuideRefreshFailure.isCancellation(error) { message=GuideRefreshFailure.message(for:error) } }
+        await alertRefresh
+    }
+    func refreshUpcoming() async {
+        if let feed=await GuidePublicationAlerts.shared.refreshAvailability() {
             upcomingFeed=feed;hasLiveUpcomingFeed=true;try? await store.saveUpcoming(feed)
-            GuidePublicationAlerts.shared.updateAvailability(feed.capabilities.push.available,backendPresent:true)
-        } catch { /* Pre-deployment 404/offline: keep editorial fallback, gate Off. */ }
+        }
     }
     func selection(_ guide: Guide, _ brand: Brand) -> Selection { selections[SelectionKey(guideID: guide.id, brandID: brand.id)] ?? Selection() }
 
@@ -122,12 +129,14 @@ import WatchWeeksCore
                 .onChange(of: phase) { _, phase in
                     if phase == .background { UsageAnalytics.shared.background();GuidePublicationAlerts.shared.background() }
                 }
-                .task(id: phase) {
-                    guard phase == .active else { return }
+                .task(id: phase == .background) {
+                    guard phase != .background else { return }
                     UsageAnalytics.shared.active()
-                    await model.start()
-                    guard !Task.isCancelled else { return }
+                    let currentModel=model
+                    async let initialGuides: Void = currentModel.start()
                     await GuidePublicationAlerts.shared.foreground()
+                    await initialGuides
+                    guard !Task.isCancelled else { return }
                     var retryStep=0
                     while !Task.isCancelled {
                         let delay: Double = model.stale ? [30.0,120.0,600.0][min(retryStep,2)] : 300
@@ -382,6 +391,7 @@ struct AnalyticsQADiagnostics: View {
     @Published private(set) var installationID: String?
     @Published private(set) var permissionDenied=false
     @Published private(set) var hasEnrollment=false
+    @Published private(set) var isChecking=false
     var statusLabel: String {
         if deletionPending { return "Turning off" }
         if isBusy { return "Connecting" }
@@ -402,6 +412,13 @@ struct AnalyticsQADiagnostics: View {
     private var active=false
     private var registeredThisProcess=false
     private var lastReconciled: Date?
+    private var serviceTask: Task<UpcomingGuideFeed?,Never>?
+    private var distributionTask: Task<Void,Never>?
+    private var lastDistributionAttempt: Date?
+    private var verifiedSandboxTransaction: Bool?
+    private var backendPresent=false
+    private var deliveryAvailable=false
+    private var availabilityError: String?
     private let defaults=UserDefaults.standard
     private let seenKey="watchweeks.opened-publication-notifications.v1"
     private var environment: APNSEnvironment? {
@@ -416,15 +433,63 @@ struct AnalyticsQADiagnostics: View {
         #endif
     }
     private init() {}
-    func updateAvailability(_ available: Bool, backendPresent: Bool = false) {
-        // Receipt filename is a public, longstanding TestFlight distinction; no
-        // receipt contents, Apple identity or transaction data are read/transmitted.
-        let beta=Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPushVerificationBuild") as? Bool == true &&
-            Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+    private func updateConfiguration() {
+        let wasConfigured=isConfigured
+        let beta=GuidePushActivation.internalVerificationBuild(
+            allowed:Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPushVerificationBuild") as? Bool == true,
+            verifiedSandboxTransaction:verifiedSandboxTransaction,
+            legacySandboxReceipt:Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt")
         isConfigured=GuidePushActivation.available(
             clientReady:Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPushIntegrationVerified") as? Bool == true,
-            signedEnvironment:environment,backendPresent:backendPresent,deliveryAvailable:available,verificationTestFlight:beta)
-        isVerificationMode=isConfigured && !available && beta
+            signedEnvironment:environment,backendPresent:backendPresent,deliveryAvailable:deliveryAvailable,verificationTestFlight:beta)
+        isVerificationMode=isConfigured && !deliveryAvailable && beta
+        isChecking=serviceTask != nil || distributionTask != nil
+        if !wasConfigured && isConfigured && active {
+            Task { guard self.active else { return };await self.foreground() }
+        }
+    }
+    private static func verifiedTestFlightTransaction() async -> Bool? {
+        // AppTransaction.shared reads Apple's verified download metadata. Do not
+        // call refresh(), request purchases, identify the account, or send its JWS.
+        do {
+            let result=try await AppTransaction.shared
+            guard case .verified(let transaction)=result else { return nil }
+            return transaction.environment == .sandbox
+        } catch { return nil }
+    }
+    private func checkDistribution() {
+        #if !targetEnvironment(simulator)
+        guard verifiedSandboxTransaction == nil, distributionTask == nil,
+              lastDistributionAttempt == nil || Date().timeIntervalSince(lastDistributionAttempt!) >= 30 else { return }
+        lastDistributionAttempt=Date()
+        distributionTask=Task {
+            verifiedSandboxTransaction=await Self.verifiedTestFlightTransaction()
+            distributionTask=nil;updateConfiguration()
+        }
+        #endif
+    }
+    func refreshAvailability() async -> UpcomingGuideFeed? {
+        checkDistribution()
+        if let serviceTask { return await serviceTask.value }
+        let work=Task { () -> UpcomingGuideFeed? in
+            defer { serviceTask=nil;updateConfiguration() }
+            do {
+                let feed=try await PublicGuideService().upcoming()
+                backendPresent=true;deliveryAvailable=feed.capabilities.push.available;availabilityError=nil
+                return feed
+            } catch {
+                if !GuideRefreshFailure.isCancellation(error) { availabilityError="Couldn’t reach the guide alert service. Check your connection and retry." }
+                return nil
+            }
+        }
+        serviceTask=work;updateConfiguration()
+        return await work.value
+    }
+    var availabilityMessage: String {
+        if isChecking { return "Checking notification setup…" }
+        if let availabilityError { return availabilityError }
+        if isConfigured { return "Guide alerts are ready to enable on this device." }
+        return "Publication alerts are awaiting delivery verification. If you’re using TestFlight, retry setup while connected to the internet."
     }
     private func syncState() {
         isEnabled=subscription.state == .on
@@ -467,7 +532,7 @@ struct AnalyticsQADiagnostics: View {
         }
     }
     func requestSubscription() async {
-        guard isConfigured, environment != nil else { message="Push alerts are coming soon. No notification permission has been requested.";return }
+        guard isConfigured, environment != nil else { message=availabilityMessage;return }
         guard !isBusy else { return };isBusy=true
         do {
             let allowed=try await UNUserNotificationCenter.current().requestAuthorization(options:[.alert,.sound])

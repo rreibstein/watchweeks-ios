@@ -55,6 +55,7 @@ public struct PublicGuideService: GuideService {
                 results.append(try detail.model())
             } catch {
                 try Task.checkCancellation()
+                if GuideRefreshFailure.isCancellation(error) { throw CancellationError() }
                 failed.insert(header.id); firstFailure = firstFailure ?? error
                 if let lastGood=cached.first(where: { $0.id == header.id }) { results.append(lastGood) }
             }
@@ -100,8 +101,9 @@ public struct GuideRepository: Sendable {
             return GuideLoad(guides: guides, fetchedAt: date, stale: stale, warning: warning,publishedIDs:fetch.publishedIDs)
         } catch {
             try Task.checkCancellation()
+            if GuideRefreshFailure.isCancellation(error) { throw CancellationError() }
             if let snapshot = try? await store.snapshot() {
-                return GuideLoad(guides: snapshot.guides, fetchedAt: snapshot.fetchedAt, stale: true, warning: error.localizedDescription,publishedIDs:[])
+                return GuideLoad(guides: snapshot.guides, fetchedAt: snapshot.fetchedAt, stale: true, warning: GuideRefreshFailure.message(for:error),publishedIDs:[])
             }
             throw error
         }

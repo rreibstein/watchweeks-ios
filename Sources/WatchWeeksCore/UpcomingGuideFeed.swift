@@ -1,6 +1,10 @@
 import Foundation
 
 public enum GuidePushActivation {
+    public static func internalVerificationBuild(allowed: Bool, verifiedSandboxTransaction: Bool?,
+                                                 legacySandboxReceipt: Bool) -> Bool {
+        allowed && (verifiedSandboxTransaction ?? legacySandboxReceipt)
+    }
     public static func available(clientReady: Bool, signedEnvironment: APNSEnvironment?, backendPresent: Bool,
                                  deliveryAvailable: Bool, verificationTestFlight: Bool) -> Bool {
         clientReady && signedEnvironment != nil && backendPresent && (deliveryAvailable || verificationTestFlight)

@@ -1,3 +1,13 @@
+# Current Home and alert setup correction
+
+See release/HOME_AND_ALERT_SETUP_FIXES.md. Native source removes the city shortcut
+rail, moves the promo above Past guides, coalesces guide loads and hides cancellation
+errors. TestFlight enrollment uses verified StoreKit sandbox evidence as well as
+legacy receipts; production remains remotely gated. The API still reports
+available=false/reason=delivery_unverified. 77 portable Swift tests and nine export
+checks pass; new native verification/upload follows. No real notification or Apple
+credential change is made here.
+
 # Publication-alert update — verified, signed upload running
 
 Native source: dbb61b790793f08911cd53be5c08dc2ccfb7e0c4, dedicated iOS repository.

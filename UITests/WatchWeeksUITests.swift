@@ -17,8 +17,11 @@ final class WatchWeeksUITests: XCTestCase {
                 let bottom=bar.exists ? min(window.maxY-44,bar.frame.minY-8) : window.maxY-80
                 if frame.minY.isFinite, frame.maxY.isFinite, frame.height > 0,
                    frame.width > 0, frame.minY >= window.minY+44, frame.maxY <= bottom { return button }
+                if frame.minY.isFinite, frame.minY < window.minY+44 {
+                    app.swipeDown(velocity:.slow);continue
+                }
             }
-            app.swipeUp()
+            app.swipeUp(velocity:.slow)
         }
         let hierarchy=XCTAttachment(string:app.debugDescription)
         hierarchy.name="Home accessibility hierarchy";hierarchy.lifetime = .keepAlways;add(hierarchy)
@@ -56,9 +59,21 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Guide updates"].waitForExistence(timeout:3))
         XCTAssertTrue(app.buttons["Guide updates on WatchWeeks"].exists)
         XCTAssertFalse(app.buttons["Enable notifications"].exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","coming soon")).firstMatch.exists)
         XCTAssertFalse(XCUIApplication(bundleIdentifier:"com.apple.springboard").alerts.firstMatch.exists)
         app.buttons["Done"].tap()
-        XCTAssertTrue(app.buttons["About & privacy"].exists)
+        XCTAssertTrue(app.tabBars.buttons["Events"].isSelected)
+    }
+
+    @MainActor func testForegroundingKeepsBrowsingAvailableWithoutCancellationBanner() {
+        let app=XCUIApplication();app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
+        for _ in 0..<2 {
+            XCUIDevice.shared.press(.home);app.activate()
+            XCTAssertTrue(app.buttons["Find"].waitForExistence(timeout:10))
+            XCTAssertFalse(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","CancellationError")).firstMatch.exists)
+            XCTAssertTrue(app.tabBars.buttons["Brands A–Z"].isEnabled)
+        }
     }
 
     @MainActor func testOptionalAnalyticsConsent() async throws {
@@ -133,7 +148,7 @@ final class WatchWeeksUITests: XCTestCase {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launch()
-        XCTAssertTrue(app.buttons["Singapore"].waitForExistence(timeout: 40))
+        XCTAssertTrue(app.buttons["home-guide-singapore-2026"].waitForExistence(timeout: 40))
         capture(app, "01-home")
         let preview = app.buttons["Renaud Tixier, Monday Skeleton"]
         reveal(preview, in: app)

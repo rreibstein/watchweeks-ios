@@ -5,7 +5,6 @@ import WatchWeeksCore
 
 struct DiscoveryView: View {
     @EnvironmentObject var model: AppModel
-    @State private var selectedCity: String?
     @State private var pushDestinationID: String?
 
     var ordered: [Guide] {
@@ -20,8 +19,7 @@ struct DiscoveryView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollViewReader { scroll in
-                ScrollView {
+            ScrollView {
                     WatchHeader()
                     LazyVStack(alignment: .leading, spacing: 16) {
                         Text("Make the most of every watch fair.")
@@ -29,38 +27,6 @@ struct DiscoveryView: View {
                         Text("The independent guide to watch events around the world. Discover the brands exhibiting, explore the new releases, and plan your must-sees.")
                             .foregroundStyle(WatchWeeksStyle.secondary)
                         LiveStatusPanel(guides: model.guides)
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack {
-                                ForEach(ordered) { guide in
-                                    let selected = selectedCity == guide.id
-                                    Button {
-                                        selectedCity = guide.id
-                                        withAnimation { scroll.scrollTo(guide.id, anchor: .top) }
-                                    } label: {
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            Text(guide.city).font(.wwSubheadline)
-                                            TimelineView(.periodic(from: .now, by: 30)) { context in
-                                                if let status = LiveEvent.homeStatus(in: guide, now: context.date) {
-                                                    Text(status.title).font(.wwCaption2)
-                                                        .foregroundStyle(status.isLive ? WatchWeeksStyle.live : WatchWeeksStyle.secondary)
-                                                }
-                                            }
-                                        }
-                                            .padding(.horizontal, 12).frame(minHeight: 44)
-                                            .watchCard(radius: 22)
-                                            .overlay {
-                                                if selected {
-                                                    Capsule().strokeBorder(WatchWeeksStyle.city(guide), lineWidth: 2)
-                                                        .allowsHitTesting(false)
-                                                }
-                                            }
-                                    }.buttonStyle(.plain)
-                                        .accessibilityAddTraits(selected ? .isSelected : [])
-                                        .accessibilityLabel(guide.city)
-                                        .accessibilityValue(LiveEvent.homeStatus(in: guide)?.title ?? "")
-                                }
-                            }
-                        }
                         Text("Guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
                         if model.loading && model.guides.isEmpty { ProgressView("Loading guides…") }
                         if let message = model.message {
@@ -73,19 +39,23 @@ struct DiscoveryView: View {
                         ForEach(ordered.filter { EventDates.status($0) != .past }) {
                             GuidePreview(guide: $0, past: false).id($0.id)
                         }
-                        let past = ordered.filter { EventDates.status($0) == .past }
-                        if !past.isEmpty {
-                            Text("Past guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
-                            ForEach(past) { GuidePreview(guide: $0, past: true).id($0.id) }
-                        }
                         if ordered.isEmpty && !model.loading {
                             ContentUnavailableView("No guides loaded", systemImage: "globe", description: Text("Pull to refresh. Previously loaded guides are available offline."))
                         }
                     }.padding(16)
-                    // Footer controls stay mounted across guide refreshes and
-                    // navigation restoration, independently of lazy guide rows.
+                    // Keep the alert controls mounted and ahead of past editions.
+                    ForthcomingGuidesPromo(guides:model.guides)
+                        .padding(.horizontal,16).padding(.bottom,16)
+                    let past = ordered.filter { EventDates.status($0) == .past }
+                    if !past.isEmpty {
+                        Text("Past guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
+                            .accessibilityIdentifier("past-guides-heading")
+                            .frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,16)
+                        LazyVStack(alignment:.leading,spacing:16) {
+                            ForEach(past) { GuidePreview(guide:$0,past:true).id($0.id) }
+                        }.padding(16)
+                    }
                     VStack(alignment: .leading, spacing: 16) {
-                        ForthcomingGuidesPromo(guides: model.guides)
                         NavigationLink { AboutView() } label: {
                             Label("About & privacy", systemImage: "info.circle")
                                 .font(.wwFootnote).frame(maxWidth:.infinity,minHeight:44)
@@ -93,7 +63,7 @@ struct DiscoveryView: View {
                     }.padding(.horizontal,16).padding(.bottom,16)
                 }
                 .refreshable { await model.refresh() }
-            }.watchPage().toolbar(.hidden, for: .navigationBar)
+            .watchPage().toolbar(.hidden, for: .navigationBar)
                 .navigationDestination(item:$pushDestinationID) { id in
                     if let guide=model.guides.first(where:{ $0.id == id }) { CityView(guide:guide) }
                     else { ContentUnavailableView("Guide unavailable",systemImage:"globe") }
@@ -850,7 +820,7 @@ private struct ForthcomingGuidesPromo: View {
                 Button { showingDetails=true } label: {
                     Text("Get guide updates").frame(minHeight:44).contentShape(Rectangle())
                 }.accessibilityIdentifier("guide-updates")
-                Text(alerts.isConfigured ? "Optional notifications when a new guide is published." : "More guides are on the way. Push alerts are coming soon.")
+                Text("Choose optional notifications when a new guide is published.")
                     .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
             }.padding(16).frame(maxWidth:.infinity,alignment:.leading).watchCard()
                 // Avoid a container identifier propagating over the button ID.
@@ -889,7 +859,10 @@ struct GuideUpdatesSheet: View {
                         Text("If enabled, your device token, an installation credential, app version and iOS version are used to deliver guide alerts. They are not sent to analytics. Delivery is best effort.")
                             .font(.wwFootnote)
                     } else {
-                        Text("Push alerts are coming soon. We will ask for notification permission once delivery is ready. You can see guide updates and signup options on the website.")
+                        Text(alerts.availabilityMessage)
+                        if alerts.isChecking { ProgressView("Checking guide alerts…") }
+                        Button("Retry notification setup") { Task { _ = await alerts.refreshAvailability() } }
+                            .disabled(alerts.isChecking)
                     }
                     WebsiteLink(title:"Guide updates on WatchWeeks",url:newsletterURL)
                     if let message=alerts.message { Text(message).font(.wwFootnote) }
@@ -901,7 +874,11 @@ struct GuideUpdatesSheet: View {
                     }
                 }
             }.font(.wwBody).navigationTitle("Guide updates").navigationBarTitleDisplayMode(.inline)
-                .task { newsletterURL=await PublicGuideService().newsletterDestination() }
+                .task {
+                    async let destination=PublicGuideService().newsletterDestination()
+                    _ = await alerts.refreshAvailability()
+                    newsletterURL=await destination
+                }
                 .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { dismiss() } } }
         }
     }
