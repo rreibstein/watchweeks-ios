@@ -340,11 +340,7 @@ struct VisitView: View {
                         Toggle("Shortlist only", isOn: $shortlistedOnly)
                         Toggle("Show remaining only", isOn: $remaining)
                     }.padding(12).watchCard()
-                    HStack {
-                        Text("Your list is saved on this device.").foregroundStyle(WatchWeeksStyle.secondary)
-                        Spacer(minLength: 8)
-                        NavigationLink("About & privacy") { AboutView() }.frame(minHeight: 44)
-                    }.font(.wwFootnote)
+                    Text("Your list is saved on this device.").font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
                     let guides = model.visitGuides.filter { guideID == nil || $0.id == guideID }
                     if let draft = picks(in: guides) {
                         ShareLink(item: draft) { Label("Share My Picks", systemImage: "square.and.arrow.up") }
@@ -697,7 +693,7 @@ struct AboutView: View {
                 }
             }
             Section("Your visit, your device") {
-                Text("Your shortlist, ratings and seen selections are saved on this device.")
+                Text("Your shortlist, ratings and seen selections are saved on this device. They do not automatically synchronize with website accounts.")
                 Text("Previously loaded guides work offline. Links and content you have not loaded may require a connection.")
             }
             #if DEBUG && targetEnvironment(simulator)
@@ -717,6 +713,9 @@ struct AboutView: View {
                         .font(.wwFootnote).foregroundStyle(.secondary)
                 }
             }
+            Section("Guide notifications") {
+                Text("Notification permission and usage analytics are separate choices. Push alerts are not enabled in this build while the delivery service is being prepared. No push token is registered or sent.")
+            }
             Section("Explore more") {
                 WebsiteLink(title: "WatchWeeks website", url: PublicLinks.home)
             }
@@ -732,7 +731,8 @@ struct AboutView: View {
                     List {
                         Section {
                             Text("Sharing usage helps us see which guides and features are useful and what to improve.")
-                            Text("PostHog receives a random app identifier and actions such as opening a guide or using a rating button. We do not send your rating choices or use analytics for ads or session replay.")
+                            Text("PostHog receives a random app identifier, app version/build, public guide/event/release IDs and actions such as viewing a guide, changing a rating, using My list or sharing. We do not send your selected rating, Seen value, notes, email, search queries or purchase prices. We do not join native and website identities or use this for ads or session replay.")
+                            Text("Consented events may be stored on this device and retried when connectivity returns. Turning sharing off clears pending analytics and cancels delivery; requests already in flight cannot be recalled. Previously delivered data may remain under the privacy policy.")
                             Text("Sharing is off unless you turn it on. You can change your choice here at any time.")
                         }
                         Button("Choose a preference") { chooseAnalytics = true }

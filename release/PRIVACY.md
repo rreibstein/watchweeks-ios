@@ -35,3 +35,17 @@ that information. If you follow a link, your browser opens the destination. The
 [WatchWeeks website privacy policy](https://watchweeks.com/privacy) applies in
 the browser. Website sign-in, website analytics, and website session replay
 are features of that separate website. Other websites have their own policies.
+
+## Forthcoming guides and notification preparation
+
+The native Home screen can show editorial notes about forthcoming guides. Email
+signup opens the existing WatchWeeks website, whose form and privacy policy apply;
+the native app does not collect an email address for that signup.
+
+Reliable guide-publication push notifications are being prepared. They are disabled
+in the current native build: it does not ask for notification permission, register
+with APNs or transmit a device push token. The prepared callbacks do not activate
+a subscription. Before enabling delivery, we will disclose any push-token and
+subscription storage, purposes, providers, retention and deletion controls, and
+request the relevant permission. Notification preferences will remain separate
+from optional usage analytics and will not be required to use the app.

@@ -14,7 +14,7 @@ existing website project. Public token is not a personal/admin credential. No
 website code, account data, dashboards, retention settings or replay is changed.
 PostHog admin access and processor logging/retention are not available here.
 
-Off by default, no automatic startup dialog. My list > About & privacy > Usage
+Off by default, no automatic startup dialog. Home > About & privacy > Usage
 analytics explains collection before “Share usage.” Turning it off clears queued
 analytics and installation identifier, cancels pending delivery and survives relaunch.
 Re-enabling creates a new random app identifier. No identity is shared with web.
@@ -61,3 +61,5 @@ platform=ios_native throughout:
 Metrics describe consenting observed users, not everyone who installs. Downloads
 and acquisition come from App Store Connect, not PostHog. All counts can be affected
 by opt-out, ID resets, reinstalls, network loss and queue eviction.
+
+The earlier processed TestFlight build 13 still locates About & privacy in My list. The subsequent Home/promo source moves it to Home; do not confuse that source with the installed build.

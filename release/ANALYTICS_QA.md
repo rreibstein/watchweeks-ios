@@ -1,7 +1,7 @@
 # WatchWeeks iOS optional analytics
 
 The native app opens straight to Events. No automatic consent dialog or system
-tracking request is shown. Under My list → About & privacy → Learn about usage
+tracking request is shown. Under Home → About & privacy → Learn about usage
 analytics, a native sheet explains what is shared and why. The user can leave
 it off or explicitly choose “Share usage” in a native alert. After opt-in, the
 same page offers “Turn off usage analytics.”

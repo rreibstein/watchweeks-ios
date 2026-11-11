@@ -6,6 +6,7 @@ import WatchWeeksCore
 struct DiscoveryView: View {
     @EnvironmentObject var model: AppModel
     @State private var selectedCity: String?
+    @State private var pushDestinationID: String?
 
     var ordered: [Guide] {
         // The home page highlights these guides editorially. Newly published guides
@@ -80,12 +81,30 @@ struct DiscoveryView: View {
                         if ordered.isEmpty && !model.loading {
                             ContentUnavailableView("No guides loaded", systemImage: "globe", description: Text("Pull to refresh. Previously loaded guides are available offline."))
                         }
+                        ForthcomingGuidesPromo(guides: model.guides)
+                        NavigationLink { AboutView() } label: {
+                            Label("About & privacy", systemImage: "info.circle")
+                                .font(.wwFootnote).frame(maxWidth:.infinity,minHeight:44)
+                        }.accessibilityIdentifier("home-about-privacy")
                     }.padding(16)
                 }
                 .refreshable { await model.refresh() }
             }.watchPage().toolbar(.hidden, for: .navigationBar)
+                .navigationDestination(item:$pushDestinationID) { id in
+                    if let guide=model.guides.first(where:{ $0.id == id }) { CityView(guide:guide) }
+                    else { ContentUnavailableView("Guide unavailable",systemImage:"globe") }
+                }
+                .task(id:model.pendingPushGuideID) {
+                    guard model.pendingPushGuideID != nil else { return }
+                    if !openPendingGuide() { await model.refresh(); _ = openPendingGuide() }
+                }
+                .onChange(of:model.guides) { _, _ in _ = openPendingGuide() }
                 .onAppear { model.activeGuideID = nil }
         }
+    }
+    @discardableResult private func openPendingGuide() -> Bool {
+        guard let id=model.pendingPushGuideID, model.guides.contains(where:{ $0.id == id }) else { return false }
+        pushDestinationID=id;model.pendingPushGuideID=nil;return true
     }
 }
 
@@ -802,4 +821,48 @@ private struct GuideShareSheet: UIViewControllerRepresentable {
         return controller
     }
     func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
+}
+
+private struct ForthcomingGuidesPromo: View {
+    let guides: [Guide]
+    @ObservedObject private var alerts = GuidePublicationAlerts.shared
+    @State private var showingDetails = false
+    var body: some View {
+        let forthcoming=ForthcomingGuide.awaitingPublication(in:guides)
+        if !forthcoming.isEmpty {
+            VStack(alignment:.leading,spacing:12) {
+                Text("Be the first to know about new guides").font(.wwTitle2)
+                Text("Guides in the works: " + forthcoming.map(\.title).joined(separator:", ") + ".")
+                    .font(.wwSubheadline)
+                Button("Get guide updates") { showingDetails=true }.frame(minHeight:44)
+                Text(alerts.isConfigured ? "Optional notifications when a new guide is published." : "Email updates are available now. Push alerts are coming soon.")
+                    .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
+            }.padding(16).frame(maxWidth:.infinity,alignment:.leading).watchCard()
+                .accessibilityIdentifier("forthcoming-guides-promo")
+                .sheet(isPresented:$showingDetails) { GuideUpdatesSheet() }
+        }
+    }
+}
+private struct GuideUpdatesSheet: View {
+    @ObservedObject private var alerts = GuidePublicationAlerts.shared
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("New WatchWeeks guides") {
+                    Text("Get an alert when a new independent city or event guide is published.")
+                    if alerts.isConfigured {
+                        Text("Notifications are optional. Apple will ask for permission after you choose Enable notifications. Analytics is a separate choice.")
+                        Button("Enable notifications") { Task { await alerts.requestSubscription() } }
+                            .disabled(alerts.isBusy)
+                    } else {
+                        Text("Push alerts are coming soon. We will ask for notification permission once delivery is ready. Until then, use Notify me on the website for occasional email announcements.")
+                    }
+                    WebsiteLink(title:"Get email updates on WatchWeeks",url:PublicLinks.home)
+                    if let message=alerts.message { Text(message).font(.wwFootnote) }
+                }
+            }.font(.wwBody).navigationTitle("Guide updates").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { dismiss() } } }
+        }
+    }
 }

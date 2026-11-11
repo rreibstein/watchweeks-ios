@@ -9,14 +9,14 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertFalse(app.buttons["Continue without analytics"].exists)
         XCTAssertFalse(app.buttons["Account"].exists)
         XCTAssertTrue(app.buttons["Find"].exists)
-        app.tabBars.buttons["My list"].tap()
         let about = app.buttons["About & privacy"]
-        if !about.isHittable { app.swipeUp() }
+        for _ in 0..<24 where !about.isHittable { app.swipeUp() }
+        XCTAssertTrue(about.isHittable)
         about.tap()
         XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout: 2))
         app.navigationBars["About"].buttons.firstMatch.tap()
         XCTAssertTrue(app.navigationBars["About"].waitForNonExistence(timeout: 5))
-        XCTAssertTrue(app.tabBars.buttons["My list"].isSelected)
+        XCTAssertTrue(app.tabBars.buttons["Events"].isSelected)
         if !about.isHittable { app.swipeUp() }
         about.tap()
         let privacy = app.buttons["Privacy policy"]
@@ -24,6 +24,20 @@ final class WatchWeeksUITests: XCTestCase {
         privacy.tap()
         XCTAssertTrue(XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
             .wait(for: .runningForeground, timeout: 10))
+    }
+
+    @MainActor func testGuideUpdatesWaitForReliablePushDelivery() {
+        let app=XCUIApplication();app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
+        let updates=app.buttons["Get guide updates"]
+        for _ in 0..<24 where !updates.isHittable { app.swipeUp() }
+        XCTAssertTrue(updates.isHittable);updates.tap()
+        XCTAssertTrue(app.navigationBars["Guide updates"].waitForExistence(timeout:3))
+        XCTAssertTrue(app.buttons["Get email updates on WatchWeeks"].exists)
+        XCTAssertFalse(app.buttons["Enable notifications"].exists)
+        XCTAssertFalse(XCUIApplication(bundleIdentifier:"com.apple.springboard").alerts.firstMatch.exists)
+        app.buttons["Done"].tap()
+        XCTAssertTrue(app.buttons["About & privacy"].exists)
     }
 
     @MainActor func testOptionalAnalyticsConsent() async throws {
@@ -46,11 +60,12 @@ final class WatchWeeksUITests: XCTestCase {
         }
         let baseline = 0 // A unique consent/QA suite is used for this app launch.
         func about() {
-            XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout: 10))
             XCTAssertFalse(app.alerts.firstMatch.exists)
-            app.tabBars.buttons["My list"].tap()
+            app.tabBars.buttons["Events"].tap()
             let link = app.buttons["About & privacy"]
-            if !link.isHittable { app.swipeUp() }
+            for _ in 0..<24 where !link.isHittable { app.swipeUp() }
+            XCTAssertTrue(link.isHittable)
             link.tap()
             XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout: 5))
         }

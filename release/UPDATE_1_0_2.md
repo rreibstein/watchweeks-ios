@@ -1,3 +1,19 @@
+# Follow-up source changes after build 13 (new build required)
+
+- About & privacy is now at the bottom of Home/Events, removed from My list.
+- Forthcoming-guide promo mirrors watchweeks.com: Geneva (W&W), British Watchmakers'
+  Day and Las Vegas. It hides entries once matching public guides are available.
+- Get guide updates explains email signup now and reliable push coming soon.
+- No notification permission is requested until a verified Lovable/APNs backend
+  adapter, signing capability and end-to-end QA exist. No APNs token is sent.
+- In-app analytics disclosure and the App Store privacy worksheet are expanded.
+- Native APNs callback/routing preparation is gated and not a live push service.
+
+This is NOT in TestFlight build 13. Use an unused new Cloud build number for this
+follow-up, retaining marketing version 1.0.2 if it is still the pending update.
+Do not submit or publish without explicit owner approval. After enabling real push
+in a later build, revisit notification data purposes and privacy copy again.
+
 # WatchWeeks 1.0.2 candidate
 
 Source build number defaults to 1. Before upload, check App Store Connect and use
@@ -6,7 +22,7 @@ replace/rewrite the approved 1.0.1 binary or overwrite newer Mac changes.
 
 ## Changes
 
-- Opt-in PostHog usage analytics in My list > About & privacy. Off by default;
+- Opt-in PostHog usage analytics in Home > About & privacy. Off by default;
   no launch prompt, replay, ad identifier, account linking or automatic capture.
 - Durable bounded queue for previously consented events; opt-out clears it and
   cancels delivery. No retroactive analytics about actions performed while off.
@@ -61,7 +77,7 @@ or disabled in About & privacy. We've also simplified new-release photo gallerie
 
 WatchWeeks remains guest-first, with local ratings/shortlist/Seen and public guide
 content. Optional PostHog product analytics starts only when a user explicitly opts
-in at My list > About & privacy > Learn about usage analytics > Choose a preference
+in at Home > About & privacy > Learn about usage analytics > Choose a preference
 > Share usage. All features work while it is off. No session replay or advertising
 tracking. Turning it off purges pending analytics and cancels delivery; already
 in-flight transmissions cannot be recalled. No private notes, email, rating values,

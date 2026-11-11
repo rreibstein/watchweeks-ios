@@ -1,10 +1,12 @@
 import SwiftUI
 import UIKit
+import UserNotifications
 import WatchWeeksCore
 
 @MainActor final class AppModel: ObservableObject {
     @Published var guides: [Guide] = []
     @Published var activeGuideID: String?
+    @Published var pendingPushGuideID: String?
     @Published var visitGuides: [Guide] = []
     @Published var selections: [SelectionKey: Selection] = [:]
     @Published var loading = false
@@ -96,6 +98,7 @@ import WatchWeeksCore
     }
 }
 @main struct WatchWeeksApp: App {
+    @UIApplicationDelegateAdaptor(WatchWeeksPushDelegate.self) private var pushDelegate
     init() { BrandTypography.configureNavigation() }
     @StateObject private var model = AppModel()
     @Environment(\.scenePhase) private var phase
@@ -117,6 +120,7 @@ import WatchWeeksCore
     }
 }
 struct RootView: View {
+    @ObservedObject private var guideAlerts = GuidePublicationAlerts.shared
     @EnvironmentObject var model: AppModel
     @State private var tab: WatchWeeksTab = .events
 
@@ -128,6 +132,10 @@ struct RootView: View {
             withStatus(CatalogView(releases: true)).watchTab(.releases)
         }
         .tint(WatchWeeksStyle.link)
+        .onChange(of: guideAlerts.pendingGuideID, initial: true) { _, id in
+            guard let id else { return }
+            tab = .events; model.pendingPushGuideID=id; guideAlerts.clearPendingRoute()
+        }
         .onChange(of: tab) { _, value in model.resort(); if value == .list { UsageAnalytics.shared.record(.myList) } }
         .onChange(of: model.activeGuideID) { _, _ in model.resort() }
     }
@@ -340,3 +348,66 @@ struct AnalyticsQADiagnostics: View {
     }
 }
 #endif
+
+// Shipping gate: no backend adapter is installed until the Lovable/APNs contract,
+// signing capability, privacy review and real-device delivery tests are complete.
+@MainActor protocol GuidePushBackend: AnyObject {
+    func register(deviceToken: Data) async throws
+    func unsubscribe() async throws
+}
+@MainActor final class GuidePublicationAlerts: ObservableObject {
+    static let shared = GuidePublicationAlerts()
+    @Published private(set) var isConfigured = false
+    @Published private(set) var isBusy = false
+    @Published private(set) var message: String?
+    @Published private(set) var pendingGuideID: String?
+    private var backend: (any GuidePushBackend)?
+    private var registration: Task<Void,Never>?
+    private init() {}
+    func configureVerifiedBackend(_ backend: any GuidePushBackend) {
+        self.backend=backend;isConfigured=true
+    }
+    func requestSubscription() async {
+        guard backend != nil else { message="Push alerts are coming soon. No notification permission has been requested."; return }
+        guard !isBusy else { return };isBusy=true;defer { isBusy=false }
+        do {
+            let allowed=try await UNUserNotificationCenter.current().requestAuthorization(options:[.alert,.sound])
+            guard allowed else { message="Notifications are off. You can change this in iPhone Settings.";return }
+            message="Connecting guide alerts…"
+            UIApplication.shared.registerForRemoteNotifications()
+        } catch { message="Notification permission could not be checked. Please try again." }
+    }
+    func receivedDeviceToken(_ data: Data) {
+        guard let backend else { return }
+        registration?.cancel()
+        registration=Task {
+            do { try await backend.register(deviceToken:data);guard !Task.isCancelled else { return };message="Guide alerts are enabled." }
+            catch { guard !Task.isCancelled else { return };message="Guide alerts could not be connected. Please try again." }
+        }
+    }
+    func registrationFailed() { message="This device could not register for notifications. Please try again." }
+    func openPublishedGuide(_ id: String) { pendingGuideID=id }
+    func clearPendingRoute() { pendingGuideID=nil }
+}
+@MainActor final class WatchWeeksPushDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey:Any]? = nil) -> Bool {
+        UNUserNotificationCenter.current().delegate=self
+        return true
+    }
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        GuidePublicationAlerts.shared.receivedDeviceToken(deviceToken)
+    }
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        GuidePublicationAlerts.shared.registrationFailed()
+    }
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+        let payload=response.notification.request.content.userInfo
+        guard let id=GuidePublicationPush.guideID(type:payload["type"] as? String,version:payload["payload_v"] as? Int,id:payload["guide_id"] as? String) else { return }
+        await GuidePublicationAlerts.shared.openPublishedGuide(id)
+    }
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+        let payload=notification.request.content.userInfo
+        guard GuidePublicationPush.guideID(type:payload["type"] as? String,version:payload["payload_v"] as? Int,id:payload["guide_id"] as? String) != nil else { return [] }
+        return [.banner,.sound]
+    }
+}
