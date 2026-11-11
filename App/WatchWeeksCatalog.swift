@@ -635,6 +635,7 @@ private struct ReleasePhoto: View {
 }
 
 struct ReleaseDetail: View {
+    @State private var recordedView = false
     @EnvironmentObject var model: AppModel
     let guide: Guide
     let release: Release
@@ -658,7 +659,10 @@ struct ReleaseDetail: View {
                 ReleaseGallery(images: release.displayImages, skipFirst: !release.displayImages.isEmpty)
             }.padding()
         }.watchPage().navigationBarTitleDisplayMode(.inline).watchFindToolbar()
-            .task { model.activeGuideID = guide.id }
+            .task {
+                model.activeGuideID = guide.id
+                if !recordedView { recordedView=true; UsageAnalytics.shared.record(.release, guideID: guide.id, releaseID: release.id) }
+            }
     }
 
     private var releaseActions: some View {
@@ -676,6 +680,10 @@ struct ReleaseDetail: View {
     }
 }
 struct AboutView: View {
+    @ObservedObject private var analytics = UsageAnalytics.shared
+    @State private var explainAnalytics = false
+    @State private var chooseAnalytics = false
+
     var body: some View {
         List {
             Section("WatchWeeks") {
@@ -689,8 +697,22 @@ struct AboutView: View {
                 }
             }
             Section("Your visit, your device") {
-                Text("Your shortlist, ratings and seen selections are saved on this device. The iPhone app sends no product analytics.")
+                Text("Your shortlist, ratings and seen selections are saved on this device.")
                 Text("Previously loaded guides work offline. Links and content you have not loaded may require a connection.")
+            }
+            if analytics.isAvailable {
+                Section("Usage analytics") {
+                    LabeledContent("Sharing", value: analytics.enabled ? "On" : "Off")
+                    if analytics.enabled {
+                        Button("Turn off usage analytics") { analytics.setEnabled(false) }
+                            .frame(minHeight: 44)
+                    } else {
+                        Button("Learn about usage analytics") { explainAnalytics = true }
+                            .frame(minHeight: 44)
+                    }
+                    Text("Optional. Your choice does not affect any WatchWeeks features.")
+                        .font(.wwFootnote).foregroundStyle(.secondary)
+                }
             }
             Section("Explore more") {
                 WebsiteLink(title: "WatchWeeks website", url: PublicLinks.home)
@@ -702,6 +724,35 @@ struct AboutView: View {
                 }
             }
         }.scrollContentBackground(.hidden).watchPage().navigationTitle("About")
+            .sheet(isPresented: $explainAnalytics) {
+                NavigationStack {
+                    List {
+                        Section {
+                            Text("Sharing usage helps us see which guides and features are useful and what to improve.")
+                            Text("PostHog receives a random app identifier and actions such as opening a guide or using a rating button. We do not send your rating choices or use analytics for ads or session replay.")
+                            Text("Sharing is off unless you turn it on. You can change your choice here at any time.")
+                        }
+                        Button("Choose a preference") { chooseAnalytics = true }
+                            .frame(minHeight: 44)
+                    }
+                    .navigationTitle("Optional usage analytics")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { explainAnalytics = false }
+                        }
+                    }
+                    .alert("Share usage analytics?", isPresented: $chooseAnalytics) {
+                        Button("Keep off", role: .cancel) { explainAnalytics = false }
+                        Button("Share usage") {
+                            analytics.setEnabled(true)
+                            explainAnalytics = false
+                        }
+                    } message: {
+                        Text("You can turn sharing off anytime in About & privacy.")
+                    }
+                }
+            }
     }
 }
 

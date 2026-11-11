@@ -157,3 +157,34 @@ public struct LiveEvent: Sendable {
         }
     }
 }
+
+public struct GuideHomeStatus: Equatable, Sendable {
+    public let title: String
+    public let eventName: String?
+    public let daysUntil: Int?
+    public let isLive: Bool
+}
+
+public extension LiveEvent {
+    /// Countdown uses event-local calendar days, not 24-hour durations or the
+    /// visitor's phone timezone. Restricted sessions never imply public opening.
+    static func homeStatus(in guide: Guide, now: Date = .now) -> GuideHomeStatus? {
+        guard let zone = TimeZone(identifier: guide.timeZone) else { return nil }
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
+        let slots = guide.publicEvents.flatMap { event in
+            LocalSchedule.days(for: event, guideID: guide.id).compactMap { day -> Slot? in
+                guard !day.isRestrictedAccess, let interval = LocalSchedule.interval(day, zone: guide.timeZone) else { return nil }
+                return Slot(event: event, day: day, interval: interval)
+            }
+        }
+        if let current = slots.filter({ $0.interval.contains(now) }).min(by: { $0.interval.upperBound < $1.interval.upperBound }) {
+            return GuideHomeStatus(title: "Happening now", eventName: current.event.name, daysUntil: 0, isLive: true)
+        }
+        if let next = slots.filter({ $0.interval.lowerBound > now }).min(by: { $0.interval.lowerBound < $1.interval.lowerBound }) {
+            let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: calendar.startOfDay(for: next.interval.lowerBound)).day ?? 0
+            let label = days == 0 ? "Opens today" : days == 1 ? "Tomorrow" : "In \(days) days"
+            return GuideHomeStatus(title: label, eventName: next.event.name, daysUntil: days, isLive: false)
+        }
+        return slots.isEmpty ? nil : GuideHomeStatus(title: "Looking back", eventName: nil, daysUntil: nil, isLive: false)
+    }
+}

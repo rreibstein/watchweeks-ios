@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import EventKitUI
 import WatchWeeksCore
 
@@ -35,7 +36,15 @@ struct DiscoveryView: View {
                                         selectedCity = guide.id
                                         withAnimation { scroll.scrollTo(guide.id, anchor: .top) }
                                     } label: {
-                                        Text(guide.city).font(.wwSubheadline)
+                                        VStack(alignment: .leading, spacing: 3) {
+                                            Text(guide.city).font(.wwSubheadline)
+                                            TimelineView(.periodic(from: .now, by: 30)) { context in
+                                                if let status = LiveEvent.homeStatus(in: guide, now: context.date) {
+                                                    Text(status.title).font(.wwCaption2)
+                                                        .foregroundStyle(status.isLive ? WatchWeeksStyle.live : WatchWeeksStyle.secondary)
+                                                }
+                                            }
+                                        }
                                             .padding(.horizontal, 12).frame(minHeight: 44)
                                             .watchCard(radius: 22)
                                             .overlay {
@@ -46,6 +55,8 @@ struct DiscoveryView: View {
                                             }
                                     }.buttonStyle(.plain)
                                         .accessibilityAddTraits(selected ? .isSelected : [])
+                                        .accessibilityLabel(guide.city)
+                                        .accessibilityValue(LiveEvent.homeStatus(in: guide)?.title ?? "")
                                 }
                             }
                         }
@@ -146,8 +157,12 @@ private struct GuidePreview: View {
                 TimelineView(.periodic(from: .now, by: 30)) { context in
                     let activity = LiveEvent.citySchedule(in: guide, now: context.date)
                     VStack(alignment: .leading, spacing: 8) {
-                        if let activity {
-                            ActivityPill(title: activity.status.rawValue, color: activity.status.color)
+                        if let status = LiveEvent.homeStatus(in: guide, now: context.date) {
+                            ActivityPill(title: status.title, color: status.isLive ? WatchWeeksStyle.live : WatchWeeksStyle.today)
+                                .accessibilityIdentifier("home-guide-status-\(guide.id)")
+                            if let eventName = status.eventName, status.daysUntil != 0 {
+                                Text("Next public event: \(eventName)").font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
+                            }
                         }
                         guideLink
                         if let activity, !activity.today.isEmpty {
@@ -318,6 +333,7 @@ private func dateRange(_ start: String?, _ end: String?, zone: String) -> String
 }
 
 struct CityView: View {
+    @State private var recordedView = false
     @EnvironmentObject var model: AppModel
     let guide: Guide
     @State private var day: String?
@@ -366,13 +382,14 @@ struct CityView: View {
                 let releases = guide.releaseCatalog()
                 if !releases.isEmpty { GuideReleaseCarousel(guide: guide, releases: releases) }
                 if let url = PublicLinks.safeExternal(guide.webURL) {
-                    ShareLink(item: url) { Label("Share guide", systemImage: "square.and.arrow.up") }
+                    TrackedGuideShare(guide:guide,url:url)
                 }
             }.padding(16)
         }
         .watchPage().navigationBarTitleDisplayMode(.inline).watchFindToolbar()
         .task {
             model.activeGuideID = guide.id
+            if !recordedView { recordedView=true; UsageAnalytics.shared.record(.guide, guideID: guide.id) }
         }
     }
 
@@ -496,6 +513,7 @@ enum SingaporeStock {
 }
 
 struct EventInfo: View {
+    @State private var recordedView = false
     @EnvironmentObject var model: AppModel
     @Environment(\.openURL) private var openURL
     @State private var choosingMaps = false
@@ -531,13 +549,13 @@ struct EventInfo: View {
         }
         .task {
             model.activeGuideID = guide.id
+            if !recordedView { recordedView=true; UsageAnalytics.shared.record(.event, guideID: guide.id, eventID: event.id) }
         }
     }
 
     private var calendarSlots: [EventCalendarSlot] {
         LocalSchedule.days(for: event, guideID: guide.id).compactMap { day in
-            guard !day.isRestrictedAccess, let interval = LocalSchedule.interval(day, zone: guide.timeZone),
-                  interval.upperBound > .now else { return nil }
+            guard !day.isRestrictedAccess, let interval = LocalSchedule.interval(day, zone: guide.timeZone) else { return nil }
             return EventCalendarSlot(day: day, interval: interval)
         }
     }
@@ -602,18 +620,8 @@ struct EventInfo: View {
                 } label: {
                     Label("Add to Calendar", systemImage: "calendar.badge.plus").frame(minHeight: 44)
                 }
-                .accessibilityHint(slots.count > 1 ? "Adds all remaining public days" : "Adds the public session")
-                if slots.count > 1 {
-                    Menu {
-                        ForEach(slots) { slot in
-                            Button(LocalSchedule.label(slot.day, zone: guide.timeZone)) {
-                                calendarSelection = EventCalendarSelection(slots: [slot])
-                            }
-                        }
-                    } label: {
-                        Label("Choose a day", systemImage: "calendar").frame(minHeight: 44)
-                    }
-                }
+                .accessibilityHint(slots.count > 1 ? "Adds all public days for this event" : "Adds the public session")
+
             }
             let sessions = guide.accessSessions(for: event)
             let specialHours = LocalSchedule.days(for: event, guideID: guide.id).filter(\.isRestrictedAccess)
@@ -771,4 +779,27 @@ private struct GuideReleaseCarousel: View {
             }.accessibilityIdentifier("\(scope)-releases")
         }
     }
+}
+
+private struct TrackedGuideShare: View {
+    let guide: Guide
+    let url: URL
+    @State private var showing = false
+    var body: some View {
+        Button { showing=true } label: { Label("Share guide",systemImage:"square.and.arrow.up") }
+            .sheet(isPresented:$showing) { GuideShareSheet(guideID:guide.id,url:url) }
+    }
+}
+private struct GuideShareSheet: UIViewControllerRepresentable {
+    let guideID: String
+    let url: URL
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller=UIActivityViewController(activityItems:[url],applicationActivities:nil)
+        let id=guideID
+        controller.completionWithItemsHandler = { _, completed, _, _ in
+            if completed { Task { @MainActor in UsageAnalytics.shared.record(.shared,guideID:id) } }
+        }
+        return controller
+    }
+    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }

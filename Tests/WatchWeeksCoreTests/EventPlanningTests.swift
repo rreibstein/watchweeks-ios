@@ -94,3 +94,34 @@ final class EventPlanningTests: XCTestCase {
         XCTAssertNil(Release(id: "none", title: "Watch", details: "Price unavailable").displayedPrice)
     }
 }
+
+final class HomeCountdownTests: XCTestCase {
+    func testCountdownUsesNextPublicOpeningAndLocalMidnight() throws {
+        let event=Event(id:"fair",name:"Public Fair",days:[
+            EventDay(date:"2026-11-12",open:"14:00",close:"21:00",access:"invitation"),
+            EventDay(date:"2026-11-13",open:"11:00",close:"20:00",access:nil)
+        ])
+        let guide=Guide(id:"sg",city:"Singapore",timeZone:"Asia/Singapore",events:[event])
+        func status(_ text:String) throws -> GuideHomeStatus {
+            let now=try XCTUnwrap(ISO8601DateFormatter().date(from:text))
+            return try XCTUnwrap(LiveEvent.homeStatus(in:guide,now:now))
+        }
+        XCTAssertEqual(try status("2026-11-11T12:00:00Z").title,"In 2 days")
+        XCTAssertEqual(try status("2026-11-11T16:00:00Z").title,"Tomorrow")
+        XCTAssertEqual(try status("2026-11-12T07:00:00Z").title,"Tomorrow")
+        XCTAssertEqual(try status("2026-11-12T16:00:00Z").title,"Opens today")
+        XCTAssertEqual(try status("2026-11-13T03:00:00Z").title,"Happening now")
+        XCTAssertEqual(try status("2026-11-13T12:00:00Z").title,"Looking back")
+        XCTAssertEqual(try status("2026-11-11T12:00:00Z").eventName,"Public Fair")
+    }
+    func testCountdownAcrossDaylightSavingUsesCalendarDays() throws {
+        let event=Event(id:"fair",name:"Fair",days:[EventDay(date:"2026-03-30",open:"11:00",close:"18:00",access:nil)])
+        let guide=Guide(id:"paris",city:"Paris",timeZone:"Europe/Paris",events:[event])
+        let now=try XCTUnwrap(ISO8601DateFormatter().date(from:"2026-03-28T22:30:00Z"))
+        XCTAssertEqual(LiveEvent.homeStatus(in:guide,now:now)?.title,"In 2 days")
+    }
+    func testNoInventedCountdownWithoutPublicHours() {
+        let guide=Guide(id:"unknown",city:"Test",timeZone:"UTC")
+        XCTAssertNil(LiveEvent.homeStatus(in:guide))
+    }
+}

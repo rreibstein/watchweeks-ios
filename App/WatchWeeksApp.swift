@@ -79,6 +79,12 @@ import WatchWeeksCore
                 if feedbackOnSeen, !previous.seen, self?.selections[key]?.seen == true {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                 }
+                if previous.interest != selection.interest {
+                    UsageAnalytics.shared.record(.rating, guideID: guide.id)
+                }
+                if previous.seen != selection.seen {
+                    UsageAnalytics.shared.record(.seen, guideID: guide.id)
+                }
             } catch { self?.persistenceError = "Your latest changes could not be saved. Keep the app open, free device storage, then tap Retry saving." }
         }
     }
@@ -96,8 +102,10 @@ import WatchWeeksCore
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(model)
+                .onChange(of: phase) { _, phase in if phase == .background { UsageAnalytics.shared.background() } }
                 .task(id: phase) {
                     guard phase == .active else { return }
+                    UsageAnalytics.shared.active()
                     await model.start()
                     while !Task.isCancelled {
                         do { try await Task.sleep(for: .seconds(300)) }
@@ -120,13 +128,12 @@ struct RootView: View {
             withStatus(CatalogView(releases: true)).watchTab(.releases)
         }
         .tint(WatchWeeksStyle.link)
-        .font(.wwBody)
-        .onChange(of: tab) { _, _ in model.resort() }
+        .onChange(of: tab) { _, value in model.resort(); if value == .list { UsageAnalytics.shared.record(.myList) } }
         .onChange(of: model.activeGuideID) { _, _ in model.resort() }
     }
 
     private func withStatus<Content: View>(_ content: Content) -> some View {
-        content.safeAreaInset(edge: .bottom, spacing: 0) {
+        content.font(.wwBody).safeAreaInset(edge: .bottom, spacing: 0) {
             if let error = model.persistenceError {
                 VStack {
                     Text(error).font(.wwFootnote)
@@ -241,6 +248,41 @@ struct WebsiteLink: View {
     @Environment(\.openURL) private var openURL
 
     var body: some View {
-        Button(title) { openURL(url) }
+        Button(title) { openURL(url) { accepted in if accepted, url.host == "watchweeks.com" { UsageAnalytics.shared.record(.website) } } }
+    }
+}
+
+@MainActor final class UsageAnalytics: ObservableObject {
+    static let shared = UsageAnalytics()
+    @Published private(set) var enabled = false
+    private let client: UsageAnalyticsClient?
+    var isAvailable: Bool { client != nil }
+    private init() {
+        let defaults: UserDefaults
+        let token: String?
+        let endpoint: URL
+        #if DEBUG && targetEnvironment(simulator)
+        defaults=ProcessInfo.processInfo.environment["WW_ANALYTICS_QA_SUITE"].flatMap(UserDefaults.init(suiteName:)) ?? .standard
+        token=ProcessInfo.processInfo.environment["WW_ANALYTICS_QA"] == "1" ? "phc_watchweeks_qa" : nil
+        endpoint=URL(string:"http://localhost:8766/i/v0/e/")!
+        #elseif DEBUG || targetEnvironment(simulator)
+        defaults = .standard; token=nil; endpoint=URL(string:"http://localhost:8766/i/v0/e/")!
+        #else
+        defaults = .standard
+        token=(Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPostHogToken") as? String).flatMap { $0.hasPrefix("phc_") ? $0 : nil }
+        endpoint=URL(string:"https://us.i.posthog.com/i/v0/e/")!
+        #endif
+        if let token {
+            client=UsageAnalyticsClient(token:token,endpoint:endpoint,
+                version:Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "unknown",
+                build:Bundle.main.object(forInfoDictionaryKey:"CFBundleVersion") as? String ?? "unknown",defaults:defaults)
+            enabled=client?.enabled ?? false
+        } else { client=nil }
+    }
+    func setEnabled(_ value: Bool) { client?.setEnabled(value); enabled=client?.enabled ?? false }
+    func active() { client?.becameActive() }
+    func background() { client?.becameBackground() }
+    func record(_ action: UsageAction, guideID: String? = nil, eventID: String? = nil, releaseID: String? = nil) {
+        client?.record(action,guideID:guideID,eventID:eventID,releaseID:releaseID)
     }
 }

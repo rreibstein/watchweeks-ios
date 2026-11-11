@@ -1,3 +1,19 @@
+# Next update: 1.0.2 — source prepared, not uploaded
+
+Includes opt-in PostHog Capture API analytics (no SDK/replay), a consent-gated
+durable queue, whole-public-event Calendar export without a day chooser, native
+tab font inheritance cleanup, home countdowns to the next public event and the
+previous removal of shared release-group galleries. The approved 1.0.1 remains
+unchanged. No account synchronization, reminders or offline-photo feature is merged.
+
+Validation for this candidate: 42 portable XCTest cases passed on Swift 6.2.1 Linux;
+static resource checks passed. Native source syntax parsing is not Xcode compilation.
+Actual Xcode/UI testing, signed upload, TestFlight and privacy sign-off are pending.
+No synthetic production analytics were sent. See release/UPDATE_1_0_2.md for exact
+release steps and docs/ANALYTICS.md for current collection and dashboard limits.
+
+The rest of this file is the historical launch record, not validation of 1.0.2.
+
 # WatchWeeks release status — 2026-11-08
 
 Branch: development/native-launch, dedicated rreibstein/watchweeks-ios repository.

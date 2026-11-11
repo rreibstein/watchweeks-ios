@@ -3,7 +3,8 @@ from pathlib import Path
 import json,plistlib,struct,xml.etree.ElementTree as ET
 root=Path(__file__).resolve().parents[1]
 p=plistlib.loads((root/'App/PrivacyInfo.xcprivacy').read_bytes());assert p['NSPrivacyTracking'] is False
-assert p['NSPrivacyCollectedDataTypes'] == [] and p['NSPrivacyTrackingDomains'] == []
+assert {i['NSPrivacyCollectedDataType'] for i in p['NSPrivacyCollectedDataTypes']} == {'NSPrivacyCollectedDataTypeDeviceID', 'NSPrivacyCollectedDataTypeProductInteraction'}
+assert p['NSPrivacyTrackingDomains'] == []
 assert 'XCRemoteSwiftPackageReference' not in (root/'WatchWeeks.xcodeproj/project.pbxproj').read_text()
 ET.parse(root/'WatchWeeks.xcodeproj/xcshareddata/xcschemes/WatchWeeks.xcscheme')
 a=root/'App/Assets.xcassets/AppIcon.appiconset'
