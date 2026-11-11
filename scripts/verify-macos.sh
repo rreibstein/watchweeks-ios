@@ -18,4 +18,15 @@ if [[ -z ${WW_SIMULATOR_ID:-} ]]; then
     exit 1
   fi
 fi
+# Scheme runs consent QA against a local receiver, never real PostHog.
+receiver_pid=""
+if ! curl --noproxy '*' -fsS --max-time 2 http://127.0.0.1:8766/events >/dev/null 2>&1; then
+  python3 scripts/qa-analytics-receiver.py > release/archives/analytics-qa-receiver.log 2>&1 &
+  receiver_pid=$!
+  trap '[[ -z "$receiver_pid" ]] || kill "$receiver_pid" 2>/dev/null || true' EXIT
+  for attempt in {1..20}; do
+    if curl --noproxy '*' -fsS --max-time 2 http://127.0.0.1:8766/events >/dev/null 2>&1; then break; fi
+    sleep 0.25
+  done
+fi
 xcodebuild -project WatchWeeks.xcodeproj -scheme WatchWeeks -destination "platform=iOS Simulator,id=$WW_SIMULATOR_ID" -derivedDataPath "$derived_data_path" -parallel-testing-enabled NO -resultBundlePath "release/archives/Tests-$(date +%s).xcresult" CODE_SIGNING_ALLOWED=NO test
