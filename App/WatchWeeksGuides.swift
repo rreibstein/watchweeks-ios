@@ -809,7 +809,6 @@ private struct ForthcomingGuidesPromo: View {
     let guides: [Guide]
     @EnvironmentObject private var model: AppModel
     @ObservedObject private var alerts = GuidePublicationAlerts.shared
-    @State private var showingDetails = false
     var body: some View {
         let titles=model.upcomingFeed.map { $0.planned.map(\.title) } ?? ForthcomingGuide.awaitingPublication(in:guides).map(\.title)
         if !titles.isEmpty {
@@ -817,15 +816,18 @@ private struct ForthcomingGuidesPromo: View {
                 Text("Be the first to know about new guides").font(.wwTitle2)
                 Text("Guides in the works: " + titles.joined(separator:", ") + ".")
                     .font(.wwSubheadline)
-                Button { showingDetails=true } label: {
-                    Text("Get guide updates").frame(minHeight:44).contentShape(Rectangle())
+                Button {
+                    if alerts.permissionDenied {
+                        if let url=URL(string:UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                    } else { Task { await alerts.requestSubscription() } }
+                } label: {
+                    Text(alerts.homeActionTitle).frame(minHeight:44).contentShape(Rectangle())
                 }.accessibilityIdentifier("guide-updates")
-                Text("Choose optional notifications when a new guide is published.")
-                    .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
+                    .accessibilityValue(alerts.isEnabled ? "On" : alerts.hasEnrollment ? "Permission granted, connecting" : alerts.isBusy ? "Requesting permission" : "Off")
+                    .disabled(alerts.isBusy || alerts.hasEnrollment || alerts.isEnabled || alerts.deletionPending)
             }.padding(16).frame(maxWidth:.infinity,alignment:.leading).watchCard()
                 // Avoid a container identifier propagating over the button ID.
                 .accessibilityElement(children:.contain)
-                .sheet(isPresented:$showingDetails) { GuideUpdatesSheet() }
         }
     }
 }

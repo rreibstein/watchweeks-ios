@@ -1,3 +1,16 @@
+# One-tap notification permission — new candidate
+
+Home Notify me now requests Apple's native authorization directly; no intermediate
+page or second enable action. Already granted permission continues silently; denial
+offers system Settings. The optional analytics choice remains separate and unchanged.
+APNs timeout no longer discards a late response. Authorized intent and bounded
+retry timing survive restart; token bytes never enter ordinary preferences.
+Service acknowledgement is required for On, and the public activation gate remains.
+Preferences and internal test-ID copying are under About & privacy separately.
+85 portable tests, nine export-validator checks and source/resource checks pass.
+New UI QA uses the real simulator permission dialog, with APNs/enrollment disabled;
+native Xcode validation/upload for this change are not yet confirmed.
+
 # Early-engagement analytics choice — verified, signed upload triggered
 
 The follow-up now offers optional PostHog analytics inline after two useful

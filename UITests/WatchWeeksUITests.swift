@@ -56,12 +56,32 @@ final class WatchWeeksUITests: XCTestCase {
         let app=XCUIApplication();app.launch()
         XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
         homeButton("guide-updates",in:app).tap()
-        XCTAssertTrue(app.navigationBars["Guide updates"].waitForExistence(timeout:3))
-        XCTAssertTrue(app.buttons["Guide updates on WatchWeeks"].exists)
+        XCTAssertFalse(app.navigationBars["Guide updates"].exists)
         XCTAssertFalse(app.buttons["Enable notifications"].exists)
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","coming soon")).firstMatch.exists)
         XCTAssertFalse(XCUIApplication(bundleIdentifier:"com.apple.springboard").alerts.firstMatch.exists)
-        app.buttons["Done"].tap()
+        XCTAssertTrue(app.tabBars.buttons["Events"].isSelected)
+    }
+
+    @MainActor func testHomeRequestsNativeNotificationPermissionWithoutInterstitial() {
+        let app=XCUIApplication()
+        // Real system authorization UI; this simulator-only flag never enables
+        // APNs/backend enrollment, sends a token, or fakes a notification receipt.
+        app.launchEnvironment["WW_PUSH_PERMISSION_QA"]="1"
+        app.launchEnvironment["WW_PUSH_PERMISSION_QA_SUITE"]="watchweeks.push.qa.\(UUID())"
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
+        homeButton("guide-updates",in:app).tap()
+        let dialog=XCUIApplication(bundleIdentifier:"com.apple.springboard").alerts.firstMatch
+        if dialog.waitForExistence(timeout:8) {
+            let allow=dialog.buttons.matching(NSPredicate(format:"label == %@ OR label == %@","Allow","Allow Notifications")).firstMatch
+            XCTAssertTrue(allow.exists);allow.tap()
+        } // Apple's dialog is one-time; a previously allowed simulator won't ask again.
+        let button=app.buttons["guide-updates"]
+        let authorized=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","Permission granted, connecting"),object:button)
+        XCTAssertEqual(XCTWaiter.wait(for:[authorized],timeout:10),.completed)
+        XCTAssertFalse(app.navigationBars["Guide updates"].exists)
+        XCTAssertFalse(app.buttons["Enable notifications"].exists)
         XCTAssertTrue(app.tabBars.buttons["Events"].isSelected)
     }
 

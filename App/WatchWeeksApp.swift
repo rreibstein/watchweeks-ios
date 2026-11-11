@@ -452,6 +452,15 @@ struct AnalyticsQADiagnostics: View {
     private var backendPresent=false
     private var deliveryAvailable=false
     private var availabilityError: String?
+    private var waitingToken: Data?
+    private let intent: PushRegistrationIntent = {
+        #if DEBUG && targetEnvironment(simulator)
+        if let suite=ProcessInfo.processInfo.environment["WW_PUSH_PERMISSION_QA_SUITE"], let defaults=UserDefaults(suiteName:suite) {
+            return PushRegistrationIntent(defaults:defaults)
+        }
+        #endif
+        return PushRegistrationIntent()
+    }()
     private let defaults=UserDefaults.standard
     private let seenKey="watchweeks.opened-publication-notifications.v1"
     private var environment: APNSEnvironment? {
@@ -466,6 +475,25 @@ struct AnalyticsQADiagnostics: View {
         #endif
     }
     private init() {}
+    private var isTestFlight: Bool {
+        GuidePushActivation.internalVerificationBuild(
+            allowed:Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPushVerificationBuild") as? Bool == true,
+            verifiedSandboxTransaction:verifiedSandboxTransaction,
+            legacySandboxReceipt:Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt")
+    }
+    private var permissionEligible: Bool {
+        #if DEBUG && targetEnvironment(simulator)
+        if ProcessInfo.processInfo.environment["WW_PUSH_PERMISSION_QA"] == "1" { return true }
+        #endif
+        return environment != nil && (deliveryAvailable || isTestFlight)
+    }
+    var homeActionTitle: String {
+        if deletionPending { return "Turning off…" }
+        if isEnabled { return "Notifications on" }
+        if permissionDenied { return "Open notification settings" }
+        if hasEnrollment || isBusy { return "Finishing setup…" }
+        return "Notify me"
+    }
     private func updateConfiguration() {
         let wasConfigured=isConfigured
         let beta=GuidePushActivation.internalVerificationBuild(
@@ -477,6 +505,9 @@ struct AnalyticsQADiagnostics: View {
             signedEnvironment:environment,backendPresent:backendPresent,deliveryAvailable:deliveryAvailable,verificationTestFlight:beta)
         isVerificationMode=isConfigured && !deliveryAvailable && beta
         isChecking=serviceTask != nil || distributionTask != nil
+        if isConfigured, let token=waitingToken {
+            waitingToken=nil;receivedDeviceToken(token)
+        }
         if !wasConfigured && isConfigured && active {
             Task { guard self.active else { return };await self.foreground() }
         }
@@ -528,7 +559,7 @@ struct AnalyticsQADiagnostics: View {
         isEnabled=subscription.state == .on
         deletionPending=subscription.state == .deletionPending
         installationID=(try? subscription.installationID())?.uuidString.lowercased()
-        hasEnrollment=(try? subscription.hasSavedSubscription()) == true
+        hasEnrollment=intent.requested || (try? subscription.hasSavedSubscription()) == true
     }
     func foreground() async {
         active=true
@@ -540,16 +571,29 @@ struct AnalyticsQADiagnostics: View {
             let settings=await UNUserNotificationCenter.current().notificationSettings()
             permissionDenied=settings.authorizationStatus == .denied
             let allowed: [UNAuthorizationStatus] = [.authorized,.provisional,.ephemeral]
-            if !allowed.contains(settings.authorizationStatus) { try await subscription.permissionChanged(granted:false) }
+            if !allowed.contains(settings.authorizationStatus) {
+                intent.cancel();waitingToken=nil
+                acceptToken=false;timeout?.cancel();registeredThisProcess=false
+                try await subscription.permissionChanged(granted:false)
+            }
             else {
+                if intent.requested, !isConfigured, intent.retryAt == nil || intent.retryAt! <= Date() {
+                    _ = await refreshAvailability()
+                    if !isConfigured { intent.retryAfterFailure();return }
+                }
                 let hasRetry=try subscription.retryDate() != nil
                 if lastReconciled == nil || Date().timeIntervalSince(lastReconciled!) >= 900 || hasRetry {
                     try await subscription.reconcile(allowEnrollment:isConfigured);lastReconciled=Date()
                 }
-                if saved && subscription.state == .on && isConfigured && !registeredThisProcess {
-                    acceptToken=true
-                    registeredThisProcess=true
-                    UIApplication.shared.registerForRemoteNotifications()
+                if saved {
+                    guard try subscription.hasSavedSubscription() else { intent.cancel();waitingToken=nil;return }
+                    intent.authorized()
+                }
+                if let token=waitingToken, isConfigured { waitingToken=nil;receivedDeviceToken(token) }
+                if (saved || intent.requested), permissionEligible, environment != nil,
+                   waitingToken == nil, !registeredThisProcess,
+                   intent.retryAt == nil || intent.retryAt! <= Date() {
+                    registerWithApple()
                 }
             }
             syncState()
@@ -558,39 +602,57 @@ struct AnalyticsQADiagnostics: View {
     func background() { active=false;retry?.cancel();retry=nil }
     private func scheduleRetry() {
         retry?.cancel();retry=nil
-        guard active, isConfigured || deletionPending, let date=try? subscription.retryDate() else { return }
+        let dates=[intent.retryAt,(isConfigured || deletionPending) ? (try? subscription.retryDate()) : nil].compactMap { $0 }
+        guard active, let date=dates.min() else { return }
         retry=Task { [weak self] in
             do { try await Task.sleep(for:.seconds(max(1,date.timeIntervalSinceNow))) } catch { return }
             await self?.foreground()
         }
     }
     func requestSubscription() async {
-        guard isConfigured, environment != nil else { message=availabilityMessage;return }
         guard !isBusy else { return };isBusy=true
+        // No backend fetch before the OS dialog for a known eligible download.
+        // TestFlight eligibility is local signed Apple metadata, not APNs routing.
+        if !permissionEligible {
+            checkDistribution();await distributionTask?.value
+            if !permissionEligible, environment != nil { _ = await refreshAvailability() }
+        }
+        guard permissionEligible else { isBusy=false;message=availabilityMessage;return }
         do {
             let allowed=try await UNUserNotificationCenter.current().requestAuthorization(options:[.alert,.sound])
             guard allowed else {
                 permissionDenied=true
+                intent.cancel();waitingToken=nil
+                acceptToken=false;timeout?.cancel();registeredThisProcess=false
                 try await subscription.permissionChanged(granted:false);syncState();isBusy=false
                 message="Notifications are off. You can change this in device Settings.";return
             }
             permissionDenied=false
-            message="Connecting guide alerts…"
-            acceptToken=true
-            UIApplication.shared.registerForRemoteNotifications()
-            timeout?.cancel()
-            timeout=Task { [weak self] in
-                do { try await Task.sleep(for:.seconds(30)) } catch { return }
-                guard let self else { return }
-                self.acceptToken=false;self.isBusy=false;self.message="This device has not connected yet. Please retry."
-            }
-        } catch { isBusy=false;message="Notification permission or registration could not be completed. Please retry." }
+            intent.authorized();syncState();message="Finishing notification setup…"
+            if environment != nil { registerWithApple() }
+            else { isBusy=false } // Simulator permission QA never obtains an APNs token.
+            Task { _ = await self.refreshAvailability() }
+        } catch { isBusy=false;message="Notification permission could not be requested." }
+    }
+    private func registerWithApple() {
+        intent.beginAttempt()
+        acceptToken=true;registeredThisProcess=true
+        UIApplication.shared.registerForRemoteNotifications()
+        timeout?.cancel()
+        timeout=Task { [weak self] in
+            do { try await Task.sleep(for:.seconds(30)) } catch { return }
+            self?.registrationFailed()
+        }
     }
     func receivedDeviceToken(_ data: Data) {
-        guard acceptToken || (try? subscription.hasSavedSubscription()) == true,
-              isConfigured, let environment else { return }
+        guard acceptToken || intent.requested || (try? subscription.hasSavedSubscription()) == true,
+              let environment else { return }
         acceptToken=false
         timeout?.cancel()
+        intent.receivedToken()
+        guard isConfigured else {
+            waitingToken=data;isBusy=false;intent.retryAfterFailure();syncState();scheduleRetry();return
+        }
         guard registration == nil else { return }
         isBusy=true
         registration=Task {
@@ -599,21 +661,29 @@ struct AnalyticsQADiagnostics: View {
                 let version=Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? ""
                 try await subscription.register(token:data,environment:environment,appVersion:version,osVersion:UIDevice.current.systemVersion)
                 message=subscription.state == .on ? "Guide alerts are enabled." : "Guide alerts are off."
-            } catch { message=error.localizedDescription }
+            } catch { message="Finishing notification setup when connected…" }
         }
     }
     func unsubscribe() async {
+        intent.cancel();waitingToken=nil;registeredThisProcess=false
         acceptToken=false
         defer { scheduleRetry() }
         timeout?.cancel()
         do {
             try await subscription.disable()
             await registration?.value
+            isBusy=false
             syncState()
             message=deletionPending ? "Unsubscribe is pending. Reopen the app online to finish." : "Guide alerts are off."
-        } catch { syncState();message="Unsubscribe is pending. Retry online to finish; alerts may still arrive until confirmed." }
+        } catch { isBusy=false;syncState();message="Unsubscribe is pending. Retry online to finish; alerts may still arrive until confirmed." }
     }
-    func registrationFailed() { acceptToken=false;timeout?.cancel();isBusy=false;message="This device could not register for notifications. Please retry." }
+    func registrationFailed() {
+        timeout?.cancel();registeredThisProcess=false;isBusy=false
+        guard intent.requested || (try? subscription.hasSavedSubscription()) == true else { return }
+        // Keep accepting a late token, and retry without another consent flow.
+        intent.retryAfterFailure();syncState();scheduleRetry()
+        message="Finishing notification setup when connected…"
+    }
     func openPublishedGuide(_ notification: GuidePublicationNotification) {
         var inbox=GuidePublicationInbox(openedIDs:defaults.stringArray(forKey:seenKey) ?? [])
         guard inbox.accept(notification) else { return }

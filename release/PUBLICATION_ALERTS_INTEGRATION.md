@@ -8,6 +8,14 @@ website, sends messages, or submits an app for review.
 
 ## Implemented native behavior
 
+- Home now requests Apple's native permission directly from Notify me. It opens
+  no intermediate page. Authorized intent persists locally; late APNs callbacks
+  and enrollment recover quietly with bounded retries. No network fetch precedes
+  permission for an already eligible download. Service acknowledgement is still
+  required for On. Preferences/privacy/test-reference copying remain separately
+  under Home → About & privacy → Guide alert preferences. Apple's one-time dialog
+  cannot be shown again after an earlier Allow; denial opens device Settings.
+
 - The existing dynamic v1 index remains authoritative; string slugs and stable
   edition IDs stay compatible. Individual detail failures retain that edition's
   last-good content while other editions refresh. All-guide failure restores the
@@ -29,7 +37,10 @@ website, sends messages, or submits an app for review.
   with `AfterFirstUnlockThisDeviceOnly`. Pending token bytes live only in that
   protected record for recovery, then clear after acknowledgement; they never enter
   ordinary app preferences or this repository. No passwords or Apple provider keys belong in the app.
-- OS permission is requested only after an explicit action and both gates below.
+- OS permission is requested only after an explicit action and eligible signed
+  download (public activation or verified internal TestFlight). Backend readiness
+  is checked separately for enrollment, so a slow API cannot delay known-eligible
+  permission. No ordinary App Store build bypasses the remote activation gate.
   Foreground checks reconcile server revocation and OS permission. Unsubscribe
   intent persists before network deletion and retries after a restart; the UI
   distinguishes pending deletion from confirmed Off. Opt-out during registration
@@ -50,7 +61,8 @@ The integrated native client now includes Push Notifications entitlements and ex
 build settings (Debug development/sandbox; Release production/production).
 `WatchWeeksPushIntegrationVerified` enables that client; final signed archive
 validation must pass. A live backend is required. App Store users additionally need
-remote availability. A verification build identified by its TestFlight sandbox receipt
+remote availability. A verification build identified by verified StoreKit download
+metadata (legacy sandbox receipt fallback only when unavailable)
 can enroll before public availability so actual receipt can be proven. Simulator
 UI QA cannot enroll. No receipt contents or Apple identities are read or transmitted.
 Released build 13 still has no such adapter/capability and cannot be remotely enabled.
@@ -105,8 +117,9 @@ must confirm physical receipt before public activation.
 ## Reed: internal TestFlight verification
 
 1. Install the newly uploaded build in TestFlight on the iPad and launch WatchWeeks.
-2. On Home/Events, scroll to Get guide updates. A TestFlight delivery-check notice
-   appears while public capability is false. Tap Enable notifications, then Allow.
+2. On Home/Events, tap Notify me, then Allow in Apple's dialog. No native
+   interstitial opens. Internal TestFlight can enroll before public activation.
+   If permission was already allowed, Apple does not repeat the dialog.
    Browsing and local selections continue to work if permission is denied.
 3. Wait for Guide alerts are enabled. Tap Copy test installation ID. This is only
    the non-secret installation UUID, never the bearer or APNs device token. Share

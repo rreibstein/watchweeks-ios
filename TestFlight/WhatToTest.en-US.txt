@@ -1,4 +1,10 @@
-Home, alert setup and analytics choice update
+One-tap guide notifications
+
+On Home, tap Notify me → Allow in Apple's native notification dialog. There is no intermediate page or second Enable button. Stay on Home; setup retries quietly on a slow connection. Notifications on appears only after the service confirms enrollment. Apple's dialog is one-time: if already allowed, setup continues without asking again; if denied, the button opens device Settings.
+
+For Reed's internal delivery test, find Copy test installation ID separately under Home → About & privacy → Guide alert preferences after enrollment. Copy only that non-secret reference for Lovable. Confirm actual receipt and that tapping opens the guide. No notification is sent by this build/test process.
+
+Previous Home and analytics improvements
 
 Optional analytics now offers an in-app choice after two useful interactions and 30 seconds of active use. It does not appear immediately on launch. Choose Share usage or Not now; either choice keeps all features available. Not now is remembered, and an existing analytics choice is respected. Change your preference later in Home → About & privacy. No earlier browsing is sent after opting in.
 
@@ -8,9 +14,9 @@ TestFlight setup now checks Apple's verified download environment; the legacy re
 
 Publication alerts — internal TestFlight verification
 
-On Home (Events), scroll to Get guide updates. Choose Enable notifications, then Allow. Browsing and your checklist still work if you decline.
+On Home (Events), tap Notify me, then Allow. Browsing and your checklist still work if you decline.
 
-Wait for “Guide alerts are enabled,” then choose Copy test installation ID. For Reed's provider test, give Lovable only that reference. The app never copies the device token or registration credential.
+Wait for enrollment, then open Home → About & privacy → Guide alert preferences → Copy test installation ID. For Reed's provider test, give Lovable only that reference. The app never copies the device token or registration credential.
 
 Lovable handles the test notification. Confirm physical receipt, tap it, and check that the guide opens. Unknown guides should safely return to the guide list.
 
