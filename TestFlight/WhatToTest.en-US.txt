@@ -1,3 +1,7 @@
+Guide alerts — prominent Home button
+
+The Home promo now has a filled WatchWeeks button, bell badge, stronger headline and clearer spacing. It keeps the same one-tap native permission flow. Pending setup and enabled notifications have distinct visual states; light/dark appearance and larger text remain supported.
+
 One-tap guide notifications
 
 On Home, tap Notify me → Allow in Apple's native notification dialog. There is no intermediate page or second Enable button. Stay on Home; setup retries quietly on a slow connection. Notifications on appears only after the service confirms enrollment. Apple's dialog is one-time: if already allowed, setup continues without asking again; if denied, the button opens device Settings.

@@ -809,23 +809,53 @@ private struct ForthcomingGuidesPromo: View {
     let guides: [Guide]
     @EnvironmentObject private var model: AppModel
     @ObservedObject private var alerts = GuidePublicationAlerts.shared
+    private var actionDisabled: Bool {
+        alerts.isBusy || alerts.hasEnrollment || alerts.isEnabled || alerts.deletionPending
+    }
     var body: some View {
         let titles=model.upcomingFeed.map { $0.planned.map(\.title) } ?? ForthcomingGuide.awaitingPublication(in:guides).map(\.title)
         if !titles.isEmpty {
-            VStack(alignment:.leading,spacing:12) {
-                Text("Be the first to know about new guides").font(.wwTitle2)
-                Text("Guides in the works: " + titles.joined(separator:", ") + ".")
-                    .font(.wwSubheadline)
+            VStack(alignment:.leading,spacing:16) {
+                HStack(spacing:10) {
+                    Image(systemName:"bell.badge.fill")
+                        .font(.title3).foregroundStyle(WatchWeeksStyle.link)
+                        .frame(width:44,height:44)
+                        .background(WatchWeeksStyle.link.opacity(0.12),in:Circle())
+                        .accessibilityHidden(true)
+                    Text("Guides in the works")
+                        .font(.wwCaption.weight(.semibold)).tracking(1)
+                        .textCase(.uppercase).foregroundStyle(WatchWeeksStyle.link)
+                }
+                VStack(alignment:.leading,spacing:8) {
+                    Text("Don’t miss the next guide.").font(.wwTitle2)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(titles.joined(separator:", ") + ".")
+                        .font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
+                }
                 Button {
                     if alerts.permissionDenied {
                         if let url=URL(string:UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
                     } else { Task { await alerts.requestSubscription() } }
                 } label: {
-                    Text(alerts.homeActionTitle).frame(minHeight:44).contentShape(Rectangle())
+                    HStack(spacing:12) {
+                        Text(alerts.homeActionTitle).multilineTextAlignment(.leading)
+                        Spacer(minLength:0)
+                        Image(systemName:alerts.isEnabled ? "checkmark.circle.fill" : actionDisabled ? "clock" : "arrow.right")
+                            .accessibilityHidden(true)
+                    }
+                    .font(.wwHeadline)
+                    .padding(.horizontal,18).padding(.vertical,12)
+                    .frame(maxWidth:.infinity,minHeight:52)
+                    .foregroundStyle(actionDisabled ? WatchWeeksStyle.ink : WatchWeeksStyle.paper)
+                    .background(actionDisabled ? WatchWeeksStyle.control : WatchWeeksStyle.link,
+                                in:RoundedRectangle(cornerRadius:12))
+                    .contentShape(RoundedRectangle(cornerRadius:12))
                 }.accessibilityIdentifier("guide-updates")
+                    .buttonStyle(.plain)
                     .accessibilityValue(alerts.isEnabled ? "On" : alerts.hasEnrollment ? "Permission granted, connecting" : alerts.isBusy ? "Requesting permission" : "Off")
-                    .disabled(alerts.isBusy || alerts.hasEnrollment || alerts.isEnabled || alerts.deletionPending)
-            }.padding(16).frame(maxWidth:.infinity,alignment:.leading).watchCard()
+                    .disabled(actionDisabled)
+            }.padding(20).frame(maxWidth:.infinity,alignment:.leading)
+                .watchCard(radius:20,accent:WatchWeeksStyle.link,stripeWidth:4)
                 // Avoid a container identifier propagating over the button ID.
                 .accessibilityElement(children:.contain)
         }

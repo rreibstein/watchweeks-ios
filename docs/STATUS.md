@@ -1,3 +1,14 @@
+# Home notification promo — visual refinement
+
+The promo now uses a full-width, minimum-52-point filled WatchWeeks button, bell
+badge, accent stripe and stronger headline. Existing Space Grotesk/brand colors,
+planned titles, direct permission behavior and pending/enabled states are retained.
+Source parsing/resource checks pass; calculated CTA text contrast is 6.45:1 in
+light appearance and 8.79:1 in dark appearance. This is styling only, with no new
+data collection or permission/analytics behavior; the preceding source's native
+UI QA is retained as behavior evidence. The new signed archive must separately
+compile this visual revision. No new low-impact mirror tests were added.
+
 # One-tap notification permission — Xcode verified, upload triggered
 
 Home Notify me now requests Apple's native authorization directly; no intermediate
