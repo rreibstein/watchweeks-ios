@@ -13,7 +13,8 @@ Xcode Cloud Verify passed in 9m 13s with zero errors, failures, analysis issues
 or warnings, including both new early-choice UI tests and existing consent QA.
 The initial refusal test needed to reveal a lazy Settings row; its correction
 passed in the final run. The exact verified source was promoted to Upload at
-18:28 UTC on Nov 11. Archive/processing/build number remain unconfirmed; no
+18:28 UTC on Nov 11. Archive 130723535573 queued at 18:29:06 UTC, still reported
+queued at 18:34 UTC. Archive/processing/build number remain unconfirmed; no
 notification send, public push activation or App Review submission is performed.
 
 ## Home and TestFlight setup correction — verified, archive triggered

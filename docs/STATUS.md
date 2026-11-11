@@ -11,7 +11,9 @@ suite includes early acceptance/no retroactive events, refusal across relaunch,
 and existing manual consent/opt-out coverage. The first refusal assertion needed
 to scroll List before checking its lazy Settings row; this was fixed and rerun.
 That exact source was promoted to release/cloud-upload on Nov 11 at 18:28 UTC.
-Archive outcome, new processed build number and device push receipt are pending.
+Archive 130723535573 was queued at 18:29:06 UTC and still reported queued at
+18:34 UTC. Archive outcome, new processed build number and device push receipt
+are pending; the configured workflow continues without another source push.
 UITests-only dc36797 produced no public check; the later App/documentation push
 started Verify automatically. Check workflow path filters before relying on a
 future test-only branch push to start a run; no owner workflow edit was made here.
