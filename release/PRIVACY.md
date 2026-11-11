@@ -28,7 +28,18 @@ and the providers that host the guides or photos receive request information,
 such as your IP address and the requested resource, to deliver this content and
 operate and protect the service. Cloudflare uses a bot-management cookie to
 protect the guide and photo endpoints. These requests do not carry your checklist
-or ratings. The app offers optional usage analytics through PostHog. It is off until enabled in My list → About & privacy. When enabled, the app sends a random installation identifier, app version and build, public guide/event/release identifiers, and events such as views, use of the rating and Seen controls, visits to My list, guide sharing and opening WatchWeeks website links. It does not send the selected rating or Seen value. It does not join these events to an account or use them for advertising or session replay. Turning analytics off clears queued events and cancels pending requests. Previously consented events can be stored on-device for delivery after connectivity returns, up to a bounded limit. Transmissions already in flight cannot be recalled. Information already delivered remains subject to the service's retention policy.
+or ratings. The app offers optional usage analytics through PostHog. It is off until
+enabled in About & privacy (at the bottom of Home in newer builds, or under My list
+in earlier builds). When enabled, the app sends a random installation identifier,
+app version and build, public guide/event/release identifiers, and events such as
+views, use of the rating and Seen controls, visits to My list, guide sharing and
+opening WatchWeeks website links. It does not send the selected rating or Seen
+value. It does not join these events to an account or use them for advertising or
+session replay. Turning analytics off clears queued events and cancels pending
+requests. Previously consented events can be stored on-device for delivery after
+connectivity returns, up to a bounded limit. Transmissions already in flight cannot
+be recalled. Information already delivered remains subject to the service's
+retention policy.
 
 If you use the iOS share sheet or copy a plan, you choose where to send or paste
 that information. If you follow a link, your browser opens the destination. The

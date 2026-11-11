@@ -93,7 +93,20 @@ private final class PushProtocol: URLProtocol, @unchecked Sendable {
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
-        Self.requests.append(request)
+        // Darwin URLSession can expose POST/PATCH bodies only as a stream to
+        // URLProtocol; Linux commonly retains httpBody. Inspect either form.
+        var captured=request
+        if captured.httpBody == nil, let stream=request.httpBodyStream {
+            stream.open();defer { stream.close() }
+            var data=Data(),buffer=[UInt8](repeating:0,count:2048)
+            while true {
+                let count=stream.read(&buffer,maxLength:buffer.count)
+                if count <= 0 { break }
+                data.append(contentsOf:buffer.prefix(count))
+            }
+            captured.httpBody=data
+        }
+        Self.requests.append(captured)
         client?.urlProtocol(self,didReceive:HTTPURLResponse(url:request.url!,statusCode:Self.status,httpVersion:"HTTP/1.1",headerFields:["Content-Type":"application/json"])!,cacheStoragePolicy:.notAllowed)
         client?.urlProtocol(self,didLoad:Self.body);client?.urlProtocolDidFinishLoading(self)
     }

@@ -45,10 +45,12 @@ ASC under Apple's current definitions; do not invent retention periods.
 
 ## Notifications — current disabled state
 
-The forthcoming-guide card offers existing website email signup. This native build
+The forthcoming-guide card offers website guide updates and signup options, without
+claiming that a newsletter sender is activated. This native build
 does not collect an email address, request iOS notification permission, register for
-APNs, or send a device push token to a backend. The APNs callbacks/protocol are
-preparation only and are gated by a missing verified backend adapter. No new
+APNs, or send a device push token to a backend. The typed backend adapter and APNs
+callbacks remain behind an explicitly false local verification gate and a second
+remote capability check. No new
 notification-related ASC data category is activated by this preparation.
 
 Before enabling reliable push: disclose collection of APNs device token and scoped
