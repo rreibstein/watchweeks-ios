@@ -14,9 +14,11 @@ previous Home/cancellation fixes are retained.
 succeeded in 9m 35s with zero errors, failures, analysis issues or warnings,
 including the real simulator permission flow, browsing and analytics consent QA.
 The simulator test never registers a device token or enrolls with the backend.
-That exact source was promoted to Upload at 19:27 UTC on Nov 11. Signed archive,
-processed build number and physical receipt remain unconfirmed; no App Review
-submission, public activation or provider notification was performed.
+That exact source was promoted to Upload at 19:27 UTC on Nov 11. Archive
+130755869562 started 19:28:25 UTC and still reported running at 19:36 UTC. Public
+check reports can lag; signed archive outcome, processed build number and physical
+receipt remain unconfirmed. No App Review submission, public activation or
+provider notification was performed. TestFlight notes start "One-tap guide notifications."
 
 ## Early-engagement analytics choice — verified, signed upload triggered
 

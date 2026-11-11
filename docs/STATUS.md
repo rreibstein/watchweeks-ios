@@ -12,8 +12,10 @@ Source 88307bedae4404d91b620c2d9890669a667c2bac passed Xcode Cloud Verify
 in 9m 35s, with zero errors, test failures, analysis issues or warnings. UI QA uses
 the real simulator permission dialog with APNs/enrollment disabled and confirms
 that no interstitial opens. The exact source was promoted to release/cloud-upload
-on Nov 11 at 19:27 UTC. Archive/Apple processing/new build number and actual device
-delivery remain unconfirmed. No provider notification or App Review submission.
+on Nov 11 at 19:27 UTC. Archive 130755869562 started at 19:28:25 UTC; its public
+report still said running at 19:36 UTC. This report can lag Apple's actual state.
+Archive/Apple processing/new build number and actual device delivery remain
+unconfirmed. No provider notification or App Review submission.
 
 # Early-engagement analytics choice — verified, signed upload triggered
 
