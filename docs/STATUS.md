@@ -1,4 +1,4 @@
-# Next update: 1.0.2 — source prepared, not uploaded
+# Next update: 1.0.2 (13) — available in TestFlight, not submitted for review
 
 Includes opt-in PostHog Capture API analytics (no SDK/replay), a consent-gated
 durable queue, whole-public-event Calendar export without a day chooser, native
@@ -8,7 +8,9 @@ unchanged. No account synchronization, reminders or offline-photo feature is mer
 
 Validation for this candidate: 42 portable XCTest cases passed on Swift 6.2.1 Linux;
 static resource checks passed. Native source syntax parsing is not Xcode compilation.
-Actual Xcode/UI testing, signed upload, TestFlight and privacy sign-off are pending.
+Xcode Cloud verification passed, including mandatory consent UI QA. Apple confirmed
+signed/uploaded version 1.0.2 (13) ready in TestFlight (owner-forwarded email,
+2026-11-11), source 8b27440. Owner smoke QA and App Privacy sign-off are pending.
 No synthetic production analytics were sent. See release/UPDATE_1_0_2.md for exact
 release steps and docs/ANALYTICS.md for current collection and dashboard limits.
 

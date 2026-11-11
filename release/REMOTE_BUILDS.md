@@ -2,8 +2,9 @@
 
 Operational update (2026-11-11): both WatchWeeks Verify and WatchWeeks Upload
 workflows are configured and can be triggered through branch promotion from Codex
-Cloud. Verification with consent UI QA passed for 8b27440. The signed archive/upload
-run is in progress; processing and exact build number are not yet confirmed here.
+Cloud. Verification with consent UI QA passed for 8b27440. Apple subsequently confirmed
+WatchWeeks 1.0.2 (13) ready for TestFlight; owner forwarded the email on 2026-11-11.
+The remote signed build/upload/processing rehearsal is complete.
 Do not repeat initial setup just because the executor is Linux or Apple API keys
 are absent. See docs/XCODE_CLOUD_ACCESS.md for actual GitHub status-reading paths.
 The setup instructions below are historical/reference. App: com.watchweeks.app,

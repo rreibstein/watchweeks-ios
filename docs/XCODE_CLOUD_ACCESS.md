@@ -54,3 +54,19 @@ summary with X-Requested-With: XMLHttpRequest. Do not print data-channel tokens.
 A ?check_run_id query alone did not select Archive reliably. Use full source SHAs.
 GitHub reports are not a substitute for Apple processing/TestFlight build-number
 confirmation. A lack of App Store Connect API access does not prevent these builds.
+
+## Signed upload and Apple processing confirmed
+
+Owner forwarded Apple's TestFlight email on 2026-11-11: WatchWeeks 1.0.2 (13)
+is ready to test on iOS. The accompanying Xcode Cloud notification lists Archive
+and TestFlight Internal Testing for WatchWeeks Upload, source branch
+release/cloud-upload, latest commit “Make cloud analytics consent UI QA
+self-contained without a listener” (8b27440). This confirms the remote signed
+build/upload/processing path works; a local Mac is not required to trigger it.
+
+Use the individual GitHub checks for progress, but they can lag Apple's email:
+the archive check still displayed running when this readiness email was received.
+Do not start duplicate builds solely because that check has not refreshed.
+No App Review submission or public release of 1.0.2 was performed. Owner smoke QA,
+actual PostHog production ingestion confirmation and App Privacy updates remain
+separate acceptance gates. See release/BUILD_HISTORY.md.
