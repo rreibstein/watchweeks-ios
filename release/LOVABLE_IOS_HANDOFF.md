@@ -7,13 +7,55 @@ to the bottom of Home. Keep website/native terminology and first-party identity
 consistent. Native accounts, notes/day-plan synchronization and remote push are
 not live. The website remains the primary product.
 
-Do a read-only audit and prepare a PREVIEW with contracts/fixtures first. Do NOT
-deploy, mutate production records, change website features/auth/sync/analytics,
-rotate keys, send notifications/emails, create paid services or expose credentials.
-Return one actionable report split into: (1) reliable guide publication alerts,
-(2) urgent public feed/data reliability, (3) later sharing/accounts. Deployment and
-real notification delivery require separate explicit owner approval. Preserve all
-existing user data. Use existing Lovable infrastructure where possible.
+Evaluate the issue against the existing implementation, choose a practical solution
+where one is apparent, and BUILD and test it in the development/preview environment.
+Use the Nov 11 audit already completed; do not return another audit or stop after a
+plan. Briefly explain the chosen solution alongside the working changes. Continue
+independent implementation if an Apple credential or owner decision blocks one part.
+
+Implement publication/feed reliability and the guest-first push backend first.
+Sharing and account sync below are compatibility requirements for that work, not
+authorization to add native login or a new account system in this change. Preserve
+all existing website features, authentication, synchronization, analytics and user
+data. Use existing infrastructure. Do NOT deploy, mutate production records, rotate
+keys, send notifications/emails, create paid services or expose credentials.
+Production deployment and real notification delivery require separate explicit owner
+approval. Development/preview implementation and tests do not need another approval.
+
+Return the implemented API contracts, sanitized fixtures, tested behavior, commit/diff,
+and exact native integration instructions so Codex can implement the iOS side. Mark
+anything unimplemented or unverified explicitly; ask only for genuinely missing access,
+credentials entered securely, expenditure or material owner decisions.
+
+## Required corrections to the Nov 11 audit — apply while building
+
+- TestFlight AND App Store builds use production APNs. Development-signed builds
+  typically use sandbox; the signed `aps-environment` entitlement is authoritative.
+  Test a development installation against sandbox, then an explicitly approved
+  staging TestFlight audience against production APNs. Never send to real users
+  merely to verify the integration.
+- Released v1 native clients require a non-null string `slug`. Do not introduce
+  `slug: null` for future editions in the existing index: one such row could break
+  decoding of the entire index. Choose a non-null compatible value, preserve current
+  IDs/URLs/types, and pin compatibility with fixtures for existing and future guides.
+  Keep any nullable or otherwise breaking contract under a new version.
+- Replace the hardcoded published-guide allowlist with all published editions.
+  Keep the existing account-header placeholder, which the audit confirms already
+  works. Do not spend another pass investigating those settled findings.
+- Publication must queue promptly after index AND detail serve the guide, with
+  scheduled reconciliation as a fallback. Define the state transition so changing
+  an upcoming entry to published cannot make the checker miss its announcement.
+- Make retries recover after worker crashes: leased claims, per-installation retry
+  accounting and bounded backoff. Keep collapse IDs within APNs' 64-byte limit,
+  scope token identity to environment/topic, and handle APNs invalid-token timestamps
+  without revoking a newer registration. Define registration recovery when a server
+  response is lost and ledger deletion/retention when an installation unsubscribes.
+  Do not claim exactly-once delivery across a network timeout.
+- Derive cache revisions from all data that changes the representation, including
+  related events, brands and images; an edition timestamp alone may be insufficient.
+- Implement a genuine unsubscribe flow and a stable newsletter URL before presenting
+  new native signup promotion as release-ready. Preserve existing subscribers and
+  consent. Do not invent retention periods or promise an unimplemented unsubscribe.
 
 ## 1. Reliable new-guide push alerts — priority
 
@@ -25,7 +67,7 @@ DISABLED until a real server/APNs integration has been verified. No device token
 is currently registered or sent. Native APNs registration callbacks, a gated backend
 protocol and safe guide-ID routing are prepared; no guessed production API exists.
 
-Prepare a staged implementation and return the exact versioned contract:
+Build the staged implementation and return the exact implemented versioned contract:
 
 - Expose an additive public upcoming-guide list (stable editorial key, title/city,
   planned/published state, optional dates explicitly null when unknown, canonical
@@ -88,7 +130,7 @@ Do not add remote-notification background modes unless a real use case requires 
 
 ## 2. Public data contract — remove brittle native workarounds
 
-Audit `GET /api/public/guides` and `/api/public/guides/{id}` against ALL published
+Check `GET /api/public/guides` and `/api/public/guides/{id}` against ALL published
 website guides, particularly Singapore. Counts of editorial blocks versus models
 and repeated brand appearances differ legitimately: explain those separately from
 missing records. Return concrete missing IDs and actual examples, not just totals.
@@ -137,10 +179,8 @@ Reuse existing forms, account state and email-consent flow. No native collection
 email is added by this handoff. Provide success/error behavior and privacy wording.
 Skip new surveys unless already available and genuinely useful.
 
-The website's account header can initially render an empty placeholder while its
-session loads. Preview an immediately visible neutral /account link/icon, then
-update its signed-in state/avatar when known, keeping layout/click target stable.
-Do not treat loading as signed out. Preserve all existing auth/sync and analytics.
+The Nov 11 audit confirms the website account header already has a stable neutral
+44-by-44 placeholder. Preserve it and its existing loading/session behavior.
 
 ## 4. Shared picks and universal links — later, additive
 
@@ -172,7 +212,7 @@ change website analytics, replay, dashboards or shared project settings. Native
 analytics is a separate explicit opt-in, uses platform=ios_native and no website
 identity linking. Push permission is a separate choice, not analytics consent or ATT.
 
-Return: proposed API/schema + sanitized fixtures; preview implementation diff;
+Return: implemented API/schema + sanitized fixtures; preview implementation diff;
 existing resources reused; exact secure missing setup; native adapter/capability
 changes; privacy copy/ASC data-purpose worksheet; QA matrix including old clients;
 publication rollback; and deployment steps requiring separate owner approval.

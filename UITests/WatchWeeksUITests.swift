@@ -9,7 +9,7 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertFalse(app.buttons["Continue without analytics"].exists)
         XCTAssertFalse(app.buttons["Account"].exists)
         XCTAssertTrue(app.buttons["Find"].exists)
-        let about = app.buttons["About & privacy"]
+        let about = app.buttons["home-about-privacy"]
         for _ in 0..<24 where !about.isHittable { app.swipeUp() }
         XCTAssertTrue(about.isHittable)
         about.tap()
@@ -17,7 +17,8 @@ final class WatchWeeksUITests: XCTestCase {
         app.navigationBars["About"].buttons.firstMatch.tap()
         XCTAssertTrue(app.navigationBars["About"].waitForNonExistence(timeout: 5))
         XCTAssertTrue(app.tabBars.buttons["Events"].isSelected)
-        if !about.isHittable { app.swipeUp() }
+        for _ in 0..<24 where !about.isHittable { app.swipeUp() }
+        XCTAssertTrue(about.isHittable)
         about.tap()
         let privacy = app.buttons["Privacy policy"]
         XCTAssertTrue(privacy.waitForExistence(timeout: 3))
@@ -63,7 +64,7 @@ final class WatchWeeksUITests: XCTestCase {
             XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout: 10))
             XCTAssertFalse(app.alerts.firstMatch.exists)
             app.tabBars.buttons["Events"].tap()
-            let link = app.buttons["About & privacy"]
+            let link = app.buttons["home-about-privacy"]
             for _ in 0..<24 where !link.isHittable { app.swipeUp() }
             XCTAssertTrue(link.isHittable)
             link.tap()
