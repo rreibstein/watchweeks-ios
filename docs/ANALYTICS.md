@@ -14,8 +14,17 @@ existing website project. Public token is not a personal/admin credential. No
 website code, account data, dashboards, retention settings or replay is changed.
 PostHog admin access and processor logging/retention are not available here.
 
-Off by default, no automatic startup dialog. Home > About & privacy > Usage
-analytics explains collection before “Share usage.” Turning it off clears queued
+Off by default, with no immediate startup dialog. An inline in-app choice appears
+after two meaningful interactions (guide/event/release views, My list or rating/Seen
+use) and 30 seconds of active use. Launches, background time and refreshes do not
+qualify. It appears within browsing, behind any modal/system permission sheet;
+save errors and pending sorting take priority. “Share usage” opts in; “Not now”
+keeps analytics off and suppresses future automatic prompts across restarts.
+Existing explicit opt-in/out choices are respected without asking again. Local
+eligibility saves only capped counts/duration and the dismissed flag, with no
+content history or identifiers; none of these are transmitted to PostHog.
+Home > About & privacy > Usage analytics remains available for later changes and
+the full collection explanation is accessible from either path. Turning it off clears queued
 analytics and installation identifier, cancels pending delivery and survives relaunch.
 Re-enabling creates a new random app identifier. No identity is shared with web.
 User preferences remain local and are not changed by analytics consent.
@@ -37,11 +46,20 @@ cannot be recalled. No attempt is made to reconstruct actions performed while of
 
 ## Verification and dashboard
 
-42 total portable tests passed for this candidate. Analytics tests cover opt-in/out, payload allowlist, persisted queue/restart,
+81 total portable tests passed for this candidate. Analytics tests cover early prompt
+thresholds, background exclusion, choice persistence, no pre-consent transmission,
+opt-in/out, payload allowlist, persisted queue/restart,
 in-flight opt-out, queue cap and foreground deduplication. iOS transport/consent UI
 and actual intended-project ingestion remain release acceptance checks. See
 release/ANALYTICS_QA.md. Debug and simulator cannot use production ingestion.
 No production test event was sent and no remote dashboard was created here.
+
+The custom analytics choice is separate from Apple's App Tracking Transparency
+authorization. The intended native collection is first-party product analytics,
+without cross-company tracking/advertising or data-broker sharing; this does not
+require an ATT request merely because PostHog processes it. Reassess ATT if actual
+project use changes. Keep the App Privacy disclosures accurate regardless of consent.
+Apple reference: https://developer.apple.com/app-store/user-privacy-and-data-use/.
 
 Dashboard specification: WatchWeeks — Native iOS engagement, last 30 days, filter
 platform=ios_native throughout:

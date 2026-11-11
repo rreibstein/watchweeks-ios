@@ -126,7 +126,8 @@ import WatchWeeksCore
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(model)
-                .onChange(of: phase) { _, phase in
+                .onChange(of: phase, initial: true) { _, phase in
+                    UsageAnalytics.shared.setPromptForeground(phase == .active)
                     if phase == .background { UsageAnalytics.shared.background();GuidePublicationAlerts.shared.background() }
                 }
                 .task(id: phase == .background) {
@@ -151,6 +152,7 @@ import WatchWeeksCore
 }
 struct RootView: View {
     @ObservedObject private var guideAlerts = GuidePublicationAlerts.shared
+    @ObservedObject private var analytics = UsageAnalytics.shared
     @EnvironmentObject var model: AppModel
     @State private var tab: WatchWeeksTab = .events
 
@@ -172,16 +174,20 @@ struct RootView: View {
 
     private func withStatus<Content: View>(_ content: Content) -> some View {
         content.font(.wwBody).safeAreaInset(edge: .bottom, spacing: 0) {
-            if let error = model.persistenceError {
-                VStack {
-                    Text(error).font(.wwFootnote)
-                    Button("Retry saving") { Task { await model.retrySaving() } }
-                }.padding().background(.regularMaterial)
-            } else if !model.pendingSort.isEmpty {
-                sortToast
-                    .padding(.horizontal, 16)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 8)
+            VStack(spacing: 8) {
+                if let error = model.persistenceError {
+                    VStack {
+                        Text(error).font(.wwFootnote)
+                        Button("Retry saving") { Task { await model.retrySaving() } }
+                    }.padding().background(.regularMaterial)
+                } else if !model.pendingSort.isEmpty {
+                    sortToast
+                        .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 8)
+                } else if analytics.showConsentPrompt {
+                    AnalyticsEngagementPrompt()
+                }
             }
         }
     }
@@ -293,7 +299,11 @@ struct WebsiteLink: View {
 @MainActor final class UsageAnalytics: ObservableObject {
     static let shared = UsageAnalytics()
     @Published private(set) var enabled = false
+    @Published private(set) var showConsentPrompt = false
     private let client: UsageAnalyticsClient?
+    private let prompt: UsageAnalyticsPromptPolicy
+    private var promptIsActive = false
+    private var promptTimer: Task<Void, Never>?
     #if DEBUG && targetEnvironment(simulator)
     let qaRecorder: AnalyticsQARecorder?
     #endif
@@ -313,6 +323,7 @@ struct WebsiteLink: View {
         token=(Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPostHogToken") as? String).flatMap { $0.hasPrefix("phc_") ? $0 : nil }
         endpoint=URL(string:"https://us.i.posthog.com/i/v0/e/")!
         #endif
+        prompt=UsageAnalyticsPromptPolicy(defaults:defaults)
         let transport: UsageAnalyticsClient.Transport?
         #if DEBUG && targetEnvironment(simulator)
         if token != nil {
@@ -330,10 +341,30 @@ struct WebsiteLink: View {
             enabled=client?.enabled ?? false
         } else { client=nil }
     }
-    func setEnabled(_ value: Bool) { client?.setEnabled(value); enabled=client?.enabled ?? false }
+    func setEnabled(_ value: Bool) {
+        client?.setEnabled(value); enabled=client?.enabled ?? false
+        prompt.dismiss(); updatePrompt()
+    }
+    func declinePrompt() { setEnabled(false) }
+    func setPromptForeground(_ active: Bool) {
+        promptIsActive=active; prompt.setActive(active); updatePrompt()
+    }
+    private func updatePrompt() {
+        promptTimer?.cancel(); promptTimer=nil
+        showConsentPrompt=isAvailable && promptIsActive && prompt.shouldPresent
+        guard isAvailable, promptIsActive, !prompt.hasChoice, prompt.hasEngaged,
+              !showConsentPrompt else { return }
+        let delay=prompt.remainingActiveSeconds
+        promptTimer=Task { [weak self] in
+            do { try await Task.sleep(for:.seconds(delay)) } catch { return }
+            guard let self, !Task.isCancelled else { return }
+            self.updatePrompt()
+        }
+    }
     func active() { client?.becameActive() }
     func background() { client?.becameBackground() }
     func record(_ action: UsageAction, guideID: String? = nil, eventID: String? = nil, releaseID: String? = nil) {
+        prompt.record(action); updatePrompt()
         client?.record(action,guideID:guideID,eventID:eventID,releaseID:releaseID)
     }
 }

@@ -1,3 +1,14 @@
+# Early-engagement analytics choice — new candidate
+
+The follow-up now offers optional PostHog analytics inline after two useful
+interactions and 30 seconds of active use. No initial launch modal, pre-consent
+transmission or replay. Not now and existing opt-in/out choices persist. Settings
+remains available. Local-only capped eligibility counts never leave the device.
+81 portable Swift tests, nine export-validator tests and source checks pass.
+New native UI tests cover early acceptance/no retroactive events and refusal across
+relaunch. Xcode verification/upload for this change is not yet confirmed.
+The Home/cancellation/TestFlight alert eligibility changes below are preserved.
+
 # Current Home and alert setup correction
 
 See release/HOME_AND_ALERT_SETUP_FIXES.md. Native source removes the city shortcut

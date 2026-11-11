@@ -10,6 +10,10 @@
   path permits enrollment and a copyable non-secret test installation ID before
   public activation; provider sending belongs to Lovable. No notifications are sent here.
 - Push privacy disclosures are included; optional PostHog consent remains separate.
+- Latest follow-up: optional analytics is offered inline after two meaningful
+  interactions and 30 seconds of active use. “Not now” persists, existing choices
+  are respected, and pre-consent actions are never sent later. Settings remains
+  available for changing the choice; no launch interruption or mandatory opt-in.
 
 This is NOT in TestFlight build 13. Use Xcode Cloud's next unused build number for
 this follow-up, retaining marketing version 1.0.2 while that update is pending.

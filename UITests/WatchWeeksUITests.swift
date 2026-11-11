@@ -141,6 +141,68 @@ final class WatchWeeksUITests: XCTestCase {
         off.tap()
     }
 
+    @MainActor func testAnalyticsPromptAppearsAfterEngagementAndNeverReplaysEarlierActions() async throws {
+        let app=XCUIApplication()
+        app.launchEnvironment["WW_ANALYTICS_QA"]="1"
+        app.launchEnvironment["WW_ANALYTICS_QA_SUITE"]="watchweeks.analytics.qa.\(UUID())"
+        app.launch()
+        let allow=app.buttons["analytics-prompt-allow"].firstMatch
+        XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout:10))
+        XCTAssertFalse(allow.exists) // Never interrupt initial launch.
+        app.tabBars.buttons["My list"].tap()
+        app.tabBars.buttons["Brands A–Z"].tap()
+        app.tabBars.buttons["My list"].tap()
+        XCTAssertFalse(allow.exists) // Two actions alone aren't enough.
+        XCTAssertTrue(allow.waitForExistence(timeout:40))
+        XCTAssertTrue(app.buttons["analytics-prompt-decline"].firstMatch.exists)
+        allow.tap()
+        XCTAssertTrue(allow.waitForNonExistence(timeout:5))
+        app.tabBars.buttons["Events"].tap()
+        homeButton("home-about-privacy",in:app).tap()
+        let diagnostic=app.descendants(matching:.any)["analytics-qa-events"].firstMatch
+        XCTAssertTrue(diagnostic.waitForExistence(timeout:5))
+        var received:[[String:String]]=[]
+        for _ in 0..<25 {
+            let value=try XCTUnwrap(diagnostic.value as? String)
+            received=try JSONDecoder().decode([[String:String]].self,from:Data(value.utf8))
+            if !received.isEmpty { break }
+            try await Task.sleep(for:.milliseconds(200))
+        }
+        XCTAssertEqual(received.map { $0["event"] },["usage_analytics_enabled"])
+        let off=app.buttons["Turn off usage analytics"]
+        if !off.isHittable { app.swipeUp() }
+        off.tap()
+        app.terminate();app.launch()
+        XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout:10))
+        app.tabBars.buttons["My list"].tap()
+        app.tabBars.buttons["Brands A–Z"].tap()
+        app.tabBars.buttons["My list"].tap()
+        XCTAssertFalse(app.buttons["analytics-prompt-allow"].firstMatch.exists)
+    }
+
+    @MainActor func testDecliningEarlyAnalyticsPromptStaysOffAfterRelaunch() {
+        let app=XCUIApplication()
+        app.launchEnvironment["WW_ANALYTICS_QA"]="1"
+        app.launchEnvironment["WW_ANALYTICS_QA_SUITE"]="watchweeks.analytics.qa.\(UUID())"
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout:10))
+        app.tabBars.buttons["My list"].tap()
+        app.tabBars.buttons["Brands A–Z"].tap()
+        app.tabBars.buttons["My list"].tap()
+        let decline=app.buttons["analytics-prompt-decline"].firstMatch
+        XCTAssertTrue(decline.waitForExistence(timeout:40));decline.tap()
+        app.terminate();app.launch()
+        XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout:10))
+        app.tabBars.buttons["My list"].tap()
+        app.tabBars.buttons["Events"].tap()
+        homeButton("home-about-privacy",in:app).tap()
+        XCTAssertTrue(app.buttons["Learn about usage analytics"].waitForExistence(timeout:5))
+        let diagnostic=app.descendants(matching:.any)["analytics-qa-events"].firstMatch
+        XCTAssertTrue(diagnostic.waitForExistence(timeout:5))
+        XCTAssertEqual(diagnostic.value as? String,"[]")
+        XCTAssertFalse(app.buttons["analytics-prompt-allow"].firstMatch.exists)
+    }
+
     @MainActor func testLiveMobileDesign() throws {
         guard ProcessInfo.processInfo.environment["WW_CAPTURE"] == "1" else {
             throw XCTSkip("Set TEST_RUNNER_WW_CAPTURE=1 to exercise the live Singapore guide.")

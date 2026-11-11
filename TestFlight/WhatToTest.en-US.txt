@@ -1,4 +1,6 @@
-Home and alert setup update
+Home, alert setup and analytics choice update
+
+Optional analytics now offers an in-app choice after two useful interactions and 30 seconds of active use. It does not appear immediately on launch. Choose Share usage or Not now; either choice keeps all features available. Not now is remembered, and an existing analytics choice is respected. Change your preference later in Home → About & privacy. No earlier browsing is sent after opting in.
 
 The city shortcut strip is removed. The guide-alert promo is above Past guides. Check that returning from the background on a slow connection keeps browsing usable and shows no CancellationError text.
 

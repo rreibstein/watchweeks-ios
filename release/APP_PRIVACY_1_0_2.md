@@ -19,8 +19,12 @@ purchase prices, photos, precise location, contacts or advertising ID is include
 in native analytics. Native/web identities are not joined. No session replay or
 automatic screen capture. No native account creation/synchronization.
 
-Analytics is off by default and optional. Home > About & privacy explains the
-choice before enabling; turning it off purges queued events and cancels delivery.
+Analytics is off by default and optional. The latest follow-up presents an inline
+choice after two meaningful interactions and 30 seconds of active use, rather than
+relying on a Settings visit. “Not now” is remembered; existing explicit choices
+are respected. Home > About & privacy remains available to change the preference.
+No action performed while off is reconstructed or sent later. Turning analytics
+off purges queued events and cancels delivery.
 Existing 1.0.2 (13) has the same controls under My list instead. Consented events
 can be queued locally for retry, bounded at 100. Already in-flight transmissions
 cannot be recalled. Re-enabling creates a new identifier. Data already delivered

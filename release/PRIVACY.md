@@ -29,8 +29,11 @@ such as your IP address and the requested resource, to deliver this content and
 operate and protect the service. Cloudflare uses a bot-management cookie to
 protect the guide and photo endpoints. These requests do not carry your checklist
 or ratings. The app offers optional usage analytics through PostHog. It is off until
-enabled in About & privacy (at the bottom of Home in newer builds, or under My list
-in earlier builds). When enabled, the app sends a random installation identifier,
+enabled through an optional in-app prompt after early engagement, or in About &
+privacy (at the bottom of Home in newer builds, or under My list in earlier builds).
+“Not now” keeps it off and prevents repeated prompts. The app stores only local,
+capped activity counts and active-use duration to time the prompt; it sends none
+of that pre-consent activity to analytics. When enabled, the app sends a random installation identifier,
 app version and build, public guide/event/release identifiers, and events such as
 views, use of the rating and Seen controls, visits to My list, guide sharing and
 opening WatchWeeks website links. It does not send the selected rating or Seen

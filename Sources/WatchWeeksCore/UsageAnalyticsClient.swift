@@ -81,8 +81,10 @@ public enum UsageAction: String, Codable, Sendable {
         }
     }
     public func setEnabled(_ value: Bool) {
+        // Persist an explicit refusal even when analytics was already off.
+        defaults.set(value,forKey:consentKey)
         guard enabled != value else { return }
-        enabled=value; defaults.set(value,forKey:consentKey)
+        enabled=value
         if value {
             identity=UUID().uuidString; defaults.set(identity,forKey:identityKey)
             record(.optedIn)
