@@ -1,0 +1,11 @@
+Publication alerts — internal TestFlight verification
+
+On Home (Events), scroll to Get guide updates. Choose Enable notifications, then Allow. Browsing and your checklist still work if you decline.
+
+Wait for “Guide alerts are enabled,” then choose Copy test installation ID. For Reed's provider test, give Lovable only that reference. The app never copies the device token or registration credential.
+
+Lovable handles the test notification. Confirm physical receipt, tap it, and check that the guide opens. Unknown guides should safely return to the guide list.
+
+Check Turn off guide alerts. Offline unsubscribe should remain pending and finish after reopening online. Pending enrollment can also be canceled.
+
+Public alerts stay disabled until Reed confirms receipt. Optional usage analytics is a separate choice in Home → About & privacy. Existing ratings and seen selections should remain intact after this update.

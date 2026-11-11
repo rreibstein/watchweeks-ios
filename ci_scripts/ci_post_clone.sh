@@ -9,6 +9,7 @@ xcodebuild -version
 xcode_major=$(xcodebuild -version | awk '/^Xcode / {split($2,parts,"."); print parts[1]}')
 [[ "$xcode_major" =~ ^[0-9]+$ && "$xcode_major" -ge 26 ]] || { echo 'Select stable Xcode 26 or later in the workflow.' >&2; exit 1; }
 python3 scripts/validate-source.py
+python3 scripts/test-push-distribution.py
 scratch_base="${CI_DERIVED_DATA_PATH:-${TMPDIR:-/tmp}}"
 swift test --jobs 4 --scratch-path "$scratch_base/WatchWeeksCoreCI"
 echo 'Source validation and core tests passed. Xcode Cloud must separately run the simulator Test action.'

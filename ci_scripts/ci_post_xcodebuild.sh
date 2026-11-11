@@ -1,10 +1,15 @@
 #!/bin/sh
 set -eu
-# Validate actual signed entitlements on archive actions, never Debug/Release labels.
+# Xcode Cloud exports distribution variants before this hook. The raw archive
+# can carry an intermediate identity; validate the actual App Store export.
 if [ "${CI_XCODEBUILD_ACTION:-}" = "archive" ]; then
-    if [ -z "${CI_ARCHIVE_PATH:-}" ]; then
-        echo "Archive action did not provide CI_ARCHIVE_PATH." >&2
+    if [ "${CI_XCODEBUILD_EXIT_CODE:-0}" != "0" ]; then
+        exit 0 # Preserve the original Xcode build failure.
+    fi
+    if [ -z "${CI_APP_STORE_SIGNED_APP_PATH:-}" ]; then
+        echo "App Store signed export is missing: CI_APP_STORE_SIGNED_APP_PATH is unset." >&2
         exit 1
     fi
-    python3 "${CI_PRIMARY_REPOSITORY_PATH:-$PWD}/scripts/verify-push-archive.py" "$CI_ARCHIVE_PATH"
+    python3 "${CI_PRIMARY_REPOSITORY_PATH:-$PWD}/scripts/verify-push-archive.py" \
+        --require-production "$CI_APP_STORE_SIGNED_APP_PATH"
 fi

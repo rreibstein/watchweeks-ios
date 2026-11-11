@@ -6,12 +6,16 @@ issues or warnings, including required analytics consent UI QA and 72 core tests
 The repeated footer test failure was fixed by separating container/button
 accessibility and keeping footer controls mounted outside the lazy guide list.
 
-The exact verified SHA was promoted without force to release/cloud-upload.
-WatchWeeks Upload / Archive - iOS was triggered at 12:53 UTC. Its GitHub status
-is not reliable: the older ready build 13 also still says running there six hours
-later. Current Apple archive status was requested from the owner. Signed upload,
-processing and the new TestFlight build number remain unconfirmed. Marketing
-version remains 1.0.2. Build 13 is the older analytics/calendar build without alerts.
+Build 26 compiled the app and exported ad-hoc, App Store and development packages
+successfully. The post-build validator then rejected the intermediate archive's
+missing application identifier; TestFlight distribution did not run. The validator
+now selects CI_APP_STORE_SIGNED_APP_PATH, validates the final package's actual
+signature/production entitlement, and passes nine portable regression tests.
+Application sources, resources, project and Swift tests are byte-identical to the
+passing dbb61b7 revision; only release scripts/tests/docs/notes change for this retry.
+An archive-only rerun is appropriate; no new simulator pass is needed for this fix.
+GitHub Archive summaries remain stale even on failure; never equate their running
+message with actual Apple status. Current processed TestFlight remains 1.0.2 (13).
 
 The new client supports user-requested permission, signed APNs environment checking,
 client-generated 256-bit credentials and exact pending requests saved to Keychain

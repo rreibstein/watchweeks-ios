@@ -74,13 +74,14 @@ Before an enabled build:
 5. Validate the final signed archive:
 
    ```sh
-   python3 scripts/verify-push-archive.py /path/to/WatchWeeks.xcarchive
+   python3 scripts/verify-push-archive.py --require-production /path/to/app-store-export
    ```
 
-   The script compares the configured API environment with the actual signed
-   `aps-environment` entitlement and fixed bundle/topic. The Xcode Cloud archive
-   post-build hook runs the same check. Distribution can re-sign an app: inspect
-   the final exported app too if its environment differs from the initial archive.
+   The script reads the actual final distribution signature, checks production
+   aps-environment, configured API environment and application identifier, and verifies
+   codesign. Xcode Cloud runs it on CI_APP_STORE_SIGNED_APP_PATH, not the intermediate
+   CI_ARCHIVE_PATH. Export directories, IPA files and signed app bundles are supported.
+   It prints only non-secret version/build/environment metadata.
 6. Lovable performs the selected-device test after Reed supplies the non-secret
    TestFlight installation ID. Reed confirms physical receipt. TestFlight uses
    production APNs; a development/sandbox test is optional and does not require a

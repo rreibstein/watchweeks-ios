@@ -1,9 +1,9 @@
 # Build history
 
-## Publication-alert candidate — signed upload running
+## Publication-alert candidate — build 26 validator corrected; retry pending
 
 Source: dbb61b790793f08911cd53be5c08dc2ccfb7e0c4. Marketing version 1.0.2;
-new build number and Apple processing pending confirmation.
+build 26 failed before TestFlight; retry build number/processing pending confirmation.
 
 Xcode Cloud Verify succeeded Nov 11 in 6m 19s with zero reported errors, test
 failures, analysis issues or warnings. Core suite has 72 tests; required guest,
@@ -12,6 +12,11 @@ capture is separate and was not claimed as passed.
 
 The exact source was promoted to release/cloud-upload. Archive started 12:53 UTC.
 [Archive status](https://github.com/rreibstein/watchweeks-ios/commit/dbb61b790793f08911cd53be5c08dc2ccfb7e0c4/checks/130534757008).
+Owner's Apple report confirms build 26 compiled and exported all three distributions,
+but the post-build validator inspected the intermediate archive and rejected its
+missing application identifier. The corrected validator inspects the actual App
+Store export, verifies the signature and production APNs, and passes nine regression
+tests. No application/Swift code changes from the verified revision are included.
 No provider notification, Apple credential change or App Review submission occurred.
 
 
