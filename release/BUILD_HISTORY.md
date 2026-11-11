@@ -1,5 +1,20 @@
 # Build history
 
+## Publication-alert candidate — signed upload running
+
+Source: dbb61b790793f08911cd53be5c08dc2ccfb7e0c4. Marketing version 1.0.2;
+new build number and Apple processing pending confirmation.
+
+Xcode Cloud Verify succeeded Nov 11 in 6m 19s with zero reported errors, test
+failures, analysis issues or warnings. Core suite has 72 tests; required guest,
+notification-gating and analytics-consent UI checks passed. Optional live screenshot
+capture is separate and was not claimed as passed.
+
+The exact source was promoted to release/cloud-upload. Archive started 12:53 UTC.
+[Archive status](https://github.com/rreibstein/watchweeks-ios/commit/dbb61b790793f08911cd53be5c08dc2ccfb7e0c4/checks/130534757008).
+No provider notification, Apple credential change or App Review submission occurred.
+
+
 ## 1.0.2 (13) — TestFlight ready, 2026-11-11
 
 Source: 8b27440f498cc04f33963c9ac67796efa3575fe1, release/cloud-upload.

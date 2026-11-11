@@ -1,33 +1,32 @@
-# Follow-up candidate after TestFlight 1.0.2 (13)
+# Publication-alert update — verified, signed upload running
 
-Source adds the forthcoming-guide Home promo (Geneva W&W, British Watchmakers' Day,
-Las Vegas), moves About & privacy to the bottom of Home and expands in-app/privacy
-and ASC disclosure guidance. Native APNs callbacks and safe guide routing are
-prepared behind a verified-integration gate. The owner chose reliable publisher push;
-App Store alerts stay off until delivery is verified; a clearly marked internal
-TestFlight path can enroll Reed's iPad before public activation.
+Native source: dbb61b790793f08911cd53be5c08dc2ccfb7e0c4, dedicated iOS repository.
+Xcode Cloud Verify passed on Nov 11 in 6m 19s: zero errors, test failures, analysis
+issues or warnings, including required analytics consent UI QA and 72 core tests.
+The repeated footer test failure was fixed by separating container/button
+accessibility and keeping footer controls mounted outside the lazy guide list.
 
-The Home/footer candidate 046ae48 passed Xcode Cloud Verify in 6m 51s with zero
-errors/failures/warnings. The subsequent source implements Lovable's preview
-upcoming/enrollment contracts, per-guide last-good refresh, Keychain lifecycle and
-unsubscribe retries, duplicate-tap suppression and signed APNs environment validation.
-The signed-client source 4dfe333 passed Xcode Cloud Verify in 6m 58s with zero
-errors/failures/warnings. The next UI run found a flaky lazy-footer hittability
-check, now replaced with viewport-based scrolling. Final recovery-contract source
-has 72 passing portable tests, client-generated durable credentials, backoff and
-permission handling. Recovery source ce37235 compiled with 72 core tests and zero compiler errors or
-warnings; one UI visibility check rejected the updates button label height. Source
-2ace4a9 gives the label a full 44-point tap area and corrects that check. Its first
-branch promotion has not yet produced a cloud check; preserve these exact sources
-and complete final Verify before signed upload.
-The owner confirms provider credentials are in Lovable; do not request or change
-them. Live upcoming is 200 JSON, capability false/delivery_unverified; installation
-GET correctly requires auth. /notify is still 404 and the app falls back safely.
-No notification sends or App Review/publication are authorized by the latest task.
-See release/PUBLICATION_ALERTS_INTEGRATION.md and release/LOVABLE_PUSH_FINISH.md.
-Existing build 13 is unchanged and available to test.
-See release/LOVABLE_IOS_HANDOFF.md and release/APP_PRIVACY_1_0_2.md. Nothing was
-submitted for App Review or published by this work.
+The exact verified SHA was promoted without force to release/cloud-upload.
+WatchWeeks Upload / Archive - iOS started at 12:53 UTC. Signed upload, Apple
+processing and the new TestFlight build number are not yet confirmed. Marketing
+version remains 1.0.2. Build 13 is the older analytics/calendar build without alerts.
+
+The new client supports user-requested permission, signed APNs environment checking,
+client-generated 256-bit credentials and exact pending requests saved to Keychain
+before POST, recovered 200/created 201 responses, durable backoff/unsubscribe,
+canonical-guide routing and duplicate suppression. Ordinary App Store enrollment
+requires remote availability. TestFlight can enroll for selected-device verification
+and copy only its non-secret installation ID. Denial leaves browsing usable.
+
+The live upcoming API serves planned titles; public availability/scheduling remain
+Off pending hosted APNs transport and physical iPad receipt. Lovable reports 24
+backend tests passed. Provider credentials are already in Lovable; do not request,
+change or expose them. Native work sends no notifications and does not submit to
+App Review. /notify was unavailable; the app checks it and safely falls back home.
+
+See release/PUBLICATION_ALERTS_INTEGRATION.md for the exact iPad test path and
+release/APP_PRIVACY_1_0_2.md for App Functionality/Analytics declarations. Device
+receipt, accurate privacy answers and exact-build owner approval are still required.
 
 # Next update: 1.0.2 (13) — available in TestFlight, not submitted for review
 
