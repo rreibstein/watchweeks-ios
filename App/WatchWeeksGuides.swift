@@ -880,6 +880,12 @@ struct GuideUpdatesSheet: View {
                     }
                     WebsiteLink(title:"Guide updates on WatchWeeks",url:model.hasLiveUpcomingFeed ? PublicLinks.newsletter : PublicLinks.home)
                     if let message=alerts.message { Text(message).font(.wwFootnote) }
+                    if alerts.isVerificationMode, let id=alerts.installationID {
+                        Text("Test installation: " + id).font(.wwCaption).textSelection(.enabled)
+                        Button("Copy test installation ID") { UIPasteboard.general.string=id }
+                        Text("Use this reference to target your delivery check. Your registration credential and device token are never copied.")
+                            .font(.wwFootnote)
+                    }
                 }
             }.font(.wwBody).navigationTitle("Guide updates").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { dismiss() } } }

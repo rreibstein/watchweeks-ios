@@ -376,6 +376,7 @@ struct AnalyticsQADiagnostics: View {
     @Published private(set) var isEnabled=false
     @Published private(set) var deletionPending=false
     @Published private(set) var isVerificationMode=false
+    @Published private(set) var installationID: String?
     @Published private(set) var message: String?
     @Published private(set) var pendingGuideID: String?
     private let subscription=PushSubscription(service:PushInstallationClient(),store:PushKeychainStore())
@@ -409,6 +410,7 @@ struct AnalyticsQADiagnostics: View {
     private func syncState() {
         isEnabled=subscription.state == .on
         deletionPending=subscription.state == .deletionPending
+        installationID=(try? subscription.installationID())?.uuidString.lowercased()
     }
     func foreground() async {
         do {

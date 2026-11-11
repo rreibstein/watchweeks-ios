@@ -149,6 +149,7 @@ public struct PushCredential: Codable, Sendable {
     private let store: any PushCredentialStore
     public init(service: any PushInstallationService, store: any PushCredentialStore) { self.service=service;self.store=store }
     public func hasSavedSubscription() throws -> Bool { try store.load()?.wantsAlerts == true }
+    public func installationID() throws -> UUID? { try store.load()?.id }
     public func register(token: Data, environment: APNSEnvironment, appVersion: String, osVersion: String) async throws {
         guard !isBusy else { throw PushServiceError.busy }
         isBusy=true;desired=true;state = .connecting
