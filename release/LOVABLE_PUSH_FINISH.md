@@ -1,3 +1,10 @@
+> Historical implementation prompt. Superseded by the final recovery contract and
+> Lovable's deployed-alert API report (24 backend tests). Native implementation
+> uses client-generated durable credentials. Provider credentials are already in
+> Lovable; do not ask Reed for them or repeat this implementation request. Next
+> handoff is Reed's non-secret TestFlight installation ID for a selected-device
+> provider test. Public activation waits for his physical-receipt confirmation.
+
 # Paste into Lovable — launch publication alerts
 
 Reed has published the implementation and authorized finishing the live feature.

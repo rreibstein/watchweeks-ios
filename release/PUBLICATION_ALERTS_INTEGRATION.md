@@ -25,9 +25,10 @@ website, sends messages, or submits an app for review.
   with SecRandomCopyBytes and formatted wwpi_ plus unpadded base64url. It and the
   exact pending request are stored BEFORE the first POST. POST authenticates with
   that bearer; 201 creates and 200 recovers. Lost responses/restarts reuse the same
-  credential and canonical request bytes. The acknowledged ID is stored in Keychain with `AfterFirstUnlockThisDeviceOnly`. Token bytes are
-  passed to the server only when enabled, not persisted in this repository/app
-  preferences. No passwords or Apple provider keys belong in the app.
+  credential and canonical request bytes. The acknowledged ID is stored in Keychain
+  with `AfterFirstUnlockThisDeviceOnly`. Pending token bytes live only in that
+  protected record for recovery, then clear after acknowledgement; they never enter
+  ordinary app preferences or this repository. No passwords or Apple provider keys belong in the app.
 - OS permission is requested only after an explicit action and both gates below.
   Foreground checks reconcile server revocation and OS permission. Unsubscribe
   intent persists before network deletion and retries after a restart; the UI
@@ -39,7 +40,8 @@ website, sends messages, or submits an app for review.
   payload URLs cannot become destinations. Unknown IDs receive one refresh attempt.
 - About & privacy stays at the bottom of Home. It includes guide-alert preferences
   and the verified signed-out corrections link. The website newsletter link switches
-  to `/notify#newsletter` only after the new feed endpoint responds successfully.
+  to `/notify#newsletter` only after the page itself serves successful HTML;
+  otherwise it uses the verified homepage.
   Copy does not claim that email delivery is already activated.
 
 ## Launch gates — signed native client prepared
@@ -55,15 +57,16 @@ Released build 13 still has no such adapter/capability and cannot be remotely en
 
 Before an enabled build:
 
-1. Owner reported publishing Lovable's work and authorized launching the feature.
-   Ensure the formerly isolated code/migration reached production: probes still
-   returned 404 for upcoming and /notify after that report. Validate historical-guide
-   baselines before any scheduling; never generate an old-guide blast.
-2. Resolve the backend release issues in `LOVABLE_PUSH_FINISH.md`. Keep delivery
-   disabled until actual test-device receipt and transport are verified.
-3. Owner enables Push Notifications for `com.watchweeks.app` and provides APNs
-   provider credentials only through secure backend configuration. No key material
-   is needed by Codex in chat. No remote-notification background mode is needed.
+1. Production index/upcoming now serve JSON and the installation read route
+   enforces authentication. Public capability/scheduling remain Off. Lovable reports
+   24 backend tests passed; provider transport and iPad receipt remain unverified.
+   Never generate a historical-guide blast.
+2. The final recovery contract is implemented natively. Keep public delivery
+   disabled until actual test-device receipt and hosted transport are verified.
+3. Provider credentials are already stored securely in Lovable, per the owner.
+   Do not request, rotate or change them. Xcode Cloud handles app signing; if its
+   permissions cannot enable the App ID capability, report the exact portal step.
+   No remote-notification background mode is needed.
 4. Complete Xcode validation, signed archive checks, device QA and privacy review.
    `WatchWeeksAPNsEnvironment` expands from explicit build settings; validate it
    against the actual signed entitlement rather than assuming build configuration
@@ -78,10 +81,10 @@ Before an enabled build:
    `aps-environment` entitlement and fixed bundle/topic. The Xcode Cloud archive
    post-build hook runs the same check. Distribution can re-sign an app: inspect
    the final exported app too if its environment differs from the initial archive.
-6. With separate owner approval, verify actual sandbox receipt on a development
-   device, then production APNs receipt on a staging TestFlight installation.
-   APNs HTTP/2 transport must be proven in the published backend runtime. Neither
-   fake-provider tests nor APNs 200 proves on-device delivery.
+6. Lovable performs the selected-device test after Reed supplies the non-secret
+   TestFlight installation ID. Reed confirms physical receipt. TestFlight uses
+   production APNs; a development/sandbox test is optional and does not require a
+   Mac for this launch path. Neither fake tests nor APNs 200 proves device receipt.
 7. Activate the remote capability/schedule only after the ready native build and
    real delivery are verified. Obtain approval for any real notification send.
 

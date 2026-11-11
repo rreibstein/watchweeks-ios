@@ -1,4 +1,13 @@
-# WatchWeeks 1.0 App Store handoff
+# WatchWeeks App Store handoff
+
+For the current 1.0.2 update, use [update acceptance](UPDATE_1_0_2.md),
+[publication alerts](PUBLICATION_ALERTS_INTEGRATION.md) and the
+[privacy worksheet](APP_PRIVACY_1_0_2.md). Those supersede the historical launch
+instructions below. Native analytics is optional; push adds Device ID for App
+Functionality. About & privacy is at the bottom of Home. No App Review submission
+or publication is authorized by the current build task.
+
+# Historical 1.0 launch handoff
 
 Target public availability before Friday, November 13, 2026, 11 a.m. Singapore
 time (Thursday, November 12, 10 p.m. US Eastern). Aim to submit by Monday,
@@ -8,7 +17,7 @@ make a released app available. Check the Singapore storefront after release.
 This is an iPhone-only, free candidate with public guides, local visit planning
 and offline access to previously loaded guides. The iPhone app contains no
 product analytics SDK, session replay, ads, tracking, sign-in or purchases.
-Find opens the native search sheet. My list includes About & privacy.
+Find opens the native search sheet. About & privacy is at the bottom of Home in the updated app.
 
 ## Launch decisions
 
@@ -96,7 +105,7 @@ Trust This Computer. If Xcode asks, enable Developer Mode in iPhone
 - Open New releases and a release detail with a retained brand-credited photo.
   Confirm the photo and credit appear and the photo opens and closes in the
   lightbox. On the Singapore guide, swipe the citywide release carousel and
-  open **See all new releases**. Verify **My list → About & privacy → Privacy policy** loads in the
+  open **See all new releases**. Verify **Home → About & privacy → Privacy policy** loads in the
   system browser.
 - Confirm the icon, type, native tabs and back navigation on the device.
   Record iPhone model, iOS, build number and pass/fail. A reproducible crash,
@@ -129,7 +138,7 @@ attach the exact build that passed TestFlight QA, then click **Save**.
 | Age Rating | Complete the current questionnaire from the actual app. Native guides have editorial text and credited photos, with no messaging, public posting, ads or native web browser. Check Apple's wording on external links. |
 | Content Rights | Answer Yes for third-party content. The app displays brand-credited watch photos and excludes images with publication provenance. Confirm the source and applicable native usage terms for the retained photos and keep documentation ready. The listing should only show photos with verified listing rights. |
 | Export Compliance | The candidate uses system HTTPS, with no app or third-party encryption library. The build declares no non-exempt encryption. Answer any remaining territory questions using Apple's questionnaire. |
-| App Privacy | The app stores visit data locally. Confirm feed, CDN and image-host logging and retention before deciding what to disclose. See the request below. Apple excludes data discarded after servicing the request in real time. Disclose relevant retained data and purposes. The app has no tracking. |
+| App Privacy | Use APP_PRIVACY_1_0_2.md for the current update. It adds optional analytics and push functionality; do not reuse Data Not Collected. The app stores visit data locally. Confirm feed, CDN and image-host logging and retention before deciding what to disclose. See the request below. Apple excludes data discarded after servicing the request in real time. Disclose relevant retained data and purposes. The app has no tracking. |
 | Screenshots | Use actual, final-build iPhone Dynamic Island medium PNGs. See [screenshot instructions](SCREENSHOTS.md) for upload order and photo rights. |
 | App Review Information | Provide a real contact name, phone and email. Leave Sign-in required off. Paste the review notes below and replace the build placeholder. |
 | Version Release | Manually release this version. Be ready to release as soon as Apple approves it. |
@@ -195,7 +204,7 @@ WatchWeeks is independent of the listed events and brands.
 > previously loaded guides stay on-device. The app has no accounts or
 > synchronization, and this version is free with no ads, sponsored placements
 > or in-app purchases. Find is at the top right and the privacy policy is
-> under My list → About & privacy.
+> under Home → About & privacy.
 >
 > The independent editorial guide displays product photos credited to
 > their brands. The app filters out photos with publication provenance.

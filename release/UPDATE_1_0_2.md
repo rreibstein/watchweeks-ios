@@ -14,7 +14,7 @@
 This is NOT in TestFlight build 13. Use Xcode Cloud's next unused build number for
 this follow-up, retaining marketing version 1.0.2 while that update is pending.
 The former signed-client candidate passed Xcode/simulator checks; the final recovery
-contract has 71 portable tests and requires a fresh cloud pass and signed upload.
+contract has 72 portable tests and requires a fresh cloud pass and signed upload.
 Physical receipt must be confirmed before public availability. Do not submit for
 App Review or publish without the exact-build owner approval gate.
 

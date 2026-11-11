@@ -4,8 +4,8 @@ Source adds the forthcoming-guide Home promo (Geneva W&W, British Watchmakers' D
 Las Vegas), moves About & privacy to the bottom of Home and expands in-app/privacy
 and ASC disclosure guidance. Native APNs callbacks and safe guide routing are
 prepared behind a verified-integration gate. The owner chose reliable publisher push;
-there is NO notification permission prompt, device-token registration or push
-subscription until the Lovable/APNs contract is implemented and verified.
+App Store alerts stay off until delivery is verified; a clearly marked internal
+TestFlight path can enroll Reed's iPad before public activation.
 
 The Home/footer candidate 046ae48 passed Xcode Cloud Verify in 6m 51s with zero
 errors/failures/warnings. The subsequent source implements Lovable's preview
@@ -14,8 +14,12 @@ unsubscribe retries, duplicate-tap suppression and signed APNs environment valid
 The signed-client source 4dfe333 passed Xcode Cloud Verify in 6m 58s with zero
 errors/failures/warnings. The next UI run found a flaky lazy-footer hittability
 check, now replaced with viewport-based scrolling. Final recovery-contract source
-has 71 passing portable tests, client-generated durable credentials, backoff and
-permission handling. Fresh final Xcode verification and signed upload are next.
+has 72 passing portable tests, client-generated durable credentials, backoff and
+permission handling. Recovery source ce37235 compiled with 72 core tests and zero compiler errors or
+warnings; one UI visibility check rejected the updates button label height. Source
+2ace4a9 gives the label a full 44-point tap area and corrects that check. Its first
+branch promotion has not yet produced a cloud check; preserve these exact sources
+and complete final Verify before signed upload.
 The owner confirms provider credentials are in Lovable; do not request or change
 them. Live upcoming is 200 JSON, capability false/delivery_unverified; installation
 GET correctly requires auth. /notify is still 404 and the app falls back safely.
