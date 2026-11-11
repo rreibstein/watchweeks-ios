@@ -1,5 +1,21 @@
 # Build history
 
+## Early-engagement analytics choice — verified, signed upload triggered
+
+Source: 21f824dc7327ce8ef1a873455d9a9d3838b9e38a. Marketing version 1.0.2.
+Inline optional analytics choice after two useful interactions and 30 active
+seconds; no launch interruption or replay of earlier actions. Not now persists;
+existing choices and later Settings changes are respected. Local capped counters
+never reach analytics. The Home/cancellation and TestFlight push fixes are retained.
+
+81 portable core tests, nine export-validator tests and source checks passed.
+Xcode Cloud Verify passed in 9m 13s with zero errors, failures, analysis issues
+or warnings, including both new early-choice UI tests and existing consent QA.
+The initial refusal test needed to reveal a lazy Settings row; its correction
+passed in the final run. The exact verified source was promoted to Upload at
+18:28 UTC on Nov 11. Archive/processing/build number remain unconfirmed; no
+notification send, public push activation or App Review submission is performed.
+
 ## Home and TestFlight setup correction — verified, archive triggered
 
 Source: 5eca70f6b1042274859949d0bce298a550a86703. Version 1.0.2.

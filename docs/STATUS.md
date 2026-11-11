@@ -1,15 +1,20 @@
-# Early-engagement analytics choice — new candidate
+# Early-engagement analytics choice — verified, signed upload triggered
 
 The follow-up now offers optional PostHog analytics inline after two useful
 interactions and 30 seconds of active use. No initial launch modal, pre-consent
 transmission or replay. Not now and existing opt-in/out choices persist. Settings
 remains available. Local-only capped eligibility counts never leave the device.
 81 portable Swift tests, nine export-validator tests and source checks pass.
-New native UI tests cover early acceptance/no retroactive events and refusal across
-relaunch. Xcode Cloud compiled d49c744 with zero errors/warnings; the acceptance
-and existing consent checks passed. One new refusal-test assertion failed because
-the Settings row was below List's first accessible viewport. dc36797 fixes the
-test to reveal the row before checking. A full rerun/upload is not yet confirmed.
+Source 21f824dc7327ce8ef1a873455d9a9d3838b9e38a passed Xcode Cloud Verify
+in 9m 13s, with zero errors, failures, analysis issues or warnings. The iOS UI
+suite includes early acceptance/no retroactive events, refusal across relaunch,
+and existing manual consent/opt-out coverage. The first refusal assertion needed
+to scroll List before checking its lazy Settings row; this was fixed and rerun.
+That exact source was promoted to release/cloud-upload on Nov 11 at 18:28 UTC.
+Archive outcome, new processed build number and device push receipt are pending.
+UITests-only dc36797 produced no public check; the later App/documentation push
+started Verify automatically. Check workflow path filters before relying on a
+future test-only branch push to start a run; no owner workflow edit was made here.
 The Home/cancellation/TestFlight alert eligibility changes below are preserved.
 
 # Current Home and alert setup correction
