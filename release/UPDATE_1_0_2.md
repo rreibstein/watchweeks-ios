@@ -85,8 +85,9 @@ or disabled in About & privacy. We've also simplified new-release photo gallerie
 
 WatchWeeks remains guest-first, with local ratings/shortlist/Seen and public guide
 content. Optional PostHog product analytics starts only when a user explicitly opts
-in at Home > About & privacy > Learn about usage analytics > Choose a preference
-> Share usage. All features work while it is off. No session replay or advertising
+in through the early-engagement inline prompt (two useful interactions and
+30 active seconds) or Home > About & privacy > Learn about usage analytics >
+Choose a preference > Share usage. Not now is remembered across launches. All features work while it is off. No session replay or advertising
 tracking. Turning it off purges pending analytics and cancels delivery; already
 in-flight transmissions cannot be recalled. No private notes, email, rating values,
 Seen values, purchase prices or website account IDs are captured.

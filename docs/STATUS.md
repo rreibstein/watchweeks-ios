@@ -6,7 +6,10 @@ transmission or replay. Not now and existing opt-in/out choices persist. Setting
 remains available. Local-only capped eligibility counts never leave the device.
 81 portable Swift tests, nine export-validator tests and source checks pass.
 New native UI tests cover early acceptance/no retroactive events and refusal across
-relaunch. Xcode verification/upload for this change is not yet confirmed.
+relaunch. Xcode Cloud compiled d49c744 with zero errors/warnings; the acceptance
+and existing consent checks passed. One new refusal-test assertion failed because
+the Settings row was below List's first accessible viewport. dc36797 fixes the
+test to reveal the row before checking. A full rerun/upload is not yet confirmed.
 The Home/cancellation/TestFlight alert eligibility changes below are preserved.
 
 # Current Home and alert setup correction

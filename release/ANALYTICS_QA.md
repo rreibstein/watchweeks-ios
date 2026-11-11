@@ -1,10 +1,13 @@
 # WatchWeeks iOS optional analytics
 
-The native app opens straight to Events. No automatic consent dialog or system
-tracking request is shown. Under Home → About & privacy → Learn about usage
-analytics, a native sheet explains what is shared and why. The user can leave
-it off or explicitly choose “Share usage” in a native alert. After opt-in, the
-same page offers “Turn off usage analytics.”
+The native app opens straight to Events with no immediate consent dialog or
+system tracking request. After two useful interactions and 30 seconds of active
+use, an inline prompt offers Share usage and Not now, plus What’s shared.
+Background time and launches do not count toward engagement; no pre-consent
+actions are transmitted or replayed after opting in. Not now is remembered, as
+are existing explicit opt-in/out choices. Home → About & privacy → Learn about
+usage analytics remains available for a detailed explanation and later changes.
+After opt-in, that page offers Turn off usage analytics.
 
 The HTTPS client sends explicit usage events with platform `ios_native`, an
 app-only random identifier, and app version. It never links to website identities
@@ -16,7 +19,9 @@ Previously consented queued events persist across app exits, up to 100 events.
 
 ## Test without touching production
 
-The default shared-scheme test now includes testOptionalAnalyticsConsent. It launches
+The default shared-scheme test includes testOptionalAnalyticsConsent,
+testAnalyticsPromptAppearsAfterEngagementAndNeverReplaysEarlierActions and
+testDecliningEarlyAnalyticsPromptStaysOffAfterRelaunch. Each launches
 only the Debug simulator app with WW_ANALYTICS_QA=1 and a fresh UserDefaults suite.
 A Debug/simulator-only in-process receiver validates the actual serialized Capture
 API request and exposes event/id summaries through a test diagnostic accessibility

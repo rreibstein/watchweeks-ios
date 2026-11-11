@@ -63,7 +63,9 @@ Apple reference: https://developer.apple.com/app-store/user-privacy-and-data-use
 
 Dashboard specification: WatchWeeks — Native iOS engagement, last 30 days, filter
 platform=ios_native throughout:
-- DAU/WAU: unique distinct IDs with app_opened per day/week.
+- DAU/WAU: unique distinct IDs with any native product event per day/week,
+  including usage_analytics_enabled so the first consented session counts. Use
+  app_opened for subsequent foreground/session activity; earlier opens are not replayed.
 - New/returning: first observed native event timestamp versus prior history. Person
   profiles are disabled; don't use person creation dates. Opt-out/re-opt-in resets IDs.
 - Guide/event/release engagement: event totals and uniques by their public ID.

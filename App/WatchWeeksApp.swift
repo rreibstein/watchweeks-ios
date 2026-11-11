@@ -364,6 +364,8 @@ struct WebsiteLink: View {
     func active() { client?.becameActive() }
     func background() { client?.becameBackground() }
     func record(_ action: UsageAction, guideID: String? = nil, eventID: String? = nil, releaseID: String? = nil) {
+        // Before consent the prompt sees only the action category, never IDs or
+        // event history. The delivery client's independent consent guard stays on.
         prompt.record(action); updatePrompt()
         client?.record(action,guideID:guideID,eventID:eventID,releaseID:releaseID)
     }
