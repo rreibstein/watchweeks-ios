@@ -1,9 +1,13 @@
 # WatchWeeks remote signed builds — Xcode Cloud
 
-Status: repository prepared; Apple/GitHub authorization, workflows, cloud signing,
-compute allowance and one successful signed upload are NOT verified or activated.
-No Apple remote workflow was created, run or billed by this commit. This document
-uses the existing app: com.watchweeks.app, App Store Connect ID 6832395283.
+Operational update (2026-11-11): both WatchWeeks Verify and WatchWeeks Upload
+workflows are configured and can be triggered through branch promotion from Codex
+Cloud. Verification with consent UI QA passed for 8b27440. The signed archive/upload
+run is in progress; processing and exact build number are not yet confirmed here.
+Do not repeat initial setup just because the executor is Linux or Apple API keys
+are absent. See docs/XCODE_CLOUD_ACCESS.md for actual GitHub status-reading paths.
+The setup instructions below are historical/reference. App: com.watchweeks.app,
+App Store Connect ID 6832395283.
 
 ## Why this service
 

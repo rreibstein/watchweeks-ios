@@ -27,3 +27,30 @@ Repository: rreibstein/watchweeks-ios. App Store Connect app: 6832395283.
 First verification run start observed on GitHub: 2026-11-11 06:49:12 UTC.
 Completion, signed upload and Apple processing must be recorded when observed.
 See release/REMOTE_BUILDS.md for the configured workflow separation and safety gates.
+
+## Confirmed execution, 2026-11-11
+
+- 46a3460: initial iOS verification succeeded, zero reported errors/failures/warnings.
+- 08fcc4c: a localhost listener pre-build hook failed in Cloud; do not restore it.
+- 8b27440: mandatory self-contained analytics consent UI QA and verification
+  succeeded (5m 2s), zero reported errors/failures/warnings. Test receiver is
+  Debug/simulator-only; the actual serialized capture payload is exercised without
+  an external listener or production events. Source/core tests total 42.
+- Verified source 8b27440f498cc04f33963c9ac67796efa3575fe1 was promoted to
+  release/cloud-upload. Its Archive action started at 07:15:24 UTC. Completion,
+  distribution and exact processed build number are not yet confirmed in this note.
+- The later 48c6451 only restores default shared test-scheme environment settings;
+  it does not change the Release app functionality. The upload intentionally uses
+  the exact verified source, not a different unverified tip.
+
+GitHub's commit/checks page can default to the Verify run even when Archive is
+running. Discover the individual check links in the sidebar: fetch its actual
+/suites/<id>/show_partial data-url, then follow /runs/<check_run_id>.
+For this candidate:
+- Verify: https://github.com/rreibstein/watchweeks-ios/runs/130380850058
+- Archive: https://github.com/rreibstein/watchweeks-ios/runs/130382082155
+The selected report's data-url /commit/<SHA>/checks/<run_id> returns a compact live
+summary with X-Requested-With: XMLHttpRequest. Do not print data-channel tokens.
+A ?check_run_id query alone did not select Archive reliably. Use full source SHAs.
+GitHub reports are not a substitute for Apple processing/TestFlight build-number
+confirmation. A lack of App Store Connect API access does not prevent these builds.
