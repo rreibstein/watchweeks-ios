@@ -17,7 +17,7 @@ final class WatchWeeksUITests: XCTestCase {
                 let bottom=bar.exists ? min(window.maxY-44,bar.frame.minY-8) : window.maxY-80
                 if frame.minY.isFinite, frame.maxY.isFinite, frame.height > 0,
                    frame.width > 0, frame.minY >= window.minY+44, frame.maxY <= bottom { return button }
-                if frame.minY.isFinite, frame.minY < window.minY+44 {
+                if frame.height > 0, frame.width > 0, frame.minY.isFinite, frame.minY < window.minY+44 {
                     app.swipeDown(velocity:.slow);continue
                 }
             }
