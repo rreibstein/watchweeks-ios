@@ -1,24 +1,25 @@
 # Build history
 
-## Publication-alert candidate — build 26 validator corrected; retry pending
+## Publication-alert release — corrected archive succeeded
 
-Source: dbb61b790793f08911cd53be5c08dc2ccfb7e0c4. Marketing version 1.0.2;
-build 26 failed before TestFlight; retry build number/processing pending confirmation.
+App source verified: dbb61b790793f08911cd53be5c08dc2ccfb7e0c4.
+Release scripts/notes source: 1bc5b73596f3f7f2a4299b0c3dd27ea1b7175d58.
+Marketing version 1.0.2; new processed TestFlight number unconfirmed.
 
-Xcode Cloud Verify succeeded Nov 11 in 6m 19s with zero reported errors, test
-failures, analysis issues or warnings. Core suite has 72 tests; required guest,
-notification-gating and analytics-consent UI checks passed. Optional live screenshot
-capture is separate and was not claimed as passed.
+Xcode Cloud Verify succeeded in 6m 19s with zero errors, failures or warnings.
+Core suite: 72 tests; required navigation, notification-gating and consent UI
+checks passed. Optional live screenshot capture was not claimed as passed.
 
-The exact source was promoted to release/cloud-upload. Archive started 12:53 UTC.
-[Archive status](https://github.com/rreibstein/watchweeks-ios/commit/dbb61b790793f08911cd53be5c08dc2ccfb7e0c4/checks/130534757008).
-Owner's Apple report confirms build 26 compiled and exported all three distributions,
-but the post-build validator inspected the intermediate archive and rejected its
-missing application identifier. The corrected validator inspects the actual App
-Store export, verifies the signature and production APNs, and passes nine regression
-tests. No application/Swift code changes from the verified revision are included.
+Build 26 then compiled and exported every distribution variant, but our validator
+checked the intermediate archive rather than the final export and blocked the
+post-action. The corrected checker validates the actual App Store export and passes
+nine regression tests. No application/Swift code changed.
+
+The exact script-corrected source was promoted to release/cloud-upload.
+[Xcode Cloud Archive succeeded](https://github.com/rreibstein/watchweeks-ios/commit/1bc5b73596f3f7f2a4299b0c3dd27ea1b7175d58/checks)
+in 4m 43s with zero errors/warnings, including final signature/APNs validation.
+TestFlight distribution/processing and exact build number are not yet confirmed.
 No provider notification, Apple credential change or App Review submission occurred.
-
 
 ## 1.0.2 (13) — TestFlight ready, 2026-11-11
 

@@ -6,16 +6,20 @@ issues or warnings, including required analytics consent UI QA and 72 core tests
 The repeated footer test failure was fixed by separating container/button
 accessibility and keeping footer controls mounted outside the lazy guide list.
 
-Build 26 compiled the app and exported ad-hoc, App Store and development packages
-successfully. The post-build validator then rejected the intermediate archive's
-missing application identifier; TestFlight distribution did not run. The validator
-now selects CI_APP_STORE_SIGNED_APP_PATH, validates the final package's actual
-signature/production entitlement, and passes nine portable regression tests.
-Application sources, resources, project and Swift tests are byte-identical to the
-passing dbb61b7 revision; only release scripts/tests/docs/notes change for this retry.
-An archive-only rerun is appropriate; no new simulator pass is needed for this fix.
-GitHub Archive summaries remain stale even on failure; never equate their running
-message with actual Apple status. Current processed TestFlight remains 1.0.2 (13).
+Build 26 compiled/exported successfully but the post-build validator inspected
+the intermediate archive and blocked distribution. The corrected script validates
+CI_APP_STORE_SIGNED_APP_PATH, preserves signed-bundle metadata during extraction,
+checks the actual production APNs entitlement and application identifier, and
+passes nine portable regression tests.
+
+Release source 1bc5b73596f3f7f2a4299b0c3dd27ea1b7175d58 passed Xcode Cloud
+Archive in 4m 43s, with zero errors/warnings. Application sources/resources/project
+and Swift tests are byte-identical to the UI-verified dbb61b7 revision. The archive
+reran the mandatory checks without an unnecessary simulator repeat. Current Apple
+processing/new TestFlight build number still need device confirmation; build 13
+is the last owner-confirmed available build. TestFlight notes contain the exact
+iPad enrollment/copy-reference steps. No further App Store Connect navigation was
+requested; the owner was asked to install the newer build in TestFlight when offered.
 
 The new client supports user-requested permission, signed APNs environment checking,
 client-generated 256-bit credentials and exact pending requests saved to Keychain
