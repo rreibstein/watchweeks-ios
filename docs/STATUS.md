@@ -7,8 +7,10 @@ The repeated footer test failure was fixed by separating container/button
 accessibility and keeping footer controls mounted outside the lazy guide list.
 
 The exact verified SHA was promoted without force to release/cloud-upload.
-WatchWeeks Upload / Archive - iOS started at 12:53 UTC. Signed upload, Apple
-processing and the new TestFlight build number are not yet confirmed. Marketing
+WatchWeeks Upload / Archive - iOS was triggered at 12:53 UTC. Its GitHub status
+is not reliable: the older ready build 13 also still says running there six hours
+later. Current Apple archive status was requested from the owner. Signed upload,
+processing and the new TestFlight build number remain unconfirmed. Marketing
 version remains 1.0.2. Build 13 is the older analytics/calendar build without alerts.
 
 The new client supports user-requested permission, signed APNs environment checking,

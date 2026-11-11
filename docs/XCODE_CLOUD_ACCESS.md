@@ -70,3 +70,19 @@ Do not start duplicate builds solely because that check has not refreshed.
 No App Review submission or public release of 1.0.2 was performed. Owner smoke QA,
 actual PostHog production ingestion confirmation and App Privacy updates remain
 separate acceptance gates. See release/BUILD_HISTORY.md.
+
+## Archive status proved stale — Nov 11, 13:06 UTC
+
+The old archive check 130382082155 still reports running from 07:15 UTC, although
+Apple's build-13 ready email and the owner's current TestFlight screen both confirm
+1.0.2 (13) is available. Therefore a running public Archive check is NOT reliable
+evidence of actual current compilation/upload/processing. Do not wait indefinitely
+or start duplicate uploads solely because that check remains running. Verify checks
+have reported terminal results normally.
+
+The publication-alert source dbb61b790793f08911cd53be5c08dc2ccfb7e0c4 passed
+Verify (6m 19s; zero errors/failures/warnings) and was promoted to release/cloud-upload.
+Its archive check 130534757008 was created at 12:53 UTC. Current Apple status/build
+number requires direct Apple access or the owner's newest WatchWeeks Upload report.
+The owner still sees only older build 13 in TestFlight. A focused request for the
+actual Apple archive status is pending; no new upload retry or review submission.
