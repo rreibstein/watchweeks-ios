@@ -81,12 +81,16 @@ struct DiscoveryView: View {
                         if ordered.isEmpty && !model.loading {
                             ContentUnavailableView("No guides loaded", systemImage: "globe", description: Text("Pull to refresh. Previously loaded guides are available offline."))
                         }
+                    }.padding(16)
+                    // Footer controls stay mounted across guide refreshes and
+                    // navigation restoration, independently of lazy guide rows.
+                    VStack(alignment: .leading, spacing: 16) {
                         ForthcomingGuidesPromo(guides: model.guides)
                         NavigationLink { AboutView() } label: {
                             Label("About & privacy", systemImage: "info.circle")
                                 .font(.wwFootnote).frame(maxWidth:.infinity,minHeight:44)
                         }.accessibilityIdentifier("home-about-privacy")
-                    }.padding(16)
+                    }.padding(.horizontal,16).padding(.bottom,16)
                 }
                 .refreshable { await model.refresh() }
             }.watchPage().toolbar(.hidden, for: .navigationBar)
@@ -849,7 +853,8 @@ private struct ForthcomingGuidesPromo: View {
                 Text(alerts.isConfigured ? "Optional notifications when a new guide is published." : "More guides are on the way. Push alerts are coming soon.")
                     .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
             }.padding(16).frame(maxWidth:.infinity,alignment:.leading).watchCard()
-                .accessibilityIdentifier("forthcoming-guides-promo")
+                // Avoid a container identifier propagating over the button ID.
+                .accessibilityElement(children:.contain)
                 .sheet(isPresented:$showingDetails) { GuideUpdatesSheet() }
         }
     }

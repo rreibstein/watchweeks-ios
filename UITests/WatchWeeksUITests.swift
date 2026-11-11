@@ -1,6 +1,10 @@
 import XCTest
 
 final class WatchWeeksUITests: XCTestCase {
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        continueAfterFailure=false
+    }
     @MainActor private func homeButton(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
         // LazyVStack can report an offscreen activation point as an XCTest error
         // when isHittable is queried after returning from a navigation destination.
@@ -16,7 +20,12 @@ final class WatchWeeksUITests: XCTestCase {
             }
             app.swipeUp()
         }
-        XCTFail("Home button was not visible after scrolling: " + identifier)
+        let hierarchy=XCTAttachment(string:app.debugDescription)
+        hierarchy.name="Home accessibility hierarchy";hierarchy.lifetime = .keepAlways;add(hierarchy)
+        let screenshot=XCTAttachment(screenshot:app.screenshot())
+        screenshot.name="Home after scrolling";screenshot.lifetime = .keepAlways;add(screenshot)
+        let controls=app.buttons.allElementsBoundByIndex.suffix(12).map { "[\($0.identifier)] \($0.label)" }.joined(separator:"; ")
+        XCTFail("Home button was not visible after scrolling: " + identifier + ". Home controls: " + String(controls.prefix(1800)))
         return app.buttons[identifier].firstMatch
     }
     @MainActor func testGuestNavigation() {
