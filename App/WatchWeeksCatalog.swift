@@ -178,10 +178,6 @@ struct BrandRow: View {
                                     ReleaseCard(release: release, guide: guide)
                                 }.buttonStyle(.plain)
                                 ReleaseGallery(images: release.displayImages, skipFirst: !release.displayImages.isEmpty)
-                                if !release.displaySharedImages.isEmpty {
-                                    Text("Other photos from this release group").font(.wwCaption)
-                                    ReleaseGallery(images: release.displaySharedImages)
-                                }
                             }
                         }
                     } label: {
@@ -660,10 +656,6 @@ struct ReleaseDetail: View {
                 }
                 if let details = release.details { Text(details).textSelection(.enabled) }
                 ReleaseGallery(images: release.displayImages, skipFirst: !release.displayImages.isEmpty)
-                if !release.displaySharedImages.isEmpty {
-                    Text("Other photos from this release group").font(.wwHeadline)
-                    ReleaseGallery(images: release.displaySharedImages)
-                }
             }.padding()
         }.watchPage().navigationBarTitleDisplayMode(.inline).watchFindToolbar()
             .task { model.activeGuideID = guide.id }
