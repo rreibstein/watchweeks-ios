@@ -679,6 +679,7 @@ struct AboutView: View {
     @ObservedObject private var analytics = UsageAnalytics.shared
     @State private var explainAnalytics = false
     @State private var chooseAnalytics = false
+    @State private var showingGuideUpdates = false
 
     var body: some View {
         List {
@@ -687,10 +688,8 @@ struct AboutView: View {
                 WebsiteLink(title: "Privacy policy", url: PublicLinks.privacy)
                 if let email = URL(string: "mailto:reed.reibstein@gmail.com") {
                     Link("Email support", destination: email)
-                    if let correction = URL(string: "mailto:reed.reibstein@gmail.com?subject=WatchWeeks%20correction") {
-                        Link("Report a correction", destination: correction)
-                    }
                 }
+                WebsiteLink(title:"Report a correction",url:PublicLinks.corrections)
             }
             Section("Your visit, your device") {
                 Text("Your shortlist, ratings and seen selections are saved on this device. They do not automatically synchronize with website accounts.")
@@ -714,7 +713,8 @@ struct AboutView: View {
                 }
             }
             Section("Guide notifications") {
-                Text("Notification permission and usage analytics are separate choices. Push alerts are not enabled in this build while the delivery service is being prepared. No push token is registered or sent.")
+                Text("Notification permission and usage analytics are separate choices. Guide alerts require a verified delivery service and your permission.")
+                Button("Guide alert preferences") { showingGuideUpdates=true }
             }
             Section("Explore more") {
                 WebsiteLink(title: "WatchWeeks website", url: PublicLinks.home)
@@ -726,6 +726,7 @@ struct AboutView: View {
                 }
             }
         }.scrollContentBackground(.hidden).watchPage().navigationTitle("About")
+            .sheet(isPresented:$showingGuideUpdates) { GuideUpdatesSheet() }
             .sheet(isPresented: $explainAnalytics) {
                 NavigationStack {
                     List {

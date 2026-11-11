@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import UserNotifications
+import Security
 import WatchWeeksCore
 
 @MainActor final class AppModel: ObservableObject {
@@ -13,6 +14,9 @@ import WatchWeeksCore
     @Published var message: String?
     @Published var savedAt: Date?
     @Published var stale = false
+    @Published var upcomingFeed: UpcomingGuideFeed?
+    @Published private(set) var hasLiveUpcomingFeed=false
+    private(set) var publishedGuideIDs: Set<String> = []
     @Published var persistenceError: String?
     @Published private(set) var pendingSort: [SelectionKey: Selection] = [:]
     private let store: LocalStore
@@ -35,12 +39,22 @@ import WatchWeeksCore
         catch { selectionsReadable = false; persistenceError = "Saved selections could not be read. They have not been replaced. Restart after checking device storage."; return }
         visitGuides = (try? await store.rememberedGuides()) ?? []
         if let snapshot = try? await store.snapshot() { guides=snapshot.guides; savedAt=snapshot.fetchedAt; stale=true }
+        upcomingFeed=try? await store.upcoming()
         await refresh()
     }
     func refresh() async {
         guard !loading else { return }; loading=true; defer { loading=false }
-        do { let result = try await repository.load(); guides=result.guides; savedAt=result.fetchedAt; stale=result.stale; message=result.warning; visitGuides = (try? await store.rememberedGuides()) ?? result.guides }
+        do { let result = try await repository.load(); guides=result.guides; publishedGuideIDs=result.publishedIDs; savedAt=result.fetchedAt; stale=result.stale; message=result.warning; visitGuides = (try? await store.rememberedGuides()) ?? result.guides }
         catch { message=error.localizedDescription }
+        // Cached editorial content is useful offline. Cached capabilities never
+        // activate permission prompts or enrollment.
+        GuidePublicationAlerts.shared.updateAvailability(false)
+        hasLiveUpcomingFeed=false
+        do {
+            let feed=try await PublicGuideService().upcoming()
+            upcomingFeed=feed;hasLiveUpcomingFeed=true;try? await store.saveUpcoming(feed)
+            GuidePublicationAlerts.shared.updateAvailability(feed.capabilities.push.available)
+        } catch { /* Pre-deployment 404/offline: keep editorial fallback, gate Off. */ }
     }
     func selection(_ guide: Guide, _ brand: Brand) -> Selection { selections[SelectionKey(guideID: guide.id, brandID: brand.id)] ?? Selection() }
 
@@ -110,10 +124,14 @@ import WatchWeeksCore
                     guard phase == .active else { return }
                     UsageAnalytics.shared.active()
                     await model.start()
+                    await GuidePublicationAlerts.shared.foreground()
+                    var retryStep=0
                     while !Task.isCancelled {
-                        do { try await Task.sleep(for: .seconds(300)) }
+                        let delay: Double = model.stale ? [30.0,120.0,600.0][min(retryStep,2)] : 300
+                        do { try await Task.sleep(for: .seconds(delay)) }
                         catch { return }
                         await model.refresh()
+                        retryStep=model.stale ? retryStep+1 : 0
                     }
                 }
         }
@@ -349,45 +367,134 @@ struct AnalyticsQADiagnostics: View {
 }
 #endif
 
-// Shipping gate: no backend adapter is installed until the Lovable/APNs contract,
-// signing capability, privacy review and real-device delivery tests are complete.
-@MainActor protocol GuidePushBackend: AnyObject {
-    func register(deviceToken: Data) async throws
-    func unsubscribe() async throws
-}
+// The local release gate stays absent/false until signing, privacy and device
+// delivery are verified. A remote capability or cached feed alone cannot enable it.
 @MainActor final class GuidePublicationAlerts: ObservableObject {
     static let shared = GuidePublicationAlerts()
-    @Published private(set) var isConfigured = false
-    @Published private(set) var isBusy = false
+    @Published private(set) var isConfigured=false
+    @Published private(set) var isBusy=false
+    @Published private(set) var isEnabled=false
+    @Published private(set) var deletionPending=false
     @Published private(set) var message: String?
     @Published private(set) var pendingGuideID: String?
-    private var backend: (any GuidePushBackend)?
+    private let subscription=PushSubscription(service:PushInstallationClient(),store:PushKeychainStore())
     private var registration: Task<Void,Never>?
+    private var acceptToken=false
+    private var timeout: Task<Void,Never>?
+    private let defaults=UserDefaults.standard
+    private let seenKey="watchweeks.opened-publication-notifications.v1"
+    private var environment: APNSEnvironment? {
+        // Set only by the signed-build setup; validate against the final signed
+        // aps-environment entitlement using scripts/verify-push-archive.py.
+        guard Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPushIntegrationVerified") as? Bool == true,
+              let value=Bundle.main.object(forInfoDictionaryKey:"WatchWeeksAPNsEnvironment") as? String else { return nil }
+        return APNSEnvironment(rawValue:value)
+    }
     private init() {}
-    func configureVerifiedBackend(_ backend: any GuidePushBackend) {
-        self.backend=backend;isConfigured=true
+    func updateAvailability(_ available: Bool) { isConfigured=available && environment != nil }
+    private func syncState() {
+        isEnabled=subscription.state == .on
+        deletionPending=subscription.state == .deletionPending
+    }
+    func foreground() async {
+        do {
+            // No credential exists in current releases. Do not register or ask
+            // permission automatically for a guest who has never enrolled.
+            let saved=try subscription.hasSavedSubscription()
+            let settings=await UNUserNotificationCenter.current().notificationSettings()
+            let allowed: [UNAuthorizationStatus] = [.authorized,.provisional,.ephemeral]
+            if !allowed.contains(settings.authorizationStatus) { try await subscription.disable() }
+            else {
+                try await subscription.reconcile()
+                if saved && subscription.state == .on && isConfigured {
+                    acceptToken=true
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            }
+            syncState()
+        } catch { syncState();message="Alert preferences could not refresh. Please retry." }
     }
     func requestSubscription() async {
-        guard backend != nil else { message="Push alerts are coming soon. No notification permission has been requested."; return }
-        guard !isBusy else { return };isBusy=true;defer { isBusy=false }
+        guard isConfigured, environment != nil else { message="Push alerts are coming soon. No notification permission has been requested.";return }
+        guard !isBusy else { return };isBusy=true
         do {
             let allowed=try await UNUserNotificationCenter.current().requestAuthorization(options:[.alert,.sound])
-            guard allowed else { message="Notifications are off. You can change this in iPhone Settings.";return }
+            guard allowed else {
+                try await subscription.disable();syncState();isBusy=false
+                message="Notifications are off. You can change this in iPhone Settings.";return
+            }
             message="Connecting guide alerts…"
+            acceptToken=true
             UIApplication.shared.registerForRemoteNotifications()
-        } catch { message="Notification permission could not be checked. Please try again." }
+            timeout?.cancel()
+            timeout=Task { [weak self] in
+                do { try await Task.sleep(for:.seconds(30)) } catch { return }
+                guard let self else { return }
+                self.acceptToken=false;self.isBusy=false;self.message="This device has not connected yet. Please retry."
+            }
+        } catch { isBusy=false;message="Notification permission or registration could not be completed. Please retry." }
     }
     func receivedDeviceToken(_ data: Data) {
-        guard let backend else { return }
-        registration?.cancel()
+        guard acceptToken, isConfigured, let environment else { return }
+        acceptToken=false
+        timeout?.cancel()
+        guard registration == nil else { return }
+        isBusy=true
         registration=Task {
-            do { try await backend.register(deviceToken:data);guard !Task.isCancelled else { return };message="Guide alerts are enabled." }
-            catch { guard !Task.isCancelled else { return };message="Guide alerts could not be connected. Please try again." }
+            defer { registration=nil;isBusy=false;syncState() }
+            do {
+                let version=Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? ""
+                try await subscription.register(token:data,environment:environment,appVersion:version,osVersion:UIDevice.current.systemVersion)
+                message=subscription.state == .on ? "Guide alerts are enabled." : "Guide alerts are off."
+            } catch { message=error.localizedDescription }
         }
     }
-    func registrationFailed() { message="This device could not register for notifications. Please try again." }
-    func openPublishedGuide(_ id: String) { pendingGuideID=id }
+    func unsubscribe() async {
+        acceptToken=false
+        timeout?.cancel()
+        do {
+            try await subscription.disable()
+            await registration?.value
+            syncState()
+            message=deletionPending ? "Unsubscribe is pending. Reopen the app online to finish." : "Guide alerts are off."
+        } catch { syncState();message="Unsubscribe is pending. Retry online to finish; alerts may still arrive until confirmed." }
+    }
+    func registrationFailed() { acceptToken=false;timeout?.cancel();isBusy=false;message="This device could not register for notifications. Please retry." }
+    func openPublishedGuide(_ notification: GuidePublicationNotification) {
+        var inbox=GuidePublicationInbox(openedIDs:defaults.stringArray(forKey:seenKey) ?? [])
+        guard inbox.accept(notification) else { return }
+        defaults.set(inbox.openedIDs,forKey:seenKey)
+        pendingGuideID=notification.guideID
+    }
     func clearPendingRoute() { pendingGuideID=nil }
+}
+
+/// Device-bound, excluded from iCloud synchronization and device migration.
+@MainActor private final class PushKeychainStore: PushCredentialStore {
+    private var query: [String:Any] { [kSecClass as String:kSecClassGenericPassword,
+        kSecAttrService as String:"com.watchweeks.app.guide-push.v1",kSecAttrAccount as String:"installation"] }
+    func load() throws -> PushCredential? {
+        var request=query;request[kSecReturnData as String]=true;request[kSecMatchLimit as String]=kSecMatchLimitOne
+        var result: CFTypeRef?
+        let status=SecItemCopyMatching(request as CFDictionary,&result)
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess, let data=result as? Data else { throw PushServiceError.invalidResponse }
+        return try JSONDecoder().decode(PushCredential.self,from:data)
+    }
+    func save(_ credential: PushCredential) throws {
+        let data=try JSONEncoder().encode(credential)
+        let values: [String:Any]=[kSecValueData as String:data,
+            kSecAttrAccessible as String:kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly]
+        var status=SecItemUpdate(query as CFDictionary,values as CFDictionary)
+        if status == errSecItemNotFound {
+            var record=query;record.merge(values) { _,new in new };status=SecItemAdd(record as CFDictionary,nil)
+        }
+        guard status == errSecSuccess else { throw PushServiceError.invalidResponse }
+    }
+    func remove() throws {
+        let status=SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else { throw PushServiceError.invalidResponse }
+    }
 }
 @MainActor final class WatchWeeksPushDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey:Any]? = nil) -> Bool {
@@ -400,14 +507,16 @@ struct AnalyticsQADiagnostics: View {
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         GuidePublicationAlerts.shared.registrationFailed()
     }
+    private nonisolated static func publication(_ payload: [AnyHashable:Any]) -> GuidePublicationNotification? {
+        GuidePublicationNotification(type:payload["type"] as? String,version:payload["payload_v"] as? Int,
+            guideID:payload["guide_id"] as? String,notificationID:payload["notification_id"] as? String)
+    }
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
-        let payload=response.notification.request.content.userInfo
-        guard let id=GuidePublicationPush.guideID(type:payload["type"] as? String,version:payload["payload_v"] as? Int,id:payload["guide_id"] as? String) else { return }
-        await GuidePublicationAlerts.shared.openPublishedGuide(id)
+        guard let notification=Self.publication(response.notification.request.content.userInfo) else { return }
+        await GuidePublicationAlerts.shared.openPublishedGuide(notification)
     }
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
-        let payload=notification.request.content.userInfo
-        guard GuidePublicationPush.guideID(type:payload["type"] as? String,version:payload["payload_v"] as? Int,id:payload["guide_id"] as? String) != nil else { return [] }
+        guard Self.publication(notification.request.content.userInfo) != nil else { return [] }
         return [.banner,.sound]
     }
 }

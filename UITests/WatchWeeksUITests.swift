@@ -34,7 +34,7 @@ final class WatchWeeksUITests: XCTestCase {
         for _ in 0..<24 where !updates.isHittable { app.swipeUp() }
         XCTAssertTrue(updates.isHittable);updates.tap()
         XCTAssertTrue(app.navigationBars["Guide updates"].waitForExistence(timeout:3))
-        XCTAssertTrue(app.buttons["Get email updates on WatchWeeks"].exists)
+        XCTAssertTrue(app.buttons["Guide updates on WatchWeeks"].exists)
         XCTAssertFalse(app.buttons["Enable notifications"].exists)
         XCTAssertFalse(XCUIApplication(bundleIdentifier:"com.apple.springboard").alerts.firstMatch.exists)
         app.buttons["Done"].tap()

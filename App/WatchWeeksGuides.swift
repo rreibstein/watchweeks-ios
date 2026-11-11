@@ -96,14 +96,21 @@ struct DiscoveryView: View {
                 }
                 .task(id:model.pendingPushGuideID) {
                     guard model.pendingPushGuideID != nil else { return }
-                    if !openPendingGuide() { await model.refresh(); _ = openPendingGuide() }
+                    if !openPendingGuide() {
+                        while model.loading {
+                            do { try await Task.sleep(for:.milliseconds(100)) } catch { return }
+                        }
+                        if !openPendingGuide() { await model.refresh() }
+                        if !openPendingGuide() { model.pendingPushGuideID=nil }
+                    }
                 }
                 .onChange(of:model.guides) { _, _ in _ = openPendingGuide() }
                 .onAppear { model.activeGuideID = nil }
         }
     }
     @discardableResult private func openPendingGuide() -> Bool {
-        guard let id=model.pendingPushGuideID, model.guides.contains(where:{ $0.id == id }) else { return false }
+        guard let id=model.pendingPushGuideID, model.publishedGuideIDs.contains(id),
+              model.guides.contains(where:{ $0.id == id }) else { return false }
         pushDestinationID=id;model.pendingPushGuideID=nil;return true
     }
 }
@@ -825,17 +832,18 @@ private struct GuideShareSheet: UIViewControllerRepresentable {
 
 private struct ForthcomingGuidesPromo: View {
     let guides: [Guide]
+    @EnvironmentObject private var model: AppModel
     @ObservedObject private var alerts = GuidePublicationAlerts.shared
     @State private var showingDetails = false
     var body: some View {
-        let forthcoming=ForthcomingGuide.awaitingPublication(in:guides)
-        if !forthcoming.isEmpty {
+        let titles=model.upcomingFeed.map { $0.planned.map(\.title) } ?? ForthcomingGuide.awaitingPublication(in:guides).map(\.title)
+        if !titles.isEmpty {
             VStack(alignment:.leading,spacing:12) {
                 Text("Be the first to know about new guides").font(.wwTitle2)
-                Text("Guides in the works: " + forthcoming.map(\.title).joined(separator:", ") + ".")
+                Text("Guides in the works: " + titles.joined(separator:", ") + ".")
                     .font(.wwSubheadline)
                 Button("Get guide updates") { showingDetails=true }.frame(minHeight:44)
-                Text(alerts.isConfigured ? "Optional notifications when a new guide is published." : "Email updates are available now. Push alerts are coming soon.")
+                Text(alerts.isConfigured ? "Optional notifications when a new guide is published." : "More guides are on the way. Push alerts are coming soon.")
                     .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
             }.padding(16).frame(maxWidth:.infinity,alignment:.leading).watchCard()
                 .accessibilityIdentifier("forthcoming-guides-promo")
@@ -843,7 +851,8 @@ private struct ForthcomingGuidesPromo: View {
         }
     }
 }
-private struct GuideUpdatesSheet: View {
+struct GuideUpdatesSheet: View {
+    @EnvironmentObject private var model: AppModel
     @ObservedObject private var alerts = GuidePublicationAlerts.shared
     @Environment(\.dismiss) private var dismiss
     var body: some View {
@@ -851,14 +860,21 @@ private struct GuideUpdatesSheet: View {
             List {
                 Section("New WatchWeeks guides") {
                     Text("Get an alert when a new independent city or event guide is published.")
-                    if alerts.isConfigured {
-                        Text("Notifications are optional. Apple will ask for permission after you choose Enable notifications. Analytics is a separate choice.")
-                        Button("Enable notifications") { Task { await alerts.requestSubscription() } }
-                            .disabled(alerts.isBusy)
+                    if alerts.isConfigured || alerts.isEnabled || alerts.deletionPending {
+                        LabeledContent("Guide alerts",value:alerts.deletionPending ? "Turning off" : (alerts.isEnabled ? "On" : (alerts.isBusy ? "Connecting" : "Off")))
+                        if alerts.isEnabled || alerts.deletionPending || alerts.isBusy {
+                            Button(alerts.deletionPending ? "Retry unsubscribe" : "Turn off guide alerts") { Task { await alerts.unsubscribe() } }
+                        } else {
+                            Text("Notifications are optional. Apple will ask for permission after you choose Enable notifications. Analytics is a separate choice.")
+                            Button("Enable notifications") { Task { await alerts.requestSubscription() } }
+                                .disabled(alerts.isBusy)
+                        }
+                        Text("If enabled, your device token, an installation credential, app version and iOS version are used to deliver guide alerts. They are not sent to analytics. Delivery is best effort.")
+                            .font(.wwFootnote)
                     } else {
-                        Text("Push alerts are coming soon. We will ask for notification permission once delivery is ready. Until then, use Notify me on the website for occasional email announcements.")
+                        Text("Push alerts are coming soon. We will ask for notification permission once delivery is ready. You can see guide updates and signup options on the website.")
                     }
-                    WebsiteLink(title:"Get email updates on WatchWeeks",url:PublicLinks.home)
+                    WebsiteLink(title:"Guide updates on WatchWeeks",url:model.hasLiveUpcomingFeed ? PublicLinks.newsletter : PublicLinks.home)
                     if let message=alerts.message { Text(message).font(.wwFootnote) }
                 }
             }.font(.wwBody).navigationTitle("Guide updates").navigationBarTitleDisplayMode(.inline)

@@ -3,13 +3,18 @@
 Source adds the forthcoming-guide Home promo (Geneva W&W, British Watchmakers' Day,
 Las Vegas), moves About & privacy to the bottom of Home and expands in-app/privacy
 and ASC disclosure guidance. Native APNs callbacks and safe guide routing are
-prepared behind a missing-backend gate. The owner chose reliable publisher push;
+prepared behind a verified-integration gate. The owner chose reliable publisher push;
 there is NO notification permission prompt, device-token registration or push
 subscription until the Lovable/APNs contract is implemented and verified.
 
-46 portable tests pass, including upcoming-title filtering and safe push-payload
-identity validation. Native Xcode verification for this follow-up is separate from
-the earlier build 13 success. Existing build 13 is unchanged and available to test.
+The Home/footer candidate 046ae48 passed Xcode Cloud Verify in 6m 51s with zero
+errors/failures/warnings. The subsequent source implements Lovable's preview
+upcoming/enrollment contracts, per-guide last-good refresh, Keychain lifecycle and
+unsubscribe retries, duplicate-tap suppression and signed APNs environment validation.
+Its 60 portable tests pass; Xcode verification for this newer source is pending.
+Push stays explicitly disabled locally; production upcoming and /notify remain 404.
+See release/PUBLICATION_ALERTS_INTEGRATION.md and release/LOVABLE_PUSH_FINISH.md.
+Existing build 13 is unchanged and available to test.
 See release/LOVABLE_IOS_HANDOFF.md and release/APP_PRIVACY_1_0_2.md. Nothing was
 submitted for App Review or published by this work.
 
