@@ -843,7 +843,9 @@ private struct ForthcomingGuidesPromo: View {
                 Text("Be the first to know about new guides").font(.wwTitle2)
                 Text("Guides in the works: " + titles.joined(separator:", ") + ".")
                     .font(.wwSubheadline)
-                Button("Get guide updates") { showingDetails=true }.frame(minHeight:44)
+                Button { showingDetails=true } label: {
+                    Text("Get guide updates").frame(minHeight:44).contentShape(Rectangle())
+                }.accessibilityIdentifier("guide-updates")
                 Text(alerts.isConfigured ? "Optional notifications when a new guide is published." : "More guides are on the way. Push alerts are coming soon.")
                     .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
             }.padding(16).frame(maxWidth:.infinity,alignment:.leading).watchCard()

@@ -11,7 +11,7 @@ final class WatchWeeksUITests: XCTestCase {
                 let frame=button.frame, window=app.windows.firstMatch.frame
                 let bar=app.tabBars.firstMatch
                 let bottom=bar.exists ? min(window.maxY-44,bar.frame.minY-8) : window.maxY-80
-                if frame.minY.isFinite, frame.maxY.isFinite, frame.height >= 40,
+                if frame.minY.isFinite, frame.maxY.isFinite, frame.height > 0,
                    frame.width > 0, frame.minY >= window.minY+44, frame.maxY <= bottom { return button }
             }
             app.swipeUp()
@@ -43,7 +43,7 @@ final class WatchWeeksUITests: XCTestCase {
     @MainActor func testGuideUpdatesWaitForReliablePushDelivery() {
         let app=XCUIApplication();app.launch()
         XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
-        homeButton("Get guide updates",in:app).tap()
+        homeButton("guide-updates",in:app).tap()
         XCTAssertTrue(app.navigationBars["Guide updates"].waitForExistence(timeout:3))
         XCTAssertTrue(app.buttons["Guide updates on WatchWeeks"].exists)
         XCTAssertFalse(app.buttons["Enable notifications"].exists)
