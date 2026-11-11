@@ -9,6 +9,13 @@ data collection or permission/analytics behavior; the preceding source's native
 UI QA is retained as behavior evidence. The new signed archive must separately
 compile this visual revision. No new low-impact mirror tests were added.
 
+Update: source bc4d8654813ad8b13e0138cd8807badb924acd88 passed Xcode Cloud
+Archive in 4m 54s with zero errors, test failures, analysis issues or warnings.
+This confirms actual Xcode compilation and signed-export validation of the visual
+revision; it does not establish Apple processing, a TestFlight build number or
+device receipt. The live upcoming API still reports delivery_unverified on Nov 11.
+See release/LAUNCH_LATEST_UPDATE.md for the remaining owner/device steps.
+
 # One-tap notification permission — Xcode verified, upload triggered
 
 Home Notify me now requests Apple's native authorization directly; no intermediate

@@ -1,5 +1,17 @@
 # Build history
 
+## Branded Home notification promo — signed archive succeeded
+
+Source bc4d8654813ad8b13e0138cd8807badb924acd88, marketing version 1.0.2.
+Xcode Cloud Upload / Archive succeeded in 4m 54s, zero errors, failures, analysis
+issues or warnings. This styling revision retains the native permission and
+analytics behavior UI-verified at 88307be; no new UI test pass is claimed for
+the styling itself. Mandatory core/export validation ran through the archive hook.
+Apple processing/new TestFlight number remain unconfirmed from this cloud session.
+Notes begin "Guide alerts — prominent Home button." Public backend availability
+still reports false/delivery_unverified; actual iPad receipt and activation remain.
+No App Review submission, public release or provider notification occurred here.
+
 ## One-tap native notification permission — Xcode verified, upload triggered
 
 Source: 88307bedae4404d91b620c2d9890669a667c2bac. Version 1.0.2.
