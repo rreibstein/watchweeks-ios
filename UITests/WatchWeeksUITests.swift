@@ -27,16 +27,14 @@ final class WatchWeeksUITests: XCTestCase {
     }
 
     @MainActor func testOptionalAnalyticsConsent() async throws {
-        guard ProcessInfo.processInfo.environment["WW_ANALYTICS_QA"] == "1" else {
-            throw XCTSkip("Requires the local analytics receiver and TEST_RUNNER_WW_ANALYTICS_QA=1.")
-        }
         let app = XCUIApplication()
         app.launchEnvironment["WW_ANALYTICS_QA"] = "1"
         app.launchEnvironment["WW_ANALYTICS_QA_SUITE"] = "watchweeks.analytics.qa.\(UUID())"
-        let receiver = try XCTUnwrap(URL(string: "http://localhost:8766/events"))
         func events() async throws -> [[String: String]] {
-            let (data, _) = try await URLSession.shared.data(from: receiver)
-            return try JSONDecoder().decode([[String: String]].self, from: data)
+            let diagnostic=app.descendants(matching:.any)["analytics-qa-events"].firstMatch
+            XCTAssertTrue(diagnostic.waitForExistence(timeout:5))
+            let value=try XCTUnwrap(diagnostic.value as? String)
+            return try JSONDecoder().decode([[String:String]].self,from:Data(value.utf8))
         }
         func waitForEvents(_ count: Int) async throws -> [[String: String]] {
             for _ in 0..<25 {
@@ -46,7 +44,7 @@ final class WatchWeeksUITests: XCTestCase {
             }
             return try await events()
         }
-        let baseline = try await events().count
+        let baseline = 0 // A unique consent/QA suite is used for this app launch.
         func about() {
             XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout: 10))
             XCTAssertFalse(app.alerts.firstMatch.exists)

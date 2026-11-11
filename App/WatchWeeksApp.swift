@@ -256,6 +256,9 @@ struct WebsiteLink: View {
     static let shared = UsageAnalytics()
     @Published private(set) var enabled = false
     private let client: UsageAnalyticsClient?
+    #if DEBUG && targetEnvironment(simulator)
+    let qaRecorder: AnalyticsQARecorder?
+    #endif
     var isAvailable: Bool { client != nil }
     private init() {
         let defaults: UserDefaults
@@ -272,10 +275,20 @@ struct WebsiteLink: View {
         token=(Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPostHogToken") as? String).flatMap { $0.hasPrefix("phc_") ? $0 : nil }
         endpoint=URL(string:"https://us.i.posthog.com/i/v0/e/")!
         #endif
+        let transport: UsageAnalyticsClient.Transport?
+        #if DEBUG && targetEnvironment(simulator)
+        if token != nil {
+            let recorder=AnalyticsQARecorder(defaults:defaults)
+            qaRecorder=recorder
+            transport = { request in try recorder.receive(request) }
+        } else { qaRecorder=nil; transport=nil }
+        #else
+        transport=nil
+        #endif
         if let token {
             client=UsageAnalyticsClient(token:token,endpoint:endpoint,
                 version:Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "unknown",
-                build:Bundle.main.object(forInfoDictionaryKey:"CFBundleVersion") as? String ?? "unknown",defaults:defaults)
+                build:Bundle.main.object(forInfoDictionaryKey:"CFBundleVersion") as? String ?? "unknown",defaults:defaults,transport:transport)
             enabled=client?.enabled ?? false
         } else { client=nil }
     }
@@ -286,3 +299,44 @@ struct WebsiteLink: View {
         client?.record(action,guideID:guideID,eventID:eventID,releaseID:releaseID)
     }
 }
+
+#if DEBUG && targetEnvironment(simulator)
+/// Test-only receiver: consumes the actual serialized request without any network.
+/// The production Release binary contains neither this receiver nor its UI.
+@MainActor final class AnalyticsQARecorder: ObservableObject {
+    @Published private(set) var events: [[String:String]]
+    private let defaults: UserDefaults
+    init(defaults: UserDefaults) {
+        self.defaults=defaults
+        events=(defaults.array(forKey:"analyticsQA.received") as? [[String:String]]) ?? []
+    }
+    var json: String {
+        guard let data=try? JSONSerialization.data(withJSONObject:events), let text=String(data:data,encoding:.utf8) else { return "[]" }
+        return text
+    }
+    func receive(_ request: URLRequest) throws -> Int {
+        guard request.url?.host == "localhost", request.httpMethod == "POST",
+              let data=request.httpBody,
+              let payload=try JSONSerialization.jsonObject(with:data) as? [String:Any],
+              payload["api_key"] as? String == "phc_watchweeks_qa",
+              let name=payload["event"] as? String, let id=payload["distinct_id"] as? String,
+              let properties=payload["properties"] as? [String:Any],
+              properties["platform"] as? String == "ios_native",
+              properties["$geoip_disable"] as? Bool == true,
+              properties["$process_person_profile"] as? Bool == false else {
+            throw NSError(domain:"AnalyticsQA.InvalidPayload",code:1)
+        }
+        events.append(["event":name,"id":id]);events=Array(events.suffix(100))
+        defaults.set(events,forKey:"analyticsQA.received")
+        return 200
+    }
+}
+struct AnalyticsQADiagnostics: View {
+    @ObservedObject var recorder: AnalyticsQARecorder
+    var body: some View {
+        Text("Analytics QA: \(recorder.events.count)")
+            .accessibilityIdentifier("analytics-qa-events")
+            .accessibilityValue(recorder.json)
+    }
+}
+#endif

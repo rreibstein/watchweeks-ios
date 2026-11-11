@@ -32,11 +32,10 @@ analytics delivery has been performed here for this revision.
 
 1. Fetch development/native-launch and inspect latest revision. Preserve local work.
 2. Run scripts/verify-macos.sh. Fix iOS build/UI failures, including new Core module.
-3. For the analytics UI test, run scripts/qa-analytics-receiver.py on the Mac;
-   TEST_RUNNER_WW_ANALYTICS_QA=1 xcodebuild ... test
-   -only-testing:WatchWeeksUITests/WatchWeeksUITests/testOptionalAnalyticsConsent.
-   Production analytics is disabled in Debug/simulator unless that LOCAL QA mode
-   is selected. Core tests never send production events.
+3. The shared scheme now runs analytics consent QA by default, using a
+   Debug/simulator-only in-process receiver with a dummy key. No local server or
+   production event is needed. Confirm testOptionalAnalyticsConsent passed, not
+   skipped. It exercises the real preference controls and serialized payloads.
 4. TestFlight Release: verify installed version/build; check whole-event Calendar,
    all four navigation selections at normal/large text (iPhone/iPad), current guide
    countdown, old selections after upgrade, and absence of extra-group galleries.

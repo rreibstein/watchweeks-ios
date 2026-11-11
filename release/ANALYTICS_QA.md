@@ -16,18 +16,22 @@ Previously consented queued events persist across app exits, up to 100 events.
 
 ## Test without touching production
 
-Run `python3 scripts/qa-analytics-receiver.py` on the Mac and select a Debug iPhone
-simulator. Use `TEST_RUNNER_WW_ANALYTICS_QA=1 xcodebuild ... test
--only-testing:WatchWeeksUITests/WatchWeeksUITests/testOptionalAnalyticsConsent`.
-The test uses a fresh consent store and a loopback-only endpoint with a dummy key.
-Production delivery is disabled in all simulator and Debug builds.
+The default shared-scheme test now includes testOptionalAnalyticsConsent. It launches
+only the Debug simulator app with WW_ANALYTICS_QA=1 and a fresh UserDefaults suite.
+A Debug/simulator-only in-process receiver validates the actual serialized Capture
+API request and exposes event/id summaries through a test diagnostic accessibility
+value. It never opens a network connection or uses the public project token. The
+receiver and diagnostic UI are not compiled into the Release app.
 
-The test checks a silent fresh launch, declining, successful opt-in delivery,
-opt-out surviving relaunch, and a new identifier after re-enabling. Before
-release, exercise offline opt-out and retry; confirm production configuration
-against the intended PostHog project and test real delivery against an isolated
-test project or approved non-production endpoint. Do not send synthetic events
-into production.
+This checks silent launch, decline, opt-in, opt-out across relaunch and new identity
+after re-enabling. Core tests separately cover payload allowlist, durable offline
+queue/restart, queue cap, foreground deduplication and in-flight cancellation.
+Actual production network ingestion still requires a separately authorized test;
+these consent tests do not claim to verify production delivery.
+
+The prior localhost receiver script remains for manual transport investigations,
+but is no longer a prerequisite for cloud or local consent UI tests. A Cloud-only
+listener-startup failure was removed, not skipped or treated as an app test pass.
 
 ## Before promoting this branch
 

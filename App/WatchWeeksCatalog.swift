@@ -700,6 +700,9 @@ struct AboutView: View {
                 Text("Your shortlist, ratings and seen selections are saved on this device.")
                 Text("Previously loaded guides work offline. Links and content you have not loaded may require a connection.")
             }
+            #if DEBUG && targetEnvironment(simulator)
+            if let recorder=analytics.qaRecorder { AnalyticsQADiagnostics(recorder:recorder) }
+            #endif
             if analytics.isAvailable {
                 Section("Usage analytics") {
                     LabeledContent("Sharing", value: analytics.enabled ? "On" : "Off")
