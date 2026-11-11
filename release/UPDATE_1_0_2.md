@@ -3,16 +3,20 @@
 - About & privacy is now at the bottom of Home/Events, removed from My list.
 - Forthcoming-guide promo mirrors watchweeks.com: Geneva (W&W), British Watchmakers'
   Day and Las Vegas. It hides entries once matching public guides are available.
-- Get guide updates explains email signup now and reliable push coming soon.
-- No notification permission is requested until a verified Lovable/APNs backend
-  adapter, signing capability and end-to-end QA exist. No APNs token is sent.
-- In-app analytics disclosure and the App Store privacy worksheet are expanded.
-- Native APNs callback/routing preparation is gated and not a live push service.
+- The live upcoming feed supplies planned guide titles without invented dates.
+- The signed push client uses a Keychain-generated credential and durable pending
+  registration, exact lost-response recovery, token rotation and unsubscribe retries.
+- Public alerts remain gated by capabilities.push.available. An explicit TestFlight
+  path permits enrollment and a copyable non-secret test installation ID before
+  public activation; provider sending belongs to Lovable. No notifications are sent here.
+- Push privacy disclosures are included; optional PostHog consent remains separate.
 
-This is NOT in TestFlight build 13. Use an unused new Cloud build number for this
-follow-up, retaining marketing version 1.0.2 if it is still the pending update.
-Do not submit or publish without explicit owner approval. After enabling real push
-in a later build, revisit notification data purposes and privacy copy again.
+This is NOT in TestFlight build 13. Use Xcode Cloud's next unused build number for
+this follow-up, retaining marketing version 1.0.2 while that update is pending.
+The former signed-client candidate passed Xcode/simulator checks; the final recovery
+contract has 71 portable tests and requires a fresh cloud pass and signed upload.
+Physical receipt must be confirmed before public availability. Do not submit for
+App Review or publish without the exact-build owner approval gate.
 
 # WatchWeeks 1.0.2 candidate
 

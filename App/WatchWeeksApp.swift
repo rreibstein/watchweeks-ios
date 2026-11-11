@@ -119,11 +119,14 @@ import WatchWeeksCore
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(model)
-                .onChange(of: phase) { _, phase in if phase == .background { UsageAnalytics.shared.background() } }
+                .onChange(of: phase) { _, phase in
+                    if phase == .background { UsageAnalytics.shared.background();GuidePublicationAlerts.shared.background() }
+                }
                 .task(id: phase) {
                     guard phase == .active else { return }
                     UsageAnalytics.shared.active()
                     await model.start()
+                    guard !Task.isCancelled else { return }
                     await GuidePublicationAlerts.shared.foreground()
                     var retryStep=0
                     while !Task.isCancelled {
@@ -377,12 +380,21 @@ struct AnalyticsQADiagnostics: View {
     @Published private(set) var deletionPending=false
     @Published private(set) var isVerificationMode=false
     @Published private(set) var installationID: String?
+    @Published private(set) var permissionDenied=false
     @Published private(set) var message: String?
     @Published private(set) var pendingGuideID: String?
-    private let subscription=PushSubscription(service:PushInstallationClient(),store:PushKeychainStore())
+    private let subscription=PushSubscription(service:PushInstallationClient(),store:PushKeychainStore(),makeCredential: {
+        var bytes=[UInt8](repeating:0,count:32)
+        guard SecRandomCopyBytes(kSecRandomDefault,bytes.count,&bytes) == errSecSuccess else { throw PushServiceError.invalidRequest }
+        return try PushCredential.format(randomBytes:Data(bytes))
+    })
     private var registration: Task<Void,Never>?
     private var acceptToken=false
     private var timeout: Task<Void,Never>?
+    private var retry: Task<Void,Never>?
+    private var active=false
+    private var registeredThisProcess=false
+    private var lastReconciled: Date?
     private let defaults=UserDefaults.standard
     private let seenKey="watchweeks.opened-publication-notifications.v1"
     private var environment: APNSEnvironment? {
@@ -413,22 +425,38 @@ struct AnalyticsQADiagnostics: View {
         installationID=(try? subscription.installationID())?.uuidString.lowercased()
     }
     func foreground() async {
+        active=true
+        defer { syncState();scheduleRetry() }
         do {
             // No credential exists in current releases. Do not register or ask
             // permission automatically for a guest who has never enrolled.
             let saved=try subscription.hasSavedSubscription()
             let settings=await UNUserNotificationCenter.current().notificationSettings()
+            permissionDenied=settings.authorizationStatus == .denied
             let allowed: [UNAuthorizationStatus] = [.authorized,.provisional,.ephemeral]
-            if !allowed.contains(settings.authorizationStatus) { try await subscription.disable() }
+            if !allowed.contains(settings.authorizationStatus) { try await subscription.permissionChanged(granted:false) }
             else {
-                try await subscription.reconcile()
-                if saved && subscription.state == .on && isConfigured {
+                let hasRetry=try subscription.retryDate() != nil
+                if lastReconciled == nil || Date().timeIntervalSince(lastReconciled!) >= 900 || hasRetry {
+                    try await subscription.reconcile(allowEnrollment:isConfigured);lastReconciled=Date()
+                }
+                if saved && subscription.state == .on && isConfigured && !registeredThisProcess {
                     acceptToken=true
+                    registeredThisProcess=true
                     UIApplication.shared.registerForRemoteNotifications()
                 }
             }
             syncState()
         } catch { syncState();message="Alert preferences could not refresh. Please retry." }
+    }
+    func background() { active=false;retry?.cancel();retry=nil }
+    private func scheduleRetry() {
+        retry?.cancel();retry=nil
+        guard active, isConfigured || deletionPending, let date=try? subscription.retryDate() else { return }
+        retry=Task { [weak self] in
+            do { try await Task.sleep(for:.seconds(max(1,date.timeIntervalSinceNow))) } catch { return }
+            await self?.foreground()
+        }
     }
     func requestSubscription() async {
         guard isConfigured, environment != nil else { message="Push alerts are coming soon. No notification permission has been requested.";return }
@@ -436,9 +464,11 @@ struct AnalyticsQADiagnostics: View {
         do {
             let allowed=try await UNUserNotificationCenter.current().requestAuthorization(options:[.alert,.sound])
             guard allowed else {
-                try await subscription.disable();syncState();isBusy=false
-                message="Notifications are off. You can change this in iPhone Settings.";return
+                permissionDenied=true
+                try await subscription.permissionChanged(granted:false);syncState();isBusy=false
+                message="Notifications are off. You can change this in device Settings.";return
             }
+            permissionDenied=false
             message="Connecting guide alerts…"
             acceptToken=true
             UIApplication.shared.registerForRemoteNotifications()
@@ -451,13 +481,14 @@ struct AnalyticsQADiagnostics: View {
         } catch { isBusy=false;message="Notification permission or registration could not be completed. Please retry." }
     }
     func receivedDeviceToken(_ data: Data) {
-        guard acceptToken, isConfigured, let environment else { return }
+        guard acceptToken || (try? subscription.hasSavedSubscription()) == true,
+              isConfigured, let environment else { return }
         acceptToken=false
         timeout?.cancel()
         guard registration == nil else { return }
         isBusy=true
         registration=Task {
-            defer { registration=nil;isBusy=false;syncState() }
+            defer { registration=nil;isBusy=false;syncState();scheduleRetry() }
             do {
                 let version=Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? ""
                 try await subscription.register(token:data,environment:environment,appVersion:version,osVersion:UIDevice.current.systemVersion)
@@ -467,6 +498,7 @@ struct AnalyticsQADiagnostics: View {
     }
     func unsubscribe() async {
         acceptToken=false
+        defer { scheduleRetry() }
         timeout?.cancel()
         do {
             try await subscription.disable()

@@ -21,8 +21,11 @@ website, sends messages, or submits an app for review.
 - Typed, bounded registration/read/rotation/delete requests implement Lovable's
   contract. The dedicated ephemeral session rejects redirects and uses no cookies
   or disk URL cache. Tokens and credentials never enter usage analytics.
-- Acknowledgement is required before showing On. A per-installation bearer and ID
-  are stored in Keychain with `AfterFirstUnlockThisDeviceOnly`. Token bytes are
+- Acknowledgement is required before showing On. A 256-bit credential is generated
+  with SecRandomCopyBytes and formatted wwpi_ plus unpadded base64url. It and the
+  exact pending request are stored BEFORE the first POST. POST authenticates with
+  that bearer; 201 creates and 200 recovers. Lost responses/restarts reuse the same
+  credential and canonical request bytes. The acknowledged ID is stored in Keychain with `AfterFirstUnlockThisDeviceOnly`. Token bytes are
   passed to the server only when enabled, not persisted in this repository/app
   preferences. No passwords or Apple provider keys belong in the app.
 - OS permission is requested only after an explicit action and both gates below.
@@ -82,10 +85,34 @@ Before an enabled build:
 7. Activate the remote capability/schedule only after the ready native build and
    real delivery are verified. Obtain approval for any real notification send.
 
-The current POST contract cannot recover a lost registration response without the
-returned credential. The client fails safely on 409; it never takes over another
-installation. Server recovery is a remaining backend prerequisite, not a reason to
-ask the user to wait 60 days or repeatedly tap Enable.
+The final backend recovery contract supplied by the owner is now implemented.
+429/503/network failures persist backoff (30 seconds, 2 minutes, 10 minutes, then
+30 minutes; a longer Retry-After is honored). Backgrounding suspends the retry task.
+404 on initial/recovery registration preserves the credential and reports failure,
+not a fabricated subscription. PATCH omits registration-only platform/guides fields
+and preserves server subscription preferences. Deletion intent survives a lost POST
+response: recover the same installation, then delete it without showing On.
+
+The owner confirms APNs provider credentials are stored in Lovable. Native code
+never reads them. The final instruction prohibits notification sending, App Store
+release and Apple credential changes; provider testing belongs to Lovable and Reed
+must confirm physical receipt before public activation.
+
+## Reed: internal TestFlight verification
+
+1. Install the newly uploaded build in TestFlight on the iPad and launch WatchWeeks.
+2. On Home/Events, scroll to Get guide updates. A TestFlight delivery-check notice
+   appears while public capability is false. Tap Enable notifications, then Allow.
+   Browsing and local selections continue to work if permission is denied.
+3. Wait for Guide alerts are enabled. Tap Copy test installation ID. This is only
+   the non-secret installation UUID, never the bearer or APNs device token. Share
+   that reference with Lovable for the selected-device provider test.
+4. Lovable handles sending. Confirm physical receipt and tap the notification to
+   open its public guide; unknown/unavailable guides return to the guide list.
+5. Test Turn off guide alerts; wait for confirmation. If offline, the app explains
+   pending deletion and retries online. Re-enable when ready to use the feature.
+6. Public availability stays false until Reed confirms receipt. App Store users
+   cannot use the TestFlight-only bypass. No App Review submission occurs here.
 
 ## Privacy
 
@@ -103,8 +130,10 @@ website's existing consent and subscriber lifecycle.
 
 ## Validation evidence
 
-- Production read-only probes on Nov 11: guide index 200 JSON/no-store; upcoming
-  endpoint 404 JSON; `/notify` 404 HTML. Preview contracts are not live.
+- Production read-only probes on Nov 11: index/upcoming 200 JSON/no-store; push
+  availability false, delivery_unverified. The authenticated installation GET route
+  returns 401 without credentials. /notify still returns 404; native links safely
+  fall back to the homepage until that page actually serves HTML successfully.
 - Portable tests cover real-feed decoding and per-guide 404/503 recovery, upcoming
   null dates/version/duplicates/offline storage, push payload validation/dedup,
   request shape/environment/acknowledgement/errors/token rotation, credential header

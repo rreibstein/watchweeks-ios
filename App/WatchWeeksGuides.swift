@@ -96,6 +96,7 @@ struct DiscoveryView: View {
                 }
                 .task(id:model.pendingPushGuideID) {
                     guard model.pendingPushGuideID != nil else { return }
+                    pushDestinationID=nil
                     if !openPendingGuide() {
                         while model.loading {
                             do { try await Task.sleep(for:.milliseconds(100)) } catch { return }
@@ -109,8 +110,8 @@ struct DiscoveryView: View {
         }
     }
     @discardableResult private func openPendingGuide() -> Bool {
-        guard let id=model.pendingPushGuideID, model.publishedGuideIDs.contains(id),
-              model.guides.contains(where:{ $0.id == id }) else { return false }
+        guard let pending=model.pendingPushGuideID,
+              let id=GuidePublicationRouting.destination(guideID:pending,canonicalIDs:model.publishedGuideIDs,loadedIDs:Set(model.guides.map(\.id))) else { return false }
         pushDestinationID=id;model.pendingPushGuideID=nil;return true
     }
 }
@@ -852,7 +853,7 @@ private struct ForthcomingGuidesPromo: View {
     }
 }
 struct GuideUpdatesSheet: View {
-    @EnvironmentObject private var model: AppModel
+    @State private var newsletterURL=PublicLinks.home
     @ObservedObject private var alerts = GuidePublicationAlerts.shared
     @Environment(\.dismiss) private var dismiss
     var body: some View {
@@ -872,13 +873,18 @@ struct GuideUpdatesSheet: View {
                             Text("Notifications are optional. Apple will ask for permission after you choose Enable notifications. Analytics is a separate choice.")
                             Button("Enable notifications") { Task { await alerts.requestSubscription() } }
                                 .disabled(alerts.isBusy)
+                            if alerts.permissionDenied {
+                                Button("Open notification settings") {
+                                    if let url=URL(string:UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                                }
+                            }
                         }
                         Text("If enabled, your device token, an installation credential, app version and iOS version are used to deliver guide alerts. They are not sent to analytics. Delivery is best effort.")
                             .font(.wwFootnote)
                     } else {
                         Text("Push alerts are coming soon. We will ask for notification permission once delivery is ready. You can see guide updates and signup options on the website.")
                     }
-                    WebsiteLink(title:"Guide updates on WatchWeeks",url:model.hasLiveUpcomingFeed ? PublicLinks.newsletter : PublicLinks.home)
+                    WebsiteLink(title:"Guide updates on WatchWeeks",url:newsletterURL)
                     if let message=alerts.message { Text(message).font(.wwFootnote) }
                     if alerts.isVerificationMode, let id=alerts.installationID {
                         Text("Test installation: " + id).font(.wwCaption).textSelection(.enabled)
@@ -888,6 +894,7 @@ struct GuideUpdatesSheet: View {
                     }
                 }
             }.font(.wwBody).navigationTitle("Guide updates").navigationBarTitleDisplayMode(.inline)
+                .task { newsletterURL=await PublicGuideService().newsletterDestination() }
                 .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { dismiss() } } }
         }
     }

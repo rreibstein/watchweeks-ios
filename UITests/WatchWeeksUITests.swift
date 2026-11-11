@@ -1,6 +1,24 @@
 import XCTest
 
 final class WatchWeeksUITests: XCTestCase {
+    @MainActor private func homeButton(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
+        // LazyVStack can report an offscreen activation point as an XCTest error
+        // when isHittable is queried after returning from a navigation destination.
+        // Re-query each snapshot and scroll until the full row is inside the viewport.
+        for _ in 0..<24 {
+            let button=app.buttons[identifier].firstMatch
+            if button.exists {
+                let frame=button.frame, window=app.windows.firstMatch.frame
+                let bar=app.tabBars.firstMatch
+                let bottom=bar.exists ? min(window.maxY-44,bar.frame.minY-8) : window.maxY-80
+                if frame.minY.isFinite, frame.maxY.isFinite, frame.height >= 40,
+                   frame.width > 0, frame.minY >= window.minY+44, frame.maxY <= bottom { return button }
+            }
+            app.swipeUp()
+        }
+        XCTFail("Home button was not visible after scrolling: " + identifier)
+        return app.buttons[identifier].firstMatch
+    }
     @MainActor func testGuestNavigation() {
         let app = XCUIApplication()
         app.launch()
@@ -9,17 +27,12 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertFalse(app.buttons["Continue without analytics"].exists)
         XCTAssertFalse(app.buttons["Account"].exists)
         XCTAssertTrue(app.buttons["Find"].exists)
-        let about = app.buttons["home-about-privacy"]
-        for _ in 0..<24 where !about.isHittable { app.swipeUp() }
-        XCTAssertTrue(about.isHittable)
-        about.tap()
+        homeButton("home-about-privacy",in:app).tap()
         XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout: 2))
         app.navigationBars["About"].buttons.firstMatch.tap()
         XCTAssertTrue(app.navigationBars["About"].waitForNonExistence(timeout: 5))
         XCTAssertTrue(app.tabBars.buttons["Events"].isSelected)
-        for _ in 0..<24 where !about.isHittable { app.swipeUp() }
-        XCTAssertTrue(about.isHittable)
-        about.tap()
+        homeButton("home-about-privacy",in:app).tap()
         let privacy = app.buttons["Privacy policy"]
         XCTAssertTrue(privacy.waitForExistence(timeout: 3))
         privacy.tap()
@@ -30,9 +43,7 @@ final class WatchWeeksUITests: XCTestCase {
     @MainActor func testGuideUpdatesWaitForReliablePushDelivery() {
         let app=XCUIApplication();app.launch()
         XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
-        let updates=app.buttons["Get guide updates"]
-        for _ in 0..<24 where !updates.isHittable { app.swipeUp() }
-        XCTAssertTrue(updates.isHittable);updates.tap()
+        homeButton("Get guide updates",in:app).tap()
         XCTAssertTrue(app.navigationBars["Guide updates"].waitForExistence(timeout:3))
         XCTAssertTrue(app.buttons["Guide updates on WatchWeeks"].exists)
         XCTAssertFalse(app.buttons["Enable notifications"].exists)
@@ -64,10 +75,7 @@ final class WatchWeeksUITests: XCTestCase {
             XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout: 10))
             XCTAssertFalse(app.alerts.firstMatch.exists)
             app.tabBars.buttons["Events"].tap()
-            let link = app.buttons["home-about-privacy"]
-            for _ in 0..<24 where !link.isHittable { app.swipeUp() }
-            XCTAssertTrue(link.isHittable)
-            link.tap()
+            homeButton("home-about-privacy",in:app).tap()
             XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout: 5))
         }
         func choose(_ name: String) {

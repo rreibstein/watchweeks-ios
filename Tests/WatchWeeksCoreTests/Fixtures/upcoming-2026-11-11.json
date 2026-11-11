@@ -1,0 +1,41 @@
+{
+  "v": 1,
+  "upcoming": [
+    {
+      "key": "geneva-ww",
+      "title": "Geneva (W&W)",
+      "city": "Geneva",
+      "state": "planned",
+      "start_date": null,
+      "end_date": null,
+      "url": null,
+      "guide_id": null
+    },
+    {
+      "key": "las-vegas",
+      "title": "Las Vegas",
+      "city": "Las Vegas",
+      "state": "planned",
+      "start_date": null,
+      "end_date": null,
+      "url": null,
+      "guide_id": null
+    },
+    {
+      "key": "british-watchmakers-day",
+      "title": "British Watchmakers' Day",
+      "city": "London",
+      "state": "planned",
+      "start_date": null,
+      "end_date": null,
+      "url": null,
+      "guide_id": null
+    }
+  ],
+  "capabilities": {
+    "push": {
+      "available": false,
+      "reason": "delivery_unverified"
+    }
+  }
+}

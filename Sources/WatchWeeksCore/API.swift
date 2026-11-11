@@ -66,6 +66,13 @@ public struct PublicGuideService: GuideService {
         let feed=try JSONDecoder().decode(UpcomingGuideFeed.self,from:await json(PublicLinks.home.appendingPathComponent("api/public/guides/upcoming")))
         try feed.validate(); return feed
     }
+    public func newsletterDestination() async -> URL {
+        var request=URLRequest(url:PublicLinks.newsletter,cachePolicy:.reloadIgnoringLocalCacheData,timeoutInterval:5)
+        request.httpMethod="HEAD"
+        guard let (_,response)=try? await session.data(for:request), let http=response as? HTTPURLResponse,
+              http.statusCode == 200, http.url?.host == PublicLinks.home.host, http.mimeType == "text/html" else { return PublicLinks.home }
+        return PublicLinks.newsletter
+    }
 }
 public struct GuideLoad: Sendable {
     public let guides: [Guide]

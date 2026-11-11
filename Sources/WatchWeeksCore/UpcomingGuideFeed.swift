@@ -7,6 +7,12 @@ public enum GuidePushActivation {
     }
 }
 
+public enum GuidePublicationRouting {
+    public static func destination(guideID: String, canonicalIDs: Set<String>, loadedIDs: Set<String>) -> String? {
+        canonicalIDs.contains(guideID) && loadedIDs.contains(guideID) ? guideID : nil
+    }
+}
+
 /// Contract supplied by the isolated Lovable implementation, Nov 11, 2026.
 public struct UpcomingGuideFeed: Codable, Sendable {
     public let v: Int
