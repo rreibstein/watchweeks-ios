@@ -17,6 +17,7 @@ def phase(key, isa, files):
     return obj(key,isa,buildActionMask='2147483647',files=files,runOnlyForDeploymentPostprocessing='0')
 def build(key, ref): return obj(key,'PBXBuildFile',fileRef=ref)
 appsource=file('App/WatchWeeksApp.swift','sourcecode.swift')
+entitlements=file('App/WatchWeeks.entitlements','text.plist.entitlements')
 browsingSources = [file('App/' + name + '.swift', 'sourcecode.swift')
                    for name in ['WatchWeeksDesign', 'WatchWeeksGuides', 'WatchWeeksCatalog']]
 assets=file('App/Assets.xcassets','folder.assetcatalog')
@@ -39,6 +40,10 @@ def configs(key, common):
         if mode=='Debug':
             values['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG'
             values['ONLY_ACTIVE_ARCH']='YES'
+        if key=='app':
+            values['CODE_SIGN_ENTITLEMENTS']='App/WatchWeeks.entitlements'
+            values['WW_APNS_ENVIRONMENT']='sandbox' if mode=='Debug' else 'production'
+            values['WW_APNS_SIGNED_ENVIRONMENT']='development' if mode=='Debug' else 'production'
         ids.append(obj(key+mode,'XCBuildConfiguration',buildSettings=values,name=mode))
     return obj(key+'configs','XCConfigurationList',buildConfigurations=ids,defaultConfigurationIsVisible='0',defaultConfigurationName='Release')
 base={'IPHONEOS_DEPLOYMENT_TARGET':'17.0','SDKROOT':'iphoneos','SWIFT_VERSION':'6.0','CLANG_ENABLE_MODULES':'YES','ENABLE_USER_SCRIPT_SANDBOXING':'YES'}

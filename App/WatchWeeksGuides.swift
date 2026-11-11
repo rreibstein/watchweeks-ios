@@ -861,6 +861,10 @@ struct GuideUpdatesSheet: View {
                 Section("New WatchWeeks guides") {
                     Text("Get an alert when a new independent city or event guide is published.")
                     if alerts.isConfigured || alerts.isEnabled || alerts.deletionPending {
+                        if alerts.isVerificationMode {
+                            Text("TestFlight delivery check. Guide alerts are not yet active for App Store users.")
+                                .font(.wwFootnote)
+                        }
                         LabeledContent("Guide alerts",value:alerts.deletionPending ? "Turning off" : (alerts.isEnabled ? "On" : (alerts.isBusy ? "Connecting" : "Off")))
                         if alerts.isEnabled || alerts.deletionPending || alerts.isBusy {
                             Button(alerts.deletionPending ? "Retry unsubscribe" : "Turn off guide alerts") { Task { await alerts.unsubscribe() } }

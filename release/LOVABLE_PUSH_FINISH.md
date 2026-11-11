@@ -1,40 +1,41 @@
-# Paste into Lovable — finish the implemented publication-alert backend
+# Paste into Lovable — launch publication alerts
 
-Use the isolated implementation already built. Evaluate the concrete issues below,
-choose practical fixes, implement and test them in that draft, and return the exact
-updated contracts for native integration. Do not restart an audit or stop at a plan.
+Reed has published the implementation and authorized finishing the live feature.
+Evaluate the concrete remaining issues, implement and test the fixes, and deploy
+them to watchweeks.com. Do not restart an audit or stop at another preview/plan.
+Verify that /api/public/guides/upcoming and /notify actually serve on that domain;
+both still returned 404 to Codex after the reported publication. Ensure the formerly
+isolated implementation, including its required migration, reached the real release.
+Preserve all existing website features, authentication, synchronization and user data.
 
-1. Make registration retry-safe after a lost 201 response. Currently the installation
-   credential is returned once, so a request accepted by the server whose response
-   is lost leaves a fresh app permanently receiving 409 without its credential.
-   Implement secure recovery/idempotency with a device-held secret established
-   before the first request, without enabling unauthenticated token takeover.
-   Preserve existing successful clients and hash server-side credentials. Return
-   the precise request/response changes and fixtures for timeout/retry/concurrency.
-2. Enforce APNs' 64-byte collapse-ID limit, using a deterministic bounded hash when
-   notification IDs exceed it. Validate payload/header limits before dispatch.
-3. Protect rotated registrations from stale APNs invalidation responses: bind each
-   send result to the token generation sent and apply Unregistered timestamps.
-   Distinguish environment/topic/provider misconfiguration from a genuinely stale
-   installation so one setup error cannot revoke the whole subscriber audience.
-4. Make HTTP/2 capability explicit in the delivery gate and implement a supported
-   transport on existing infrastructure if the runtime cannot negotiate it. Keep
-   real delivery off. Return transport-level evidence without contacting real
-   subscribers or creating a paid relay. Actual Apple delivery still needs owner
-   authorization and securely configured APNs credentials.
-5. Ensure the once-per-publication queue can run promptly, with reconciliation as
-   a fallback, and that flipping upcoming state cannot skip an announcement. Bind
-   editorial upcoming keys to the intended publication, avoiding an unrelated fair
-   in the same city satisfying a Watches & Wonders/BWD announcement subscription.
-6. Verify the signed-in unsubscribe/resubscribe flow end to end using isolated test
-   data. Keep the newsletter sender explicitly unconfigured and send nothing.
+1. Make registration recover safely if the first successful response is lost.
+   Current POST returns a once-only credential; a lost response leaves an app
+   without it receiving 409. Implement secure retry/idempotency without token
+   takeover. Preserve existing successful clients; return the updated native
+   contract and timeout/concurrency fixtures.
+2. Bound APNs collapse IDs to 64 bytes, hash longer notification IDs deterministically,
+   and validate APNs payload/header limits. Do not revoke a rotated registration
+   for an old token's response. Distinguish topic/environment/provider setup errors
+   from real token expiration.
+3. Verify HTTP/2 support in the deployed runtime and use a supported transport on
+   existing infrastructure. Configure APNs through secure secret entry. If the key
+   is missing, give Reed one precise Apple account action, never request private key
+   contents in chat. No new expenditure is authorized.
+4. Verify receipt on Reed's explicitly selected test installation before enabling
+   public availability and scheduled publication alerts. TestFlight uses production
+   APNs; development-entitled apps use sandbox. No historical-guide blast or test
+   messages to unrelated subscribers. Keep capability false until receipt/transport
+   are proven. Provide a stop switch and confirm current-guide baselines.
+5. Verify signed-in newsletter unsubscribe/resubscribe against test data. Keep email
+   sending off until an appropriate provider and suppression-aware delivery exist;
+   do not promise a working mail service merely because /notify renders.
 
-Codex has implemented the native v1 adapter with both local and remote gates Off,
-Keychain enrollment, unsubscribe retries, canonical-feed routing and optional
-analytics kept separate. Keep these released-client constraints: non-null v1 string
-slugs, stable IDs, TestFlight production APNs and no new login requirement.
+Codex is preparing a signed push-enabled native build: explicit opt-in, Keychain
+enrollment, durable unsubscribe retry and safe canonical-guide routing. A TestFlight
+verification path can enroll before public capability is On. App Store users remain
+gated until delivery is proven. The app's optional analytics remains independent.
 
-Return only the working diff/commit, test results, changed API contract, exact
-secure missing configuration, and a concise migration/deployment step with rollback.
-No production deployment, shared-backend migration, dispatch schedule, real messages,
-key rotation or expenditure is authorized. Implementation/tests in preview may proceed.
+Return the final live endpoint schemas, changed native contract, deployment/test
+results, capability state, exact secure missing setup and native integration details.
+No unrelated production changes, key rotation, analytics identity joining, historical
+messages or paid services.

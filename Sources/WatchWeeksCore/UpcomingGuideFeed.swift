@@ -1,5 +1,12 @@
 import Foundation
 
+public enum GuidePushActivation {
+    public static func available(clientReady: Bool, signedEnvironment: APNSEnvironment?, backendPresent: Bool,
+                                 deliveryAvailable: Bool, verificationTestFlight: Bool) -> Bool {
+        clientReady && signedEnvironment != nil && backendPresent && (deliveryAvailable || verificationTestFlight)
+    }
+}
+
 /// Contract supplied by the isolated Lovable implementation, Nov 11, 2026.
 public struct UpcomingGuideFeed: Codable, Sendable {
     public let v: Int

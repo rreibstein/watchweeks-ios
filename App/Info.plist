@@ -3,7 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>WatchWeeksPushIntegrationVerified</key>
-    <false/>
+    <true/>
+    <key>WatchWeeksAPNsEnvironment</key>
+    <string>$(WW_APNS_ENVIRONMENT)</string>
+    <key>WatchWeeksPushVerificationBuild</key>
+    <true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>UIAppFonts</key>

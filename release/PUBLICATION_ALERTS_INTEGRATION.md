@@ -39,26 +39,32 @@ website, sends messages, or submits an app for review.
   to `/notify#newsletter` only after the new feed endpoint responds successfully.
   Copy does not claim that email delivery is already activated.
 
-## Shipping gates — disabled in this source
+## Launch gates — signed native client prepared
 
-`WatchWeeksPushIntegrationVerified` is explicitly false in Info.plist. No push
-entitlement is added or signing capability enabled by this change. The remote
-capability is a second gate, never a replacement for verified native signing.
+The integrated native client now includes Push Notifications entitlements and explicit
+build settings (Debug development/sandbox; Release production/production).
+`WatchWeeksPushIntegrationVerified` enables that client; final signed archive
+validation must pass. A live backend is required. App Store users additionally need
+remote availability. A verification build identified by its TestFlight sandbox receipt
+can enroll before public availability so actual receipt can be proven. Simulator
+UI QA cannot enroll. No receipt contents or Apple identities are read or transmitted.
+Released build 13 still has no such adapter/capability and cannot be remotely enabled.
 
 Before an enabled build:
 
-1. Obtain owner approval to accept the isolated Lovable draft (including its shared
-   backend migration), and separately deploy it. Validate that the historical-guide
-   baseline cannot enqueue a blast. Native work does not authorize either action.
+1. Owner reported publishing Lovable's work and authorized launching the feature.
+   Ensure the formerly isolated code/migration reached production: probes still
+   returned 404 for upcoming and /notify after that report. Validate historical-guide
+   baselines before any scheduling; never generate an old-guide blast.
 2. Resolve the backend release issues in `LOVABLE_PUSH_FINISH.md`. Keep delivery
-   disabled and scheduling absent until explicit approval.
+   disabled until actual test-device receipt and transport are verified.
 3. Owner enables Push Notifications for `com.watchweeks.app` and provides APNs
    provider credentials only through secure backend configuration. No key material
    is needed by Codex in chat. No remote-notification background mode is needed.
-4. Complete device QA and privacy review before setting the local verified flag.
-   Set `WatchWeeksAPNsEnvironment` to `sandbox` for a development-entitled build or
-   `production` for a production-entitled build. TestFlight AND App Store use
-   production APNs. Never derive this from Debug/Release labels.
+4. Complete Xcode validation, signed archive checks, device QA and privacy review.
+   `WatchWeeksAPNsEnvironment` expands from explicit build settings; validate it
+   against the actual signed entitlement rather than assuming build configuration
+   names prove correctness. TestFlight AND App Store use production APNs.
 5. Validate the final signed archive:
 
    ```sh
@@ -83,8 +89,10 @@ ask the user to wait 60 days or repeatedly tap Enable.
 
 ## Privacy
 
-Current gated build: no registration, device token or installation credential is
-sent. Existing optional analytics disclosures remain applicable. Before activation,
+Production availability remains gated. A new TestFlight verification build can
+register only after explicit action and permission against a live backend. Build 13
+sends no push registration. The manifest adds App Functionality to Device ID and
+the native policy explains optional push enrollment/unsubscribe. Before App Review,
 update the app policy, native consent copy and App Store privacy answers for push
 device/installation identifiers used for App Functionality, plus any actual
 diagnostic/request metadata the backend retains. Verify purpose, linkage, processor,

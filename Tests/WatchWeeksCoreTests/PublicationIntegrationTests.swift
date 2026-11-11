@@ -6,6 +6,14 @@ import FoundationNetworking
 #endif
 
 final class PublicationIntegrationTests: XCTestCase {
+    func testPushGateRequiresLiveBackendAndVerifiedClientForBothAudiences() {
+        XCTAssertFalse(GuidePushActivation.available(clientReady:false,signedEnvironment:.production,backendPresent:true,deliveryAvailable:true,verificationTestFlight:true))
+        XCTAssertFalse(GuidePushActivation.available(clientReady:true,signedEnvironment:nil,backendPresent:true,deliveryAvailable:true,verificationTestFlight:true))
+        XCTAssertFalse(GuidePushActivation.available(clientReady:true,signedEnvironment:.production,backendPresent:false,deliveryAvailable:true,verificationTestFlight:true))
+        XCTAssertFalse(GuidePushActivation.available(clientReady:true,signedEnvironment:.production,backendPresent:true,deliveryAvailable:false,verificationTestFlight:false))
+        XCTAssertTrue(GuidePushActivation.available(clientReady:true,signedEnvironment:.production,backendPresent:true,deliveryAvailable:false,verificationTestFlight:true))
+        XCTAssertTrue(GuidePushActivation.available(clientReady:true,signedEnvironment:.production,backendPresent:true,deliveryAvailable:true,verificationTestFlight:false))
+    }
     // Sanitized contract examples, not production records or event dates.
     private let upcoming=Data(#"{"v":1,"upcoming":[{"key":"test-guide","title":"Test Guide","city":"Test City","state":"planned","start_date":null,"end_date":null,"url":null,"guide_id":null}],"capabilities":{"push":{"available":false,"reason":"backend_not_ready"}}}"#.utf8)
     func testUpcomingContractAndOfflineStorage() async throws {

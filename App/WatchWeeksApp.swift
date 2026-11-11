@@ -53,7 +53,7 @@ import WatchWeeksCore
         do {
             let feed=try await PublicGuideService().upcoming()
             upcomingFeed=feed;hasLiveUpcomingFeed=true;try? await store.saveUpcoming(feed)
-            GuidePublicationAlerts.shared.updateAvailability(feed.capabilities.push.available)
+            GuidePublicationAlerts.shared.updateAvailability(feed.capabilities.push.available,backendPresent:true)
         } catch { /* Pre-deployment 404/offline: keep editorial fallback, gate Off. */ }
     }
     func selection(_ guide: Guide, _ brand: Brand) -> Selection { selections[SelectionKey(guideID: guide.id, brandID: brand.id)] ?? Selection() }
@@ -367,14 +367,15 @@ struct AnalyticsQADiagnostics: View {
 }
 #endif
 
-// The local release gate stays absent/false until signing, privacy and device
-// delivery are verified. A remote capability or cached feed alone cannot enable it.
+// A signed, integrated client and a live backend are required. App Store users
+// additionally require proven remote availability; TestFlight can verify delivery.
 @MainActor final class GuidePublicationAlerts: ObservableObject {
     static let shared = GuidePublicationAlerts()
     @Published private(set) var isConfigured=false
     @Published private(set) var isBusy=false
     @Published private(set) var isEnabled=false
     @Published private(set) var deletionPending=false
+    @Published private(set) var isVerificationMode=false
     @Published private(set) var message: String?
     @Published private(set) var pendingGuideID: String?
     private let subscription=PushSubscription(service:PushInstallationClient(),store:PushKeychainStore())
@@ -384,14 +385,27 @@ struct AnalyticsQADiagnostics: View {
     private let defaults=UserDefaults.standard
     private let seenKey="watchweeks.opened-publication-notifications.v1"
     private var environment: APNSEnvironment? {
+        #if targetEnvironment(simulator)
+        return nil // Simulator UI QA never enrolls a real token or asks permission.
+        #else
         // Set only by the signed-build setup; validate against the final signed
         // aps-environment entitlement using scripts/verify-push-archive.py.
         guard Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPushIntegrationVerified") as? Bool == true,
               let value=Bundle.main.object(forInfoDictionaryKey:"WatchWeeksAPNsEnvironment") as? String else { return nil }
         return APNSEnvironment(rawValue:value)
+        #endif
     }
     private init() {}
-    func updateAvailability(_ available: Bool) { isConfigured=available && environment != nil }
+    func updateAvailability(_ available: Bool, backendPresent: Bool = false) {
+        // Receipt filename is a public, longstanding TestFlight distinction; no
+        // receipt contents, Apple identity or transaction data are read/transmitted.
+        let beta=Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPushVerificationBuild") as? Bool == true &&
+            Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+        isConfigured=GuidePushActivation.available(
+            clientReady:Bundle.main.object(forInfoDictionaryKey:"WatchWeeksPushIntegrationVerified") as? Bool == true,
+            signedEnvironment:environment,backendPresent:backendPresent,deliveryAvailable:available,verificationTestFlight:beta)
+        isVerificationMode=isConfigured && !available && beta
+    }
     private func syncState() {
         isEnabled=subscription.state == .on
         deletionPending=subscription.state == .deletionPending

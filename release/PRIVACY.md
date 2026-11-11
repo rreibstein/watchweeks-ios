@@ -47,16 +47,29 @@ that information. If you follow a link, your browser opens the destination. The
 the browser. Website sign-in, website analytics, and website session replay
 are features of that separate website. Other websites have their own policies.
 
-## Forthcoming guides and notification preparation
+## Forthcoming guides and optional notifications
 
 The native Home screen can show editorial notes about forthcoming guides. Email
 signup opens the existing WatchWeeks website, whose form and privacy policy apply;
 the native app does not collect an email address for that signup.
 
-Reliable guide-publication push notifications are being prepared. They are disabled
-in the current native build: it does not ask for notification permission, register
-with APNs or transmit a device push token. The prepared callbacks do not activate
-a subscription. Before enabling delivery, we will disclose any push-token and
-subscription storage, purposes, providers, retention and deletion controls, and
-request the relevant permission. Notification preferences will remain separate
-from optional usage analytics and will not be required to use the app.
+Guide-publication notifications are optional and available only in supported builds
+after the delivery service is activated. Earlier builds without this feature do not
+register for push. TestFlight may offer a delivery-verification option before public
+activation. The app asks Apple's permission only after you choose to enable alerts.
+
+If you enable alerts, the app sends its APNs device token, app and iOS versions,
+and guide subscription preferences to WatchWeeks over HTTPS. WatchWeeks creates
+an installation record and uses Apple Push Notification service to deliver alerts.
+An installation credential is kept in this device's Keychain, excluded from iCloud
+Keychain synchronization, to manage that subscription. Tokens and subscription
+credentials are not sent to PostHog or joined to website accounts. Network providers
+also receive the request information needed to serve these requests.
+
+Turning alerts off requests deletion of the installation, device token and associated
+send ledger. If the device is offline or the service is unavailable, the app saves
+the unsubscribe request and retries when reopened online; alerts may still arrive
+until deletion is confirmed. Operational security records are separate from the
+subscription. Notification delivery is best effort, not guaranteed. Notification
+preferences and usage analytics are independent; neither is required to use guides
+or your checklist.

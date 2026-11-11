@@ -11,8 +11,13 @@ The Home/footer candidate 046ae48 passed Xcode Cloud Verify in 6m 51s with zero
 errors/failures/warnings. The subsequent source implements Lovable's preview
 upcoming/enrollment contracts, per-guide last-good refresh, Keychain lifecycle and
 unsubscribe retries, duplicate-tap suppression and signed APNs environment validation.
-Its 60 portable tests pass; Xcode verification for this newer source is pending.
-Push stays explicitly disabled locally; production upcoming and /notify remain 404.
+Its 61 portable tests pass. The first new cloud run stopped in the bootstrap;
+Darwin URLProtocol streamed request bodies were normalized in the test harness and
+the follow-up is running. The newest source adds signing entitlements, archive
+validation, TestFlight-only enrollment verification and push privacy disclosures.
+App Store availability remains remotely gated. Production upcoming and /notify
+still returned 404 after the owner reported publication and authorized launch;
+Lovable must finish deploying the actual implementation to watchweeks.com.
 See release/PUBLICATION_ALERTS_INTEGRATION.md and release/LOVABLE_PUSH_FINISH.md.
 Existing build 13 is unchanged and available to test.
 See release/LOVABLE_IOS_HANDOFF.md and release/APP_PRIVACY_1_0_2.md. Nothing was

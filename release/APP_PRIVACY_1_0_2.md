@@ -10,7 +10,7 @@ by this worksheet. Owner confirms the declarations before submission.
 
 | ASC category | Purpose | Linked | Tracking | Actual behavior |
 |---|---|---|---|---|
-| Identifiers > Device ID | Analytics | Yes, conservatively device-linked | No, subject to project-use verification below | Random native installation identifier, created after explicit analytics opt-in |
+| Identifiers > Device ID | Analytics; App Functionality in the push-enabled follow-up | Yes, conservatively device-linked | No, subject to project-use verification below | Random analytics ID after analytics opt-in; APNs token and guest subscription ID only after alert enrollment |
 | Usage Data > Product Interaction | Analytics | Yes, linked to that random identifier | Same condition | App/guide/event/release views, rating-control/Seen-control use, My list, successful guide shares and website transitions |
 
 Public guide/event/release IDs and app version/build describe those interactions.
@@ -43,19 +43,19 @@ image and PostHog endpoints, purposes and retention. GeoIP enrichment being disa
 does not prove IP addresses are discarded. Add any actual retained collection to
 ASC under Apple's current definitions; do not invent retention periods.
 
-## Notifications — current disabled state
+## Notifications — push-enabled follow-up
 
-The forthcoming-guide card offers website guide updates and signup options, without
-claiming that a newsletter sender is activated. This native build
-does not collect an email address, request iOS notification permission, register for
-APNs, or send a device push token to a backend. The typed backend adapter and APNs
-callbacks remain behind an explicitly false local verification gate and a second
-remote capability check. No new
-notification-related ASC data category is activated by this preparation.
+The forthcoming-guide card offers website guide updates and signup options without
+claiming that a newsletter sender is activated. The app collects no newsletter email.
+Build 13 has no push enrollment. The newer integrated client can enroll after an
+explicit action, OS permission and a live backend capability. A signed TestFlight
+build may verify delivery before public activation; App Store users require the
+remote availability gate. The privacy manifest adds App Functionality to Device ID.
 
-Before enabling reliable push: disclose collection of APNs device token and scoped
-installation/subscription identifiers, deletion/retention, hosting and provider
-purposes. Typically Device ID for App Functionality; determine whether Developer
+Before App Review: disclose APNs device token and scoped installation/subscription
+identifiers under Device ID for App Functionality, and confirm actual hosting,
+request metadata and retention. The app sends app/iOS version for enrollment;
+classify any diagnostic collection according to its actual retained use. Determine whether Developer
 Advertising or Marketing also applies to the actual notification content. OS
 notification permission is separate from PostHog consent and Apple's ATT policy.
 No push token or registration secret may enter PostHog. Update this worksheet,
