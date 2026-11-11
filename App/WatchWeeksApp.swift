@@ -381,6 +381,13 @@ struct AnalyticsQADiagnostics: View {
     @Published private(set) var isVerificationMode=false
     @Published private(set) var installationID: String?
     @Published private(set) var permissionDenied=false
+    @Published private(set) var hasEnrollment=false
+    var statusLabel: String {
+        if deletionPending { return "Turning off" }
+        if isBusy { return "Connecting" }
+        if isEnabled { return "On" }
+        return hasEnrollment ? "Pending" : "Off"
+    }
     @Published private(set) var message: String?
     @Published private(set) var pendingGuideID: String?
     private let subscription=PushSubscription(service:PushInstallationClient(),store:PushKeychainStore(),makeCredential: {
@@ -423,6 +430,7 @@ struct AnalyticsQADiagnostics: View {
         isEnabled=subscription.state == .on
         deletionPending=subscription.state == .deletionPending
         installationID=(try? subscription.installationID())?.uuidString.lowercased()
+        hasEnrollment=(try? subscription.hasSavedSubscription()) == true
     }
     func foreground() async {
         active=true

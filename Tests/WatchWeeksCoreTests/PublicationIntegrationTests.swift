@@ -321,6 +321,18 @@ private actor FakePushService: PushInstallationService {
         try await subscription.disable()
         XCTAssertEqual(subscription.state,.off);XCTAssertNil(store.value)
     }
+    func testUnsubscribeAfterLostRegistrationResponseRecoversThenDeletesWithoutReplacingCredential() async throws {
+        let store=MemoryPushStore(),service=FakePushService(),clock=PushTestClock()
+        await service.setLoseFirstResponse()
+        let subscription=PushSubscription(service:service,store:store,now:{ clock.value })
+        do { try await subscription.register(token:token,environment:.production,appVersion:"1",osVersion:"26");XCTFail() } catch {}
+        XCTAssertTrue(try subscription.hasSavedSubscription())
+        clock.value.addTimeInterval(31)
+        try await subscription.disable()
+        let credentials=await service.credentials,deletes=await service.deletes
+        XCTAssertEqual(credentials.count,2);XCTAssertEqual(credentials.first,credentials.last)
+        XCTAssertEqual(deletes,1);XCTAssertNil(store.value);XCTAssertEqual(subscription.state,.off)
+    }
     func testDeniedPermissionDoesNotCreateAnInstallationAndRevokesAnExistingOne() async throws {
         let store=MemoryPushStore(),service=FakePushService()
         let subscription=PushSubscription(service:service,store:store)
