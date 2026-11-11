@@ -196,7 +196,14 @@ final class WatchWeeksUITests: XCTestCase {
         app.tabBars.buttons["My list"].tap()
         app.tabBars.buttons["Events"].tap()
         homeButton("home-about-privacy",in:app).tap()
-        XCTAssertTrue(app.buttons["Learn about usage analytics"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout:5))
+        // List rows below the first viewport may not have accessibility nodes yet.
+        let learn=app.buttons["Learn about usage analytics"]
+        for _ in 0..<6 {
+            if learn.exists { break }
+            app.swipeUp(velocity:.slow)
+        }
+        XCTAssertTrue(learn.waitForExistence(timeout:5))
         let diagnostic=app.descendants(matching:.any)["analytics-qa-events"].firstMatch
         XCTAssertTrue(diagnostic.waitForExistence(timeout:5))
         XCTAssertEqual(diagnostic.value as? String,"[]")
