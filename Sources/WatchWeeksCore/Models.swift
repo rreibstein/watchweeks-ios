@@ -13,8 +13,10 @@ public struct Guide: Codable, Identifiable, Equatable, Sendable {
     public var brands: [Brand]
     public var releases: [Release]
     public var dealers: [Dealer]?
-    public init(id: String, city: String, summary: String? = nil, startDate: String? = nil, endDate: String? = nil, timeZone: String, webURL: URL? = nil, events: [Event] = [], brands: [Brand] = [], releases: [Release] = [], dealers: [Dealer]? = nil) {
-        self.id=id; self.city=city; self.summary=summary; self.startDate=startDate; self.endDate=endDate; self.timeZone=timeZone; self.webURL=webURL; self.events=events; self.brands=brands; self.releases=releases; self.dealers=dealers
+    public var announced:[AnnouncedRelease]?
+    public var announcementsResolved:Bool? = nil
+    public init(id: String, city: String, summary: String? = nil, startDate: String? = nil, endDate: String? = nil, timeZone: String, webURL: URL? = nil, events: [Event] = [], brands: [Brand] = [], releases: [Release] = [], dealers: [Dealer]? = nil,announced:[AnnouncedRelease]? = nil) {
+        self.id=id; self.city=city; self.summary=summary; self.startDate=startDate; self.endDate=endDate; self.timeZone=timeZone; self.webURL=webURL; self.events=events; self.brands=brands; self.releases=releases; self.dealers=dealers;self.announced=announced
     }
 }
 public struct Dealer: Codable, Identifiable, Equatable, Sendable {
@@ -42,6 +44,7 @@ public struct Brand: Codable, Identifiable, Equatable, Sendable {
     public let eventIDs: [String]
     public let summary: String?
     public let webURL: URL?
+    public var releaseEventIDs:[String]? = nil
     public init(id: String, name: String, eventIDs: [String] = [], summary: String? = nil, webURL: URL? = nil) { self.id=id; self.name=name; self.eventIDs=eventIDs; self.summary=summary; self.webURL=webURL }
 }
 public struct Release: Codable, Identifiable, Equatable, Sendable {

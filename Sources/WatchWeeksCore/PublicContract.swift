@@ -8,8 +8,8 @@ public struct PublicGuideHeader: Decodable, Sendable {
     public let id: String; public let slug: String; public let city: String
     public let dates: String; public let timezone: String
     public let start_date: String?; public let end_date: String?; public let url: URL
-    func model(events: [Event] = [], brands: [Brand] = [], releases: [Release] = [], dealers: [Dealer]? = nil) -> Guide {
-        Guide(id:id,city:city,startDate:start_date,endDate:end_date,timeZone:timezone,webURL:url,events:events,brands:brands,releases:releases,dealers:dealers)
+    func model(events: [Event] = [], brands: [Brand] = [], releases: [Release] = [], dealers: [Dealer]? = nil,announced:[AnnouncedRelease]? = nil) -> Guide {
+        Guide(id:id,city:city,startDate:start_date,endDate:end_date,timeZone:timezone,webURL:url,events:events,brands:brands,releases:releases,dealers:dealers,announced:announced)
     }
 }
 public struct EventDay: Codable, Equatable, Sendable {
@@ -21,6 +21,15 @@ public struct PublicDetail: Decodable, Sendable {
     public let v: Int; public let guide: PublicGuideHeader
     public let events: [PublicEvent]; public let brands: [PublicBrand]; public let releases: [PublicRelease]
     public let dealers: [Dealer]?
+    public let announced:[AnnouncedRelease]?
+    private enum CodingKeys:String,CodingKey { case v,guide,events,brands,releases,dealers,announced }
+    public init(from decoder:Decoder) throws {
+        let c=try decoder.container(keyedBy:CodingKeys.self)
+        v=try c.decode(Int.self,forKey:.v);guide=try c.decode(PublicGuideHeader.self,forKey:.guide)
+        events=try c.decode([PublicEvent].self,forKey:.events);brands=try c.decode([PublicBrand].self,forKey:.brands)
+        releases=try c.decode([PublicRelease].self,forKey:.releases);dealers=try c.decodeIfPresent([Dealer].self,forKey:.dealers)
+        announced=(try? c.decodeIfPresent(AnnouncedItems.self,forKey:.announced))?.items
+    }
     public struct PublicEvent: Decodable, Sendable {
         let id: String; let name: String; let venue: String?; let address: String?; let url: URL?; let note: String?
         let days: [EventDay]; let start_date: String?; let end_date: String?
@@ -39,6 +48,7 @@ public struct PublicDetail: Decodable, Sendable {
             let previous=merged[b.brandKey]
             let ids=Array(Set((previous?.eventIDs ?? [])+[b.eventId])).sorted()
             merged[b.brandKey]=Brand(id:b.brandKey,name:b.name,eventIDs:ids,webURL:b.website ?? previous?.webURL)
+            merged[b.brandKey]?.releaseEventIDs=Array(Set((previous?.releaseEventIDs ?? [])+(b.hasRelease ? [b.eventId] : []))).sorted()
         }
         let mappedEvents=events.map { e in Event(id:e.id,name:e.name,venue:e.venue,address:e.address,startsAt:e.start_date,endsAt:e.end_date,webURL:e.url,note:e.note,days:e.days) }
         let mappedReleases=releases.map { r in
@@ -46,7 +56,8 @@ public struct PublicDetail: Decodable, Sendable {
             // validation rejects collisions rather than silently assigning unstable indexes.
             Release(id:[r.brandKey,r.eventId,r.kind].joined(separator:"|"), title:r.text.components(separatedBy:" — ").first ?? r.brand, brandName:r.brand, details:r.text, imageURL:r.images.first?.resolvedURL,webURL:r.url,brandID:r.brandKey,eventID:r.eventId,kind:r.kind,images:r.images,awards:r.awards)
         }
-        let result=guide.model(events:mappedEvents,brands:merged.values.sorted{$0.name<$1.name},releases:mappedReleases,dealers:dealers)
+        var result=guide.model(events:mappedEvents,brands:merged.values.sorted{$0.name<$1.name},releases:mappedReleases,dealers:dealers,announced:announced)
+        result.announcementsResolved=true
         try GuideRepository.validate([result]); return result
     }
 }

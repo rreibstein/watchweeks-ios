@@ -1,12 +1,11 @@
-Rapid release — IAMWATCH schedule and Coconut Grove dealers
+Rapid release — Just announced, IAMWATCH schedule and dealer lists
 
-This candidate intentionally excludes native analytics and guide notifications. Those features are preserved on the full-feature development branch for a later release. No analytics or notification opt-in is needed for this update.
+Latest additions: Just announced appears on the Home city card, inside event tiles and at the top of New releases. Tap a watch to switch to New releases at that brand. Recent matching models show JUST ADDED; recent means today plus six previous calendar dates in the guide's time zone. Missing/empty feeds hide the feature. No stable-image selection change was added.
 
-Minimum check:
-1. Events → Singapore → IAMWATCH: Schedule opens first. Change the day, search for a speaker, and open Session details. All program times are Singapore local time.
-2. Events → Miami → Coconut Grove: dealers appear vertically in A–Z order. Search for a dealer.
-3. Mark a brand seen, check My list, briefly go offline and confirm saved guide/checklist/program content remains accessible. The program must have been loaded first.
+Event tiles now show up to eight wrapping brand chips and +N more. Chips prioritize brands with releases; tapping opens the event at that brand. The main tile still opens the event normally.
 
-Program content is read from the published WatchWeeks IAMWATCH page because API v1 currently has no program records. It is rendered natively without running website scripts. A failed refresh retains the last saved program. No fictional or test program is shipped.
+This rapid build intentionally has no native PostHog analytics, notification enrollment or notification prompt. Detailed tap instrumentation is retained for the later full-feature release, not activated here.
 
-Please report the exact version/build and any issue. This build is not submitted for App Review or released automatically.
+Minimum check: open Singapore and inspect the three Just announced placements; tap an announcement and a brand chip. Open IAMWATCH's Schedule tab, select a day and expand a session. Open Miami → Coconut Grove and search the vertical A–Z dealer list. Verify your saved ratings/Seen remain in My list. Previously loaded guides and programs remain usable offline.
+
+No App Review submission or public release occurs automatically. Report the exact version/build and any issue.

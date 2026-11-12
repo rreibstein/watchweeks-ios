@@ -1,0 +1,1380 @@
+{
+  "v": 1,
+  "guide": {
+    "id": "singapore-2026",
+    "slug": "singapore",
+    "city": "Singapore",
+    "dates": "Nov 12–15, 2026",
+    "timezone": "Asia/Singapore",
+    "start_date": "2026-11-12",
+    "end_date": "2026-11-15",
+    "url": "https://watchweeks.com/singapore"
+  },
+  "events": [
+    {
+      "id": "iamwatch",
+      "name": "IAMWATCH 2026",
+      "venue": "The Singapore EDITION",
+      "url": "https://www.iamwatch.com/event/2026/Home",
+      "note": "Thu Nov 12 is invitation only. Dress code: \"Double-Wristed, Resort Casual.\" Print your event pass before you arrive — a photo is taken at registration for your pass. Program sessions are seated first come, first served. Arrive about 15 minutes before a session you want to attend; registering for a session does not reserve a seat. Sessions in the Penthouse are escorted. Meet at the IAMWATCH desk in the Level 1 lobby and the team will take you up.\n\nGeorge Daniels 100: The Genesis of Artisanal Watchmaking, presented by Phillips in Association with Bacs & Russo and The Hour Glass, is on view in the Boardroom throughout the fair: 22 of Daniels' watches, with Space Traveller I and Space Traveller II exhibited together for the first time. Public days Fri Nov 13 - Sun Nov 15, 11 AM-8 PM. Saturday afternoon is dedicated to Daniels, including the avant-premiere of the Phillips documentary on his life and work.",
+      "days": [
+        {
+          "date": "2026-11-12",
+          "open": "14:00",
+          "close": "21:00",
+          "access": "invitation"
+        },
+        {
+          "date": "2026-11-13",
+          "open": "11:00",
+          "close": "20:00",
+          "access": "rsvp"
+        },
+        {
+          "date": "2026-11-14",
+          "open": "11:00",
+          "close": "20:00",
+          "access": "rsvp"
+        },
+        {
+          "date": "2026-11-15",
+          "open": "11:00",
+          "close": "20:00",
+          "access": "rsvp"
+        }
+      ],
+      "start_date": "2026-11-12",
+      "end_date": "2026-11-15"
+    },
+    {
+      "id": "golden-hour",
+      "name": "Golden Hour Singapore",
+      "venue": "Casuarina Suite, Level 3, Raffles Hotel",
+      "url": "https://goldenhour.delugs.com/singapore",
+      "note": "Free entry; walk-ins welcome. The first 100 people through the doors each day get an exclusive Delugs tote bag. By appointment: Artime, Dominique Renaud and Renaud Tixier on Friday, Nov 13; Stéphane Pierre on Saturday, Nov 14 — book via their cards. On display: Fleming, Grönefeld, J.N. Shapiro, Kallinich Claeys, Romain Gauthier and Simon Brette.\n\nWatch Studies Live: watch photography sessions with Verne Ho of Watch Studies, covering lighting, positioning and composition. Saturday and Sunday, November 14–15, 11:00 AM–2:00 PM and 4:00–7:00 PM.\n\nGetting there: City Hall MRT (Exit A) is about a 6-minute walk, and Esplanade station is also nearby. Taxis and Grab drop off at the Seah Street entrance, and bus stops sit on North Bridge Road.",
+      "days": [
+        {
+          "date": "2026-11-13",
+          "open": "11:00",
+          "close": "20:00"
+        },
+        {
+          "date": "2026-11-14",
+          "open": "11:00",
+          "close": "20:00"
+        },
+        {
+          "date": "2026-11-15",
+          "open": "11:00",
+          "close": "20:00"
+        }
+      ],
+      "start_date": "2026-11-13",
+      "end_date": "2026-11-15"
+    },
+    {
+      "id": "spring-sprang-sprung",
+      "name": "Spring Sprang Sprung 2026",
+      "venue": "Glass Dome - Landmark of Good",
+      "url": "https://www.spring-sprang-sprung.com/",
+      "note": "Two Chat-Time talks: Art Meets Horology (Sat, Nov 14) and How Do You Build a Great Microbrand? (Sun, Nov 15) — both may be sold out. Two paid hands-on workshops run before doors open: Watchmaking Appreciation with WOSTEP-certified watchmaker Alvin Sim (Sat, Nov 14, 10 AM–1 PM, SGD 180, tools provided) and Watch Art by eight.past.ten, sketching and calligraphy with framed art to take home (Sun, Nov 15, 10–11 AM, SGD 30).",
+      "days": [
+        {
+          "date": "2026-11-14",
+          "open": "11:00",
+          "close": "18:00",
+          "access": "rsvp"
+        },
+        {
+          "date": "2026-11-15",
+          "open": "11:00",
+          "close": "18:00",
+          "access": "rsvp"
+        }
+      ],
+      "start_date": "2026-11-14",
+      "end_date": "2026-11-15"
+    },
+    {
+      "id": "phillips-preview",
+      "name": "Phillips — Hong Kong auction highlights in Singapore",
+      "venue": "The St. Regis Singapore",
+      "url": "https://www.phillips.com/auction/HK080426/overview",
+      "note": "See selected highlights from the upcoming Hong Kong watch auction. Enquiries: christinefernando@phillips.com.",
+      "days": [
+        {
+          "date": "2026-11-13",
+          "open": "11:00",
+          "close": "18:00"
+        },
+        {
+          "date": "2026-11-14",
+          "open": "11:00",
+          "close": "18:00"
+        }
+      ],
+      "start_date": "2026-11-13",
+      "end_date": "2026-11-14"
+    },
+    {
+      "id": "senses-of-the-everyday",
+      "name": "Senses of the Everyday",
+      "venue": "Reference Room",
+      "url": null,
+      "note": "Presented by: Scentrum, Singapore Gentlemen Collective, and Reference Room.\n\nA Sunday-morning session on time, scent and style: watches, fragrance and personal style in conversation with fellow enthusiasts.",
+      "days": [
+        {
+          "date": "2026-11-15",
+          "open": "10:00",
+          "close": "13:00"
+        }
+      ],
+      "start_date": "2026-11-15",
+      "end_date": "2026-11-15"
+    },
+    {
+      "id": "gtg-zltd-watches-2026",
+      "name": "GTG with ZLTD Watches",
+      "venue": "Legacy Watch Lounge",
+      "url": null,
+      "note": "A small get-together with ZLTD Watches. Co-founder Kenny will be there with the brand's watches, and the evening includes the unveiling of a new piece. Light refreshments are served. Places are limited; RSVP via @zltdwatches or @legacywatch.ltd on Instagram.",
+      "days": [
+        {
+          "date": "2026-11-13",
+          "open": "19:00",
+          "close": "21:00",
+          "access": "rsvp"
+        }
+      ],
+      "start_date": "2026-11-13",
+      "end_date": "2026-11-13"
+    }
+  ],
+  "brands": [
+    {
+      "name": "22Studio",
+      "brandKey": "22studio",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "ALTO",
+      "brandKey": "alto",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "AndoAndoAndo",
+      "brandKey": "andoandoando",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://andoandoando.com",
+      "hasRelease": true
+    },
+    {
+      "name": "Angles",
+      "brandKey": "angles",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Anoma",
+      "brandKey": "anoma",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Anton Suhanov",
+      "brandKey": "antonsuhanov",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Artime",
+      "brandKey": "artime",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Atelier Wen",
+      "brandKey": "atelierwen",
+      "eventId": "golden-hour",
+      "website": "https://int.atelierwen.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "Atelier Wen",
+      "brandKey": "atelierwen",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://int.atelierwen.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "Atowak",
+      "brandKey": "atowak",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Awake",
+      "brandKey": "awake",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://awakewatches.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "BA111OD",
+      "brandKey": "ba111od",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://ba111od.com",
+      "hasRelease": true
+    },
+    {
+      "name": "Baltic",
+      "brandKey": "baltic",
+      "eventId": "golden-hour",
+      "website": "https://baltic-watches.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "Benrus",
+      "brandKey": "benrus",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://benrus.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "Buci",
+      "brandKey": "buciparis",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Canuck Timepieces",
+      "brandKey": "canucktimepieces",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://canucktimepieces.com",
+      "hasRelease": true
+    },
+    {
+      "name": "Christopher Ward",
+      "brandKey": "christopherward",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://www.christopherward.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "CIGA Design",
+      "brandKey": "cigadesign",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Claude Meylan",
+      "brandKey": "claudemeylan",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Cleguer",
+      "brandKey": "cleguer",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Constellar Timepieces",
+      "brandKey": "constellartimepieces",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Czapek",
+      "brandKey": "czapek",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Dennison",
+      "brandKey": "dennison",
+      "eventId": "golden-hour",
+      "website": "https://dennisonwatch.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "Dievas",
+      "brandKey": "dievas",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Dominique Renaud",
+      "brandKey": "dominiquerenaud",
+      "eventId": "golden-hour",
+      "website": "https://www.dominiquerenaud.com/",
+      "hasRelease": false
+    },
+    {
+      "name": "DWISS",
+      "brandKey": "dwiss",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Earthen Co.",
+      "brandKey": "earthencompany",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "echo/neutra",
+      "brandKey": "echoneutra",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://echoneutra.com",
+      "hasRelease": false
+    },
+    {
+      "name": "Eight Past Ten",
+      "brandKey": "eightpastten",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Emerton Scott",
+      "brandKey": "emertonscott",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Erebus",
+      "brandKey": "erebus",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Etien",
+      "brandKey": "etien",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Felipe Pikullik",
+      "brandKey": "felipepikullik",
+      "eventId": "golden-hour",
+      "website": "https://www.felipe-pikullik.de/",
+      "hasRelease": false
+    },
+    {
+      "name": "Feynman Timekeepers",
+      "brandKey": "feynmantimekeepers",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://feynman.watch/",
+      "hasRelease": false
+    },
+    {
+      "name": "Finnish Watch School",
+      "brandKey": "finnishwatchschool",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Fleming",
+      "brandKey": "fleming",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Flux",
+      "brandKey": "fluxwatches",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://fluxwatches.com/",
+      "hasRelease": false
+    },
+    {
+      "name": "Formex",
+      "brandKey": "formex",
+      "eventId": "golden-hour",
+      "website": "https://formexwatch.com",
+      "hasRelease": true
+    },
+    {
+      "name": "Furlan Marri",
+      "brandKey": "furlanmarri",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Garrick",
+      "brandKey": "garrick",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Gavox Watches",
+      "brandKey": "gavoxwatches",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "GeO",
+      "brandKey": "geo",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Geylang Watch Co",
+      "brandKey": "geylangwatchco",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://geylangwatchco.store",
+      "hasRelease": false
+    },
+    {
+      "name": "Girard-Perregaux",
+      "brandKey": "girardperregaux",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Grönefeld",
+      "brandKey": "gronefeld",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Havaan Tuvali",
+      "brandKey": "havaantuvali",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://www.havaantuvali.com/",
+      "hasRelease": false
+    },
+    {
+      "name": "Hitori",
+      "brandKey": "hitori",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Holthinrichs",
+      "brandKey": "holthinrichs",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Horage",
+      "brandKey": "horage",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://www.horage.com",
+      "hasRelease": false
+    },
+    {
+      "name": "Horizon",
+      "brandKey": "horizon",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Houtman",
+      "brandKey": "houtman",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "HZ Watches",
+      "brandKey": "hzwatches",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Isotope",
+      "brandKey": "isotope",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Itay Noy",
+      "brandKey": "itaynoy",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "J.N. Shapiro",
+      "brandKey": "jnshapiro",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Kallinich Claeys",
+      "brandKey": "kallinichclaeys",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Kiwame Tokyo",
+      "brandKey": "kiwametokyo",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Krayon",
+      "brandKey": "krayon",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "KUOE Kyoto",
+      "brandKey": "kuoekyoto",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "La Fabrique du Temps Louis Vuitton",
+      "brandKey": "louisvuitton",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Leger A.Fah",
+      "brandKey": "legerafah",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Lima",
+      "brandKey": "limawatch",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "LOTH",
+      "brandKey": "loth",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Louis Erard",
+      "brandKey": "louiserard",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "LT Project Watch",
+      "brandKey": "ltprojectwatch",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://linkandtag.com",
+      "hasRelease": false
+    },
+    {
+      "name": "Luminox",
+      "brandKey": "luminox",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "MAEN",
+      "brandKey": "maenwatches",
+      "eventId": "golden-hour",
+      "website": "https://www.maenwatches.com",
+      "hasRelease": false
+    },
+    {
+      "name": "Makoto",
+      "brandKey": "makoto",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://makotowatch.com/",
+      "hasRelease": false
+    },
+    {
+      "name": "Martin Design",
+      "brandKey": "martindesign",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://www.martindesignwatches.com",
+      "hasRelease": false
+    },
+    {
+      "name": "MB&F",
+      "brandKey": "mbf",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Meridiano",
+      "brandKey": "meridiano",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://www.meridiano.fr",
+      "hasRelease": false
+    },
+    {
+      "name": "Metrical",
+      "brandKey": "metrical",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Mickaël Gaspar",
+      "brandKey": "mickalgaspar",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Micromilspec",
+      "brandKey": "micromilspec",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://www.micromilspec.com/",
+      "hasRelease": false
+    },
+    {
+      "name": "MING",
+      "brandKey": "ming",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Minim",
+      "brandKey": "minim",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Monbrey",
+      "brandKey": "monbrey",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Mora",
+      "brandKey": "mora",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Nalla Neram",
+      "brandKey": "nallaneram",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Nararya Atelier",
+      "brandKey": "nararyaatelier",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Nivada Grenchen",
+      "brandKey": "nivadagrenchen",
+      "eventId": "golden-hour",
+      "website": "https://nivadagrenchenofficial.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "Nivada Grenchen",
+      "brandKey": "nivadagrenchen",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://nivadagrenchenofficial.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "No Identity",
+      "brandKey": "noidentity",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "OAN.GIO",
+      "brandKey": "oangio",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "OLTO-8",
+      "brandKey": "olto8",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Ophion",
+      "brandKey": "ophion",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Oris",
+      "brandKey": "oris",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://www.oris.ch/",
+      "hasRelease": true
+    },
+    {
+      "name": "Out Of Order",
+      "brandKey": "outoforder",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://outoforderwatches.com",
+      "hasRelease": true
+    },
+    {
+      "name": "Peacock",
+      "brandKey": "peacock",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Petermann Bédat",
+      "brandKey": "petermannbdat",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Praesidus",
+      "brandKey": "praesidus",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Radcliffe",
+      "brandKey": "radcliffe",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Raúl Pagès",
+      "brandKey": "ralpags",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Raymond Weil",
+      "brandKey": "raymondweil",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Renaud Tixier",
+      "brandKey": "renaudtixier",
+      "eventId": "golden-hour",
+      "website": "https://www.renaudtixier.com/",
+      "hasRelease": true
+    },
+    {
+      "name": "Romain Gauthier",
+      "brandKey": "romaingauthier",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Santura",
+      "brandKey": "santura",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Seagull",
+      "brandKey": "seagull",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Selten",
+      "brandKey": "selten",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://seltenwatch.com/",
+      "hasRelease": false
+    },
+    {
+      "name": "Shanghai Watches",
+      "brandKey": "shanghaiwatches",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Simon Brette",
+      "brandKey": "simonbrette",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Stéphane Pierre",
+      "brandKey": "stphanepierre",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Straum",
+      "brandKey": "straum",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://straum.co",
+      "hasRelease": true
+    },
+    {
+      "name": "Sunrex",
+      "brandKey": "sunrex",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://sunrexwatches.com",
+      "hasRelease": false
+    },
+    {
+      "name": "TACS",
+      "brandKey": "tacs",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Time Objects",
+      "brandKey": "timeobjects",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Timeless Watch",
+      "brandKey": "timelesswatch",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://timeless-watch.ch",
+      "hasRelease": false
+    },
+    {
+      "name": "Trilobe",
+      "brandKey": "trilobe",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Urwerk",
+      "brandKey": "urwerk",
+      "eventId": "iamwatch",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Valour",
+      "brandKey": "valour",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Vario",
+      "brandKey": "vario",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Vesuviate",
+      "brandKey": "vesuviate",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://vesuviate.com",
+      "hasRelease": false
+    },
+    {
+      "name": "Voxel",
+      "brandKey": "voxel",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Waktu Horology",
+      "brandKey": "waktuhorology",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Waldhoff",
+      "brandKey": "waldhoff",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Wancher",
+      "brandKey": "wancher",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Wise",
+      "brandKey": "wise",
+      "eventId": "spring-sprang-sprung",
+      "website": "https://wisetimepiece.com",
+      "hasRelease": false
+    },
+    {
+      "name": "Wren",
+      "brandKey": "wrenwatches",
+      "eventId": "golden-hour",
+      "website": null,
+      "hasRelease": true
+    },
+    {
+      "name": "Yi Leather",
+      "brandKey": "yileather",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "Yuen",
+      "brandKey": "yuen",
+      "eventId": "spring-sprang-sprung",
+      "website": null,
+      "hasRelease": false
+    },
+    {
+      "name": "ZLTD",
+      "brandKey": "zltd",
+      "eventId": "gtg-zltd-watches-2026",
+      "website": null,
+      "hasRelease": true
+    }
+  ],
+  "releases": [
+    {
+      "brand": "Awake",
+      "brandKey": "awake",
+      "eventId": "spring-sprang-sprung",
+      "kind": "recent",
+      "text": "Sơn Mài – Frosted Leaf \"Blood Moon\", \"Storm\" and \"Lagoon\" — Three new dials join Awake's Sơn Mài Frosted Leaf line: handcrafted Vietnamese lacquer over silver leaf, in red, teal and copper-orange. The 38mm steel case houses a La Joux-Perret G101 automatic. Around 100 pieces per color are made each year.\nPrice: €2,820 including taxes\n\nSơn Mài Silver Leaf — Awake's Sơn Mài rebuilt for a new generation: a 38mm steel case around dials of silver leaf under traditional Vietnamese lacquer, 15 hours of handwork each, powered by the La Joux-Perret G101 automatic with a 68-hour reserve. Java Green, Gentian Blue and Indian Red join the permanent collection; Purple Viola is limited to 200 pieces.\nPrice: €2,640",
+      "url": null,
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "/__l5e/assets-v1/e87e2ab9-dfe0-4e5f-8fef-d641a0777406/brand-awake-blood-moon-brand.webp",
+          "credit": "Awake",
+          "link": null
+        },
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=85aba2f3b778897ba0b006db1c1848c2769671e0b45afc56c5c29956ac2902a3",
+          "credit": "Awake",
+          "link": "https://awakewatches.com/products/son-mai-silver-leaf-java-green"
+        }
+      ]
+    },
+    {
+      "brand": "Christopher Ward",
+      "brandKey": "christopherward",
+      "eventId": "spring-sprang-sprung",
+      "kind": "recent",
+      "text": "C1 Loco Classic — The Loco Classic takes Christopher Ward's suspended-balance Loco into a classic register: a white ceramic Roman-numeral subdial and exposed free-sprung balance in a 41mm steel case. Its hand-wound CW-003 caliber runs for 144 hours; the Gold version is a 2026 GPHG Petite Aiguille nominee.\nPrice: £4,295 ($5,995) on suede strap; £4,495 ($6,275) on Consort bracelet\n\nSealander Yalos Automatic — A slimmer, dressier Sealander in a 39mm steel case, with a stamped, lacquered dial in Ice Blue, Salt Pink, Sand White or Sea Green. A COSC-certified Sellita SW300-1 automatic sits inside.\nPrice: £1,290 ($1,815) on Vesuvio suede strap; £1,495 ($2,095) on Consort bracelet\n\nC1 Jump Hour XV — A 15th-anniversary reimagining of the C9 Harrison Jumping Hour, with a rhodium-silver guilloché dial, Roman-numeral hour window and blue PVD minute hand in a 39mm steel case. The refined JJ01 automatic jump-hour module marks each hour with an instantaneous jump.\nPrice: $2,495 on Consort bracelet\nAvailability: Sold out; manufacturer waitlist open for any pieces that become available. Limited edition of 300 pieces.\n\nC1 Bel Canto Lucia (On camel fine Italian leather (C01-41APT5-T00O0-MC) or Consort bracelet (C01-41APT5-T00O0-B1)) — Teased by Christopher Ward on November 12, 2026 with a count of the world's bird species, the C1 Bel Canto Lucia turns the Bel Canto's chiming mechanism into a songbird, after the bird Lucia sings of in Donizetti's Lucia di Lammermoor. The bird's beak shows whether the chime is on, and its tail is the hammer for the hourly D note. The 41mm titanium case holds the FS01-2 movement, with 65 hours of reserve.\nPrice: $5,550 (Consort bracelet $5,995)",
+      "url": "https://www.christopherward.com/int/watches/dive/Sealander",
+      "source": "www.christopherward.com",
+      "awards": [],
+      "images": [
+        {
+          "url": "/__l5e/assets-v1/fc34efc4-0021-419c-837c-c6af66735c06/lineup-singapore-christopher-ward-c1-loco-classic.webp",
+          "credit": "Christopher Ward",
+          "link": "https://www.christopherward.com"
+        },
+        {
+          "url": "/__l5e/assets-v1/4672059e-66c1-46b2-8cc2-57318653aa9b/lineup-singapore-christopher-ward-sealander-yalos.webp",
+          "credit": "Christopher Ward",
+          "link": "https://www.christopherward.com/int/watches/dive/Sealander"
+        },
+        {
+          "url": "/__l5e/assets-v1/8954604c-3a4e-4b7b-a03a-f5fe698076ef/christopher-ward-c1-jump-hour-xv.webp",
+          "credit": "Christopher Ward",
+          "link": "https://www.christopherward.com/int/"
+        },
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=9aa5ec7523621798ee2ab7879224d2a84eb12d0927521d16d0bb211312264e31",
+          "credit": "Christopher Ward",
+          "link": "https://www.christopherward.com/int/watches/C1-Bel-Canto-Lucia/C01-41APT5-T00O0-MC.html"
+        }
+      ]
+    },
+    {
+      "brand": "Minim",
+      "brandKey": "minim",
+      "eventId": "spring-sprang-sprung",
+      "kind": "recent",
+      "text": "Yang (Minim × L'Artisan) — A first-anniversary collaboration with Belgium's L'Artisan: a genuine rhodonite center dial and sub-seconds framed by a mother-of-pearl outer ring carrying Minim's Chinese numerals, in a 38mm steel case with a micro-rotor automatic movement, on a gray suede strap with pink stitching. Limited to 40 pieces.\nPrice: €1,049.49\nAvailability: Sold out.\n\nMN01 Sam1 Founder's Edition (Sam1 (charoite)) — A new Founder's Edition variant of the MN01, the Sam1, with a natural charoite stone centre dial, a brushed chapter ring with Chinese numerals and a purple guilloche outer dial. The 36.5mm steel case with a fluted bezel houses the hand-wound SW261-1M. Sold in person only, it debuts at Spring Sprang Sprung in Singapore on November 14-15, 2026.\nPrice: GBP 1,299",
+      "url": null,
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "/__l5e/assets-v1/15211129-ba4d-46c3-b00a-233e8d26a8bd/singapore-minim-lartisan-yang.webp",
+          "credit": "L'Artisan",
+          "link": null
+        },
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=e5cb1aafcfe25d291fee34180d3c9ef17c411cde431530a31c6f134500a9a912",
+          "credit": "Happy Horologists",
+          "link": null
+        }
+      ]
+    },
+    {
+      "brand": "Trilobe",
+      "brandKey": "trilobe",
+      "eventId": "iamwatch",
+      "kind": "debut",
+      "text": "Une Folle Journée 2nd Generation (Blue; Black; Grey) — The second generation of Une Folle Journée: a new barrel-shaped 40.3mm case in Grade 5 titanium or rose gold, keeping the three floating rings that turn counterclockwise around a fixed pointer, now driven by Trilobe's manufacture X-Nihilo calibre (4 Hz, 42-hour reserve) in place of the X-Centric. In blue, black and grey.\nPrice: €23,500",
+      "url": "https://trilobe.com",
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=91cfff1c02ba3150e79b416493364d738d4cb00cba6f515d9e7aed3710b280f0",
+          "credit": "Trilobe",
+          "link": "https://trilobe.com"
+        }
+      ]
+    },
+    {
+      "brand": "MB&F",
+      "brandKey": "mbf",
+      "eventId": "iamwatch",
+      "kind": "debut",
+      "text": "LM101 Gabriel Colliard — MB&F's first enamel watch: three limited editions of the LM101 whose cloisonné enamel dials, by Gabriel Colliard, depict a monkey, macaws and a crocodile. The 40mm platinum case houses a hand-wound caliber with a 60-hour reserve. Eight pieces of each edition.\nPrice: CHF 98,000 (EUR 107,000 and USD 131,000 also published; all excluding tax)",
+      "url": "https://www.mbandf.com/machines/mbf-machines/legacy-machines/lm101",
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=1cb093fc473bc41d53ef309901014387eae0f3e214bc6dca07d622d6dde6a2ad",
+          "credit": "MB&F",
+          "link": "https://www.mbandf.com/machines/mbf-machines/legacy-machines/lm101"
+        }
+      ]
+    },
+    {
+      "brand": "Petermann Bédat",
+      "brandKey": "petermannbdat",
+      "eventId": "iamwatch",
+      "kind": "debut",
+      "text": "Reference 2914 — Petermann Bédat's Reference 2914 is a monopusher chronograph with an instantaneous minute counter, in a 36.50mm platinum case 9.90mm thick. Its semi-open dial, made by Comblémine from stainless steel and sapphire with solid gold appliques, sits over the in-house Caliber 234 with a 56-hour reserve. Limited to 20 pieces in platinum.\nPrice: CHF 180,000 ex VAT",
+      "url": "https://petermann-bedat.com/references/reference-2914/",
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=9ceeffda8decb7e68d5a64ce29a62a91f187961d1ebcc5dea03a235b1dc14612",
+          "credit": "Petermann Bédat",
+          "link": "https://petermann-bedat.com/references/reference-2914/"
+        }
+      ]
+    },
+    {
+      "brand": "Anton Suhanov",
+      "brandKey": "antonsuhanov",
+      "eventId": "iamwatch",
+      "kind": "debut",
+      "text": "Flamingo Singapore Edition — The Flamingo Singapore Edition, presented for the first time at IAMWATCH: a green Flaming Balance on the dial, five stars drawn from Singapore's flag beneath the non-linear power-reserve scale, and a Merlion-shaped bridge in the hand-wound calibre Su26.2L whose tail moves as the watch is wound. Limited to 18 pieces.",
+      "url": "https://anton-suhanov.com",
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=8e1b48d90cb1fdc375287bc9c718e19558fb947649394e294a6ffb73f3830805",
+          "credit": "Anton Suhanov",
+          "link": "https://anton-suhanov.com"
+        }
+      ]
+    },
+    {
+      "brand": "Krayon",
+      "brandKey": "krayon",
+      "eventId": "iamwatch",
+      "kind": "debut",
+      "text": "Anywhere (Magnolia) — Krayon's Anywhere Magnolia is a limited edition of 15 pieces in a 39 mm platinum case. Its black onyx dial is hand-painted with magnolia petals, and two moving petals mark sunrise and sunset for a location chosen by the owner. Hand-wound calibre C030, 72-hour power reserve.\nAvailability: Unveiled at IAMWATCH, Singapore, November 12-15, 2026.",
+      "url": "https://www.krayon.ch/anywhere.php",
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=25079ff17bff97083fb2e40b29071b41ee943cdd14e24cd6fa696048a2cfd7c7",
+          "credit": "Krayon",
+          "link": "https://www.krayon.ch/anywhere.php"
+        }
+      ]
+    },
+    {
+      "brand": "Urwerk",
+      "brandKey": "urwerk",
+      "eventId": "iamwatch",
+      "kind": "debut",
+      "text": "UR-101 (Green Mamba) — A new version of the UR-101, one of the two models that launched Urwerk in 1997. The 41mm steel case has a matte black PVD finish; the wandering-hours display runs on two satellites over an emerald green 180-degree minute track. Automatic calibre UR-1.01V with a 48-hour reserve. Limited to 50 pieces.\nPrice: CHF 33,000",
+      "url": "https://www.urwerk.com",
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=f393db8b5da24a7799e3503622dedcc06848ade2c8ecb7d2cdb002f3ff96d5cc",
+          "credit": "Urwerk",
+          "link": "https://www.urwerk.com"
+        }
+      ]
+    },
+    {
+      "brand": "Raúl Pagès",
+      "brandKey": "ralpags",
+      "eventId": "iamwatch",
+      "kind": "debut",
+      "text": "RP2 The Hour Glass Edition — A bespoke evolution of the RP2 created for The Hour Glass: a light blue mother-of-pearl centre framed by a black nickel-plated German silver hour ring and German silver base, in a 38.5mm recycled steel case. The 3 Hz in-house calibre has a marine-chronometer-derived balance, a hand-bevelled counterweighted lever and 60 hand-cut internal angles.",
+      "url": "https://pageswatches.com",
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=9bbec4eaadf0fbdddf6c8266ee404833a7d500f43176140d90c9d4f862c789a7",
+          "credit": "IAMWATCH",
+          "link": "https://pageswatches.com"
+        }
+      ]
+    },
+    {
+      "brand": "MAEN",
+      "brandKey": "maenwatches",
+      "eventId": "golden-hour",
+      "kind": "debut",
+      "text": "Grand Tonneau Jump Hour (Steel (M8.1.1); Anthracite Black (M8.1.2); Midnight Blue (M8.1.3); Copper (M8.1.4)) — The Grand Tonneau Jump Hour joins the permanent collection after the 2025 MAEN × Nico Leonard limited edition. It keeps the 34mm tonneau case and jumping-hour display, adds a display caseback, and comes in four vertically brushed colourways: Steel, Anthracite Black, Midnight Blue and Copper.\nPrice: EUR 719.20 excl. VAT (EUR 899 incl. VAT as published by Monochrome)",
+      "url": "https://www.maenwatches.com/products/grand-tonneau-jump-hour-m8-1-1",
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=2bb1615c0a77af4ed644caaa66b1bc5151511a90ff3ef485a6ddfcf800d357d4",
+          "credit": "MAEN Watches",
+          "link": "https://www.maenwatches.com/products/grand-tonneau-jump-hour-m8-1-1"
+        }
+      ]
+    },
+    {
+      "brand": "Cleguer",
+      "brandKey": "cleguer",
+      "eventId": "iamwatch",
+      "kind": "debut",
+      "text": "Inspiration One The Hour Glass Edition (Six unique pieces in three decorative pairings: deep-green grand-feu champlevé enamel; sliced malachite; emerald-set cases (eight carats) - 18k white and yellow gold) — Six unique expressions of the Inspiration One, created in collaboration with The Hour Glass. The open dial exposes Cleguer's proprietary Innate Escapement beneath an offset time display, across three decorative pairings in 18-carat white and yellow gold: deep-green grand-feu champlevé enamel, sliced malachite, and cases set with eight carats of emeralds.",
+      "url": "https://www.cleguer.com/",
+      "source": null,
+      "awards": [],
+      "images": [
+        {
+          "url": "https://watchweeks.com/api/public/releases/images?key=0ab92e525394852d544896efe80d565bf790ae2012a4b0e87116f659c8dde3b9",
+          "credit": "IAMWATCH",
+          "link": "https://www.cleguer.com/"
+        }
+      ]
+    }
+  ],
+  "dealers": [],
+  "announced": [
+    {
+      "id": "1218a21a-53c7-41fb-a8d9-0204c5474c09",
+      "brand": "Trilobe",
+      "brandKey": "trilobe",
+      "model": "Une Folle Journée 2nd Generation",
+      "variant": "Blue; Black; Grey",
+      "eventId": "iamwatch",
+      "eventName": "IAMWATCH",
+      "date": "2026-11-12",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=91cfff1c02ba3150e79b416493364d738d4cb00cba6f515d9e7aed3710b280f0",
+      "credit": "Trilobe"
+    },
+    {
+      "id": "67747629-0af4-4ba7-9cf0-95c18ed1702e",
+      "brand": "Petermann Bédat",
+      "brandKey": "petermannbdat",
+      "model": "Reference 2914",
+      "variant": null,
+      "eventId": "iamwatch",
+      "eventName": "IAMWATCH",
+      "date": "2026-11-12",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=9ceeffda8decb7e68d5a64ce29a62a91f187961d1ebcc5dea03a235b1dc14612",
+      "credit": "Petermann Bédat"
+    },
+    {
+      "id": "7d73efff-39f1-4a65-9de5-28131f4d27a8",
+      "brand": "Christopher Ward",
+      "brandKey": "christopherward",
+      "model": "C1 Bel Canto Lucia",
+      "variant": "On camel fine Italian leather (C01-41APT5-T00O0-MC) or Consort bracelet (C01-41APT5-T00O0-B1)",
+      "eventId": "spring-sprang-sprung",
+      "eventName": "Spring Sprang Sprung",
+      "date": "2026-11-12",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=9aa5ec7523621798ee2ab7879224d2a84eb12d0927521d16d0bb211312264e31",
+      "credit": "Christopher Ward"
+    },
+    {
+      "id": "b15cc4fe-dc79-4c27-beda-434d5f8734d9",
+      "brand": "Cleguer",
+      "brandKey": "cleguer",
+      "model": "Inspiration One The Hour Glass Edition",
+      "variant": "Six unique pieces in three decorative pairings: deep-green grand-feu champlevé enamel; sliced malachite; emerald-set cases (eight carats) - 18k white and yellow gold",
+      "eventId": "iamwatch",
+      "eventName": "IAMWATCH",
+      "date": "2026-11-12",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=0ab92e525394852d544896efe80d565bf790ae2012a4b0e87116f659c8dde3b9",
+      "credit": "IAMWATCH"
+    },
+    {
+      "id": "35b9909d-8530-46b5-9973-905586e2705f",
+      "brand": "Anton Suhanov",
+      "brandKey": "antonsuhanov",
+      "model": "Flamingo Singapore Edition",
+      "variant": null,
+      "eventId": "iamwatch",
+      "eventName": "IAMWATCH",
+      "date": "2026-11-11",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=8e1b48d90cb1fdc375287bc9c718e19558fb947649394e294a6ffb73f3830805",
+      "credit": "Anton Suhanov"
+    },
+    {
+      "id": "6a5881e5-d41d-4cda-b147-3cd2def5af2c",
+      "brand": "Minim",
+      "brandKey": "minim",
+      "model": "MN01 Sam1 Founder's Edition",
+      "variant": "Sam1 (charoite)",
+      "eventId": "spring-sprang-sprung",
+      "eventName": "Spring Sprang Sprung",
+      "date": "2026-11-11",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=e5cb1aafcfe25d291fee34180d3c9ef17c411cde431530a31c6f134500a9a912",
+      "credit": "Happy Horologists"
+    },
+    {
+      "id": "8be1c116-22e5-4252-a4a9-b8b66c0f7bae",
+      "brand": "MAEN",
+      "brandKey": "maenwatches",
+      "model": "Grand Tonneau Jump Hour",
+      "variant": "Steel (M8.1.1); Anthracite Black (M8.1.2); Midnight Blue (M8.1.3); Copper (M8.1.4)",
+      "eventId": "golden-hour",
+      "eventName": "Golden Hour",
+      "date": "2026-11-11",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=2bb1615c0a77af4ed644caaa66b1bc5151511a90ff3ef485a6ddfcf800d357d4",
+      "credit": "MAEN Watches"
+    },
+    {
+      "id": "932c5090-f6d6-422a-9eb3-1665974a13d4",
+      "brand": "Raúl Pagès",
+      "brandKey": "ralpags",
+      "model": "RP2 The Hour Glass Edition",
+      "variant": null,
+      "eventId": "iamwatch",
+      "eventName": "IAMWATCH",
+      "date": "2026-11-11",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=9bbec4eaadf0fbdddf6c8266ee404833a7d500f43176140d90c9d4f862c789a7",
+      "credit": "IAMWATCH"
+    },
+    {
+      "id": "a0b3a11e-b80c-4134-a4e0-b2e5a219fbf7",
+      "brand": "Urwerk",
+      "brandKey": "urwerk",
+      "model": "UR-101",
+      "variant": "Green Mamba",
+      "eventId": "iamwatch",
+      "eventName": "IAMWATCH",
+      "date": "2026-11-11",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=f393db8b5da24a7799e3503622dedcc06848ade2c8ecb7d2cdb002f3ff96d5cc",
+      "credit": "Urwerk"
+    },
+    {
+      "id": "9e1b6993-45c3-4da7-8bc4-02f843a51cbd",
+      "brand": "MB&F",
+      "brandKey": "mbf",
+      "model": "LM101 Gabriel Colliard",
+      "variant": null,
+      "eventId": "iamwatch",
+      "eventName": "IAMWATCH",
+      "date": "2026-11-10",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=1cb093fc473bc41d53ef309901014387eae0f3e214bc6dca07d622d6dde6a2ad",
+      "credit": "MB&F"
+    },
+    {
+      "id": "beaa3044-409a-458e-bdbb-22070ce26f1f",
+      "brand": "Krayon",
+      "brandKey": "krayon",
+      "model": "Anywhere",
+      "variant": "Magnolia",
+      "eventId": "iamwatch",
+      "eventName": "IAMWATCH",
+      "date": "2026-11-10",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=25079ff17bff97083fb2e40b29071b41ee943cdd14e24cd6fa696048a2cfd7c7",
+      "credit": "Krayon"
+    },
+    {
+      "id": "5292b31d-7bd2-4198-8579-b187a30cc640",
+      "brand": "Awake",
+      "brandKey": "awake",
+      "model": "Sơn Mài Silver Leaf",
+      "variant": null,
+      "eventId": "spring-sprang-sprung",
+      "eventName": "Spring Sprang Sprung",
+      "date": "2026-11-09",
+      "imageUrl": "https://watchweeks.com/api/public/releases/images?key=85aba2f3b778897ba0b006db1c1848c2769671e0b45afc56c5c29956ac2902a3",
+      "credit": "Awake"
+    }
+  ]
+}

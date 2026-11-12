@@ -2,6 +2,29 @@ import SwiftUI
 import UIKit
 import WatchWeeksCore
 
+struct ChipFlowLayout:Layout {
+    var spacing:CGFloat=4
+    private func rows(width:CGFloat,subviews:Subviews) -> ([(CGPoint,CGSize)],CGFloat) {
+        var placements:[(CGPoint,CGSize)]=[],x:CGFloat=0,y:CGFloat=0,height:CGFloat=0
+        for view in subviews {
+            let ideal=view.sizeThatFits(.unspecified)
+            let size=view.sizeThatFits(ProposedViewSize(width:min(ideal.width,width),height:nil))
+            if x>0 && x+size.width>width { x=0;y += height+spacing;height=0 }
+            placements.append((CGPoint(x:x,y:y),size));x += size.width+spacing;height=max(height,size.height)
+        }
+        return (placements,y+height)
+    }
+    func sizeThatFits(proposal:ProposedViewSize,subviews:Subviews,cache:inout ()) -> CGSize {
+        let width=proposal.width ?? 320
+        return CGSize(width:width,height:rows(width:width,subviews:subviews).1)
+    }
+    func placeSubviews(in bounds:CGRect,proposal:ProposedViewSize,subviews:Subviews,cache:inout ()) {
+        for (view,item) in zip(subviews,rows(width:bounds.width,subviews:subviews).0) {
+            view.place(at:CGPoint(x:bounds.minX+item.0.x,y:bounds.minY+item.0.y),proposal:ProposedViewSize(item.1))
+        }
+    }
+}
+
 enum WatchWeeksStyle {
     static let paper = adaptive(0xF8F5EF, 0x1D1916)
     static let card = adaptive(0xFFFFFF, 0x28231F)

@@ -5,6 +5,7 @@ import WatchWeeksCore
 @MainActor final class AppModel: ObservableObject {
     @Published var guides: [Guide] = []
     @Published var activeGuideID: String?
+    @Published var releaseRequest:ReleaseNavigationRequest?
     @Published var pendingPushGuideID: String?
     @Published var visitGuides: [Guide] = []
     @Published var selections: [SelectionKey: Selection] = [:]
@@ -28,6 +29,12 @@ import WatchWeeksCore
         let store = LocalStore(directory: root)
         self.store=store; self.repository=GuideRepository(service: PublicGuideService(), store: store)
         #if DEBUG && targetEnvironment(simulator)
+        if let json=ProcessInfo.processInfo.environment["WW_ANNOUNCED_QA_GUIDE"],let data=json.data(using:.utf8),
+           let guide=try? JSONDecoder().decode(PublicDetail.self,from:data).model() {
+            guides=[guide];activeGuideID=guide.id;loaded=true
+        }
+        #endif
+        #if DEBUG && targetEnvironment(simulator)
         // Explicit UI-test harness only; no synthetic guide ever enters Release.
         if let city=ProcessInfo.processInfo.environment["WW_NATIVE_QA_CITY"] {
             let singapore=city == "singapore", id=singapore ? "singapore-2026" : "miami-2026"
@@ -41,7 +48,7 @@ import WatchWeeksCore
     }
     func start() async {
         #if DEBUG && targetEnvironment(simulator)
-        if ProcessInfo.processInfo.environment["WW_NATIVE_QA_CITY"] != nil { return }
+        if ProcessInfo.processInfo.environment["WW_NATIVE_QA_CITY"] != nil || ProcessInfo.processInfo.environment["WW_ANNOUNCED_QA_GUIDE"] != nil { return }
         #endif
         if loaded {
             await refresh()
@@ -171,6 +178,7 @@ struct RootView: View {
             withStatus(CatalogView(releases: true)).watchTab(.releases)
         }
         .tint(WatchWeeksStyle.link)
+        .onChange(of:model.releaseRequest?.id) { _, value in if value != nil { tab = .releases } }
         .onChange(of: tab) { _, value in model.resort(); if value == .list { UsageAnalytics.shared.record(.myList) } }
         .onChange(of: model.activeGuideID) { _, _ in model.resort() }
     }
@@ -304,4 +312,5 @@ struct WebsiteLink: View {
     func background() {}
     func setPromptForeground(_ active:Bool) {}
     func record(_ action:UsageAction,guideID:String? = nil,eventID:String? = nil,releaseID:String? = nil) {}
+    func recordAnnouncement(_ item:AnnouncedRelease?,guideID:String,source:AnnouncedSurface,position:Int?,count:Int) {}
 }
