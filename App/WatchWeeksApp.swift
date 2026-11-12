@@ -770,12 +770,4 @@ struct AnalyticsQADiagnostics: View {
         guard Self.publication(notification.request.content.userInfo) != nil else { return [] }
         return [.banner,.sound]
     }
-/// Rapid release: feature calls are inert. No consent/ID/queue is read or written.
-@MainActor final class UsageAnalytics {
-    static let shared=UsageAnalytics()
-    func active() {}
-    func background() {}
-    func setPromptForeground(_ active:Bool) {}
-    func record(_ action:UsageAction,guideID:String? = nil,eventID:String? = nil,releaseID:String? = nil) {}
-    func recordAnnouncement(_ item:AnnouncedRelease?,guideID:String,source:AnnouncedSurface,position:Int?,count:Int) {}
 }
