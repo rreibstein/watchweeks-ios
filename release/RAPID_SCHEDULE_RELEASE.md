@@ -5,6 +5,12 @@ repeat event list when today’s schedule is shown. The unreliable city "By day"
 view has been removed for this release; day filters, event cards, and the
 separate IAMWATCH Schedule tab remain. No new permissions or data collection.
 
+Confirmed: Xcode Cloud run **41**, source **ef408fe**, succeeded for both Archive
+and TestFlight Internal Testing. Reed confirmed receiving the TestFlight update.
+The public GitHub archive check was stale. Select the same installed TestFlight
+build in App Store Connect; cloud run number alone is not independent verification
+of the binary's build number. No App Review submission or publication yet.
+
 Identify the build by TestFlight notes beginning **Rapid release — Home cleanup
 and reliable guide browsing**. Xcode Cloud assigns the build number. Select that
 same build in the existing 1.0.2 App Store Connect version after Apple processing.

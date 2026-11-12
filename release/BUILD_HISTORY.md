@@ -1,5 +1,18 @@
 # Build history
 
+## Home cleanup and guide-list follow-up — TestFlight received
+
+Source ef408fe1d8da67a5ef186dd0627d80146a764e17, marketing version 1.0.2.
+Owner supplied Xcode Cloud run 41: Archive and TestFlight Internal Testing both
+succeeded, duration 13 minutes. Owner subsequently confirmed receiving the update.
+The public GitHub check remained stale at running; this is not a failed upload.
+Includes no duplicate bottom event list when today’s schedule is shown, removal
+of the unreliable city By day view, and the preceding Just announced, native
+IAMWATCH program, event-brand chips and dealer-list features. 101 portable tests
+and 10 export-validator cases passed before upload. No new simulator result
+claimed for this follow-up. Analytics/push remain in the separate full-feature
+branch. No App Review submission, public release, or real notification sent.
+
 ## Branded Home notification promo — signed archive succeeded
 
 Source bc4d8654813ad8b13e0138cd8807badb924acd88, marketing version 1.0.2.

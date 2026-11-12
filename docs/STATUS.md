@@ -9,11 +9,15 @@ Native analytics and push enrollment remain deferred to feature/just-announced.
 Validation for this follow-up: 101 core tests passed, 10 export-validator cases
 passed, source/resource/privacy validation and Swift syntax parsing passed.
 The source is pushed to both ci/cloud-candidate and release/cloud-upload.
-Xcode Cloud Upload archive check 131458586406 started Nov 12 at 20:07:41 UTC.
-No current simulator result, archive completion, Apple processing or TestFlight
-build number has yet been confirmed. The 6cb6a2e simulator success below is for
-the preceding candidate, not this follow-up. See release/RAPID_SCHEDULE_RELEASE.md
-for the minimal owner launch steps. No App Review submission or public release.
+Owner confirmed Xcode Cloud build/run 41 for ef408fe succeeded: Archive – iOS
+and TestFlight Internal Testing – iOS both succeeded (13-minute duration).
+Owner also confirmed receiving the TestFlight update. This supersedes the stale
+public archive check 131458586406, which continued to report running. The exact
+installed CFBundleVersion was not separately supplied; do not infer it solely
+from the cloud run number. No new simulator result is claimed for this follow-up;
+6cb6a2e below is the preceding simulator-verified candidate. See
+release/RAPID_SCHEDULE_RELEASE.md for minimal launch steps. App Review submission
+and public release remain owner actions; neither has been performed here.
 
 # Final frozen rapid candidate — 6cb6a2e
 
