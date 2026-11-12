@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(FoundationXML)
 import FoundationXML
+#endif
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -148,7 +150,7 @@ public struct PublishedEventProgramService: EventProgramService {
         return try PublishedProgramParser.parse(html,guideID:guide.id,eventID:event.id,timeZone:guide.timeZone)
     }
 }
-public struct ProgramLoad: Sendable { public let program:EventProgram;public let stale:Bool }
+public struct ProgramLoad: Sendable { public let program:EventProgram;public let stale:Bool;public let warning:String? }
 public struct EventProgramRepository: Sendable {
     private let store:LocalStore
     private let service:any EventProgramService
@@ -156,11 +158,13 @@ public struct EventProgramRepository: Sendable {
     public func load(guide:Guide,event:Event) async throws -> ProgramLoad {
         do {
             let program=try await service.fetch(guide:guide,event:event)
-            do { try await store.saveProgram(program);return ProgramLoad(program:program,stale:false) }
-            catch { return ProgramLoad(program:program,stale:true) }
+            do { try await store.saveProgram(program);return ProgramLoad(program:program,stale:false,warning:nil) }
+            catch { return ProgramLoad(program:program,stale:false,warning:"Program loaded but could not be saved for offline use.") }
         } catch {
             if GuideRefreshFailure.isCancellation(error) { throw CancellationError() }
-            if let saved=try await store.program(guideID:guide.id,eventID:event.id) { return ProgramLoad(program:saved,stale:true) }
+            if let saved=try await store.program(guideID:guide.id,eventID:event.id) {
+                return ProgramLoad(program:saved,stale:true,warning:"Couldn’t refresh. Your saved program remains available.")
+            }
             throw error
         }
     }

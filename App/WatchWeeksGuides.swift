@@ -741,7 +741,7 @@ private struct NativeEventProgram: View {
                     }
                 }
                 if filtered.isEmpty { Text("No matching sessions.").foregroundStyle(WatchWeeksStyle.secondary) }
-                Text("\(stale ? "Saved program" : "Updated") · \(program.fetchedAt.formatted(date:.abbreviated,time:.shortened)). Check the organizer for changes.")
+                Text("\(stale ? "Saved program" : "Updated") · \(EventDates.label(ISO8601DateFormatter().string(from:program.fetchedAt),zone:program.timeZone)). Check the organizer for changes.")
                     .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
                 WebsiteLink(title:"Program on WatchWeeks",url:program.sourceURL)
             } else if loading { ProgressView("Loading program…") }
@@ -761,7 +761,7 @@ private struct NativeEventProgram: View {
             }
             #endif
             let result=try await EventProgramRepository(store:store).load(guide:guide,event:event)
-            program=result.program;stale=result.stale;error=result.stale ? "Couldn’t refresh. Your saved program remains available." : nil
+            program=result.program;stale=result.stale;error=result.warning
         } catch {
             if GuideRefreshFailure.isCancellation(error) { return }
             self.error=program == nil ? "The program is unavailable right now. Please retry when connected." : "Couldn’t refresh. Your saved program remains available."
