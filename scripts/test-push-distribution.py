@@ -19,6 +19,17 @@ spec.loader.exec_module(module)
 
 
 class PushDistributionTests(unittest.TestCase):
+    def testRapidExportRequiresCorrectIdentityAndNoAnalyticsOrAPNs(self):
+        info={"WatchWeeksReleaseChannel":"rapid","CFBundleIdentifier":"com.watchweeks.app"}
+        signed={"application-identifier":"TESTTEAM.com.watchweeks.app","get-task-allow":False}
+        self.assertIn("Rapid signed export verified",module.validate(info,signed,True))
+        for bad in [{},dict(signed,**{"aps-environment":"production"}),
+                    dict(signed,**{"get-task-allow":True}),
+                    dict(signed,**{"application-identifier":"OTHER.com.other.app"})]:
+            with self.assertRaises(ValueError):module.validate(info,bad,True)
+        for key,value in [("WatchWeeksPostHogToken","test"),("WatchWeeksPushIntegrationVerified",True)]:
+            with self.assertRaises(ValueError):module.validate(dict(info,**{key:value}),signed,True)
+
     def setUp(self):
         self.info = {"WatchWeeksPushIntegrationVerified": True,
                      "WatchWeeksAPNsEnvironment": "production",

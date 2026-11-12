@@ -11,6 +11,22 @@ import zipfile
 
 
 def validate(info, entitlements, require_production=False):
+    if info.get("WatchWeeksReleaseChannel") == "rapid":
+        if info.get("CFBundleIdentifier") != "com.watchweeks.app":
+            raise ValueError("Unexpected rapid application bundle identifier.")
+        identities = [entitlements[key] for key in
+                      ("application-identifier", "com.apple.application-identifier")
+                      if key in entitlements]
+        if not identities or any(not isinstance(value, str) or not value.endswith(".com.watchweeks.app")
+                                 for value in identities) or len(set(identities)) != 1:
+            raise ValueError("Rapid signed application identifier is invalid.")
+        if "WatchWeeksPostHogToken" in info or info.get("WatchWeeksPushIntegrationVerified") is True:
+            raise ValueError("Rapid build must not contain analytics or push configuration.")
+        if "aps-environment" in entitlements:
+            raise ValueError("Rapid build must not carry an APNs entitlement.")
+        if require_production and entitlements.get("get-task-allow") is True:
+            raise ValueError("Rapid TestFlight export must have a distribution signature.")
+        return "Rapid signed export verified: no analytics configuration or APNs entitlement."
     if info.get("WatchWeeksPushIntegrationVerified") is not True:
         return "Push integration disabled; no notification activation in this build."
     expected = {"development": "sandbox", "production": "production"}.get(
@@ -72,7 +88,7 @@ def distribution_app(path, unpack_directory):
 
 def inspect(path, require_production=False):
     info = plistlib.loads((path / "Info.plist").read_bytes())
-    if info.get("WatchWeeksPushIntegrationVerified") is not True:
+    if info.get("WatchWeeksPushIntegrationVerified") is not True and info.get("WatchWeeksReleaseChannel") != "rapid":
         return info, {}, validate(info, {}, require_production)
     subprocess.run(["/usr/bin/codesign", "--verify", "--strict", str(path)],
                    check=True, capture_output=True)

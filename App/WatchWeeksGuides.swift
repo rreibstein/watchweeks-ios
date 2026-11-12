@@ -43,9 +43,6 @@ struct DiscoveryView: View {
                             ContentUnavailableView("No guides loaded", systemImage: "globe", description: Text("Pull to refresh. Previously loaded guides are available offline."))
                         }
                     }.padding(16)
-                    // Keep the alert controls mounted and ahead of past editions.
-                    ForthcomingGuidesPromo(guides:model.guides)
-                        .padding(.horizontal,16).padding(.bottom,16)
                     let past = ordered.filter { EventDates.status($0) == .past }
                     if !past.isEmpty {
                         Text("Past guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
@@ -741,7 +738,7 @@ private struct NativeEventProgram: View {
                     }
                 }
                 if filtered.isEmpty { Text("No matching sessions.").foregroundStyle(WatchWeeksStyle.secondary) }
-                Text("\(stale ? "Saved program" : "Updated") · \(program.fetchedAt.formatted(date:.abbreviated,time:.shortened)). Check the organizer for changes.")
+                Text("\(stale ? "Saved program" : "Updated") · \(EventDates.label(ISO8601DateFormatter().string(from:program.fetchedAt),zone:program.timeZone)). Check the organizer for changes.")
                     .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
                 WebsiteLink(title:"Program on WatchWeeks",url:program.sourceURL)
             } else if loading { ProgressView("Loading program…") }
@@ -761,7 +758,7 @@ private struct NativeEventProgram: View {
             }
             #endif
             let result=try await EventProgramRepository(store:store).load(guide:guide,event:event)
-            program=result.program;stale=result.stale;error=result.stale ? "Couldn’t refresh. Your saved program remains available." : nil
+            program=result.program;stale=result.stale;error=result.warning
         } catch {
             if GuideRefreshFailure.isCancellation(error) { return }
             self.error=program == nil ? "The program is unavailable right now. Please retry when connected." : "Couldn’t refresh. Your saved program remains available."
@@ -911,115 +908,4 @@ private struct GuideShareSheet: UIViewControllerRepresentable {
         return controller
     }
     func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
-}
-
-private struct ForthcomingGuidesPromo: View {
-    let guides: [Guide]
-    @EnvironmentObject private var model: AppModel
-    @ObservedObject private var alerts = GuidePublicationAlerts.shared
-    private var actionDisabled: Bool {
-        alerts.isBusy || alerts.hasEnrollment || alerts.isEnabled || alerts.deletionPending
-    }
-    var body: some View {
-        let titles=model.upcomingFeed.map { $0.planned.map(\.title) } ?? ForthcomingGuide.awaitingPublication(in:guides).map(\.title)
-        if !titles.isEmpty {
-            VStack(alignment:.leading,spacing:16) {
-                HStack(spacing:10) {
-                    Image(systemName:"bell.badge.fill")
-                        .font(.title3).foregroundStyle(WatchWeeksStyle.link)
-                        .frame(width:44,height:44)
-                        .background(WatchWeeksStyle.link.opacity(0.12),in:Circle())
-                        .accessibilityHidden(true)
-                    Text("Guides in the works")
-                        .font(.wwCaption.weight(.semibold)).tracking(1)
-                        .textCase(.uppercase).foregroundStyle(WatchWeeksStyle.link)
-                }
-                VStack(alignment:.leading,spacing:8) {
-                    Text("Don’t miss the next guide.").font(.wwTitle2)
-                        .accessibilityAddTraits(.isHeader)
-                    Text(titles.joined(separator:", ") + ".")
-                        .font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
-                }
-                Button {
-                    if alerts.permissionDenied {
-                        if let url=URL(string:UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
-                    } else { Task { await alerts.requestSubscription() } }
-                } label: {
-                    HStack(spacing:12) {
-                        Text(alerts.homeActionTitle).multilineTextAlignment(.leading)
-                        Spacer(minLength:0)
-                        Image(systemName:alerts.isEnabled ? "checkmark.circle.fill" : actionDisabled ? "clock" : "arrow.right")
-                            .accessibilityHidden(true)
-                    }
-                    .font(.wwHeadline)
-                    .padding(.horizontal,18).padding(.vertical,12)
-                    .frame(maxWidth:.infinity,minHeight:52)
-                    .foregroundStyle(actionDisabled ? WatchWeeksStyle.ink : WatchWeeksStyle.paper)
-                    .background(actionDisabled ? WatchWeeksStyle.control : WatchWeeksStyle.link,
-                                in:RoundedRectangle(cornerRadius:12))
-                    .contentShape(RoundedRectangle(cornerRadius:12))
-                }.accessibilityIdentifier("guide-updates")
-                    .buttonStyle(.plain)
-                    .accessibilityValue(alerts.isEnabled ? "On" : alerts.hasEnrollment ? "Permission granted, connecting" : alerts.isBusy ? "Requesting permission" : "Off")
-                    .disabled(actionDisabled)
-            }.padding(20).frame(maxWidth:.infinity,alignment:.leading)
-                .watchCard(radius:20,accent:WatchWeeksStyle.link,stripeWidth:4)
-                // Avoid a container identifier propagating over the button ID.
-                .accessibilityElement(children:.contain)
-        }
-    }
-}
-struct GuideUpdatesSheet: View {
-    @State private var newsletterURL=PublicLinks.home
-    @ObservedObject private var alerts = GuidePublicationAlerts.shared
-    @Environment(\.dismiss) private var dismiss
-    var body: some View {
-        NavigationStack {
-            List {
-                Section("New WatchWeeks guides") {
-                    Text("Get an alert when a new independent city or event guide is published.")
-                    if alerts.isConfigured || alerts.hasEnrollment || alerts.isEnabled || alerts.deletionPending {
-                        if alerts.isVerificationMode {
-                            Text("TestFlight delivery check. Guide alerts are not yet active for App Store users.")
-                                .font(.wwFootnote)
-                        }
-                        LabeledContent("Guide alerts",value:alerts.statusLabel)
-                        if alerts.hasEnrollment || alerts.isEnabled || alerts.deletionPending || alerts.isBusy {
-                            Button(alerts.deletionPending ? "Retry unsubscribe" : (alerts.isEnabled ? "Turn off guide alerts" : "Cancel pending guide alerts")) { Task { await alerts.unsubscribe() } }
-                        } else {
-                            Text("Notifications are optional. Apple will ask for permission after you choose Enable notifications. Analytics is a separate choice.")
-                            Button("Enable notifications") { Task { await alerts.requestSubscription() } }
-                                .disabled(alerts.isBusy)
-                            if alerts.permissionDenied {
-                                Button("Open notification settings") {
-                                    if let url=URL(string:UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
-                                }
-                            }
-                        }
-                        Text("If enabled, your device token, an installation credential, app version and iOS version are used to deliver guide alerts. They are not sent to analytics. Delivery is best effort.")
-                            .font(.wwFootnote)
-                    } else {
-                        Text(alerts.availabilityMessage)
-                        if alerts.isChecking { ProgressView("Checking guide alerts…") }
-                        Button("Retry notification setup") { Task { _ = await alerts.refreshAvailability() } }
-                            .disabled(alerts.isChecking)
-                    }
-                    WebsiteLink(title:"Guide updates on WatchWeeks",url:newsletterURL)
-                    if let message=alerts.message { Text(message).font(.wwFootnote) }
-                    if alerts.isVerificationMode, let id=alerts.installationID {
-                        Text("Test installation: " + id).font(.wwCaption).textSelection(.enabled)
-                        Button("Copy test installation ID") { UIPasteboard.general.string=id }
-                        Text("Use this reference to target your delivery check. Your registration credential and device token are never copied.")
-                            .font(.wwFootnote)
-                    }
-                }
-            }.font(.wwBody).navigationTitle("Guide updates").navigationBarTitleDisplayMode(.inline)
-                .task {
-                    async let destination=PublicGuideService().newsletterDestination()
-                    _ = await alerts.refreshAvailability()
-                    newsletterURL=await destination
-                }
-                .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { dismiss() } } }
-        }
-    }
 }

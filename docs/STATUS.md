@@ -1,3 +1,14 @@
+# Current rapid content candidate
+
+See release/RAPID_SCHEDULE_RELEASE.md. release/rapid-schedule contains the native
+IAMWATCH program-first event page and vertical/searchable Coconut Grove dealer
+list, while removing app analytics/push startup/UI/configuration/entitlement.
+Full-feature source is preserved separately at development/program-and-dealers
+and development/native-launch (18801be). No previous user data was erased.
+The public program comes from the published page, not an invented API; last-good
+program content is cached. 91 portable tests passed; Xcode results are pending.
+The historical full-feature status below is not the rapid candidate's feature set.
+
 # Home notification promo — visual refinement
 
 The promo now uses a full-width, minimum-52-point filled WatchWeeks button, bell

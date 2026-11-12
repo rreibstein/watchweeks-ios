@@ -675,62 +675,7 @@ struct ReleaseDetail: View {
         }.font(.wwSubheadline.weight(.semibold))
     }
 }
-struct UsageAnalyticsDisclosure: View {
-    var body: some View {
-        Group {
-            Text("Sharing usage helps us see which guides and features are useful and what to improve.")
-            Text("PostHog receives a random app identifier, app version/build, public guide/event/release IDs and actions such as viewing a guide, changing a rating, using My list or sharing. We do not send your selected rating, Seen value, notes, email, search queries or purchase prices. We do not join native and website identities or use this for ads or session replay.")
-            Text("Consented events may be stored on this device and retried when connectivity returns. Turning sharing off clears pending analytics and cancels delivery; requests already in flight cannot be recalled. Previously delivered data may remain under the privacy policy.")
-            Text("Sharing is off unless you turn it on. Change your choice in Home → About & privacy at any time. All app features work with sharing off.")
-        }
-    }
-}
-
-/// An inline choice after engagement: no launch modal or competing system prompt.
-struct AnalyticsEngagementPrompt: View {
-    @ObservedObject private var analytics = UsageAnalytics.shared
-    @State private var showingDetails = false
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Help improve WatchWeeks?").font(.wwSubheadline.weight(.semibold))
-            Text("Share app activity and a random identifier with PostHog to help improve guides and features. Optional; no ads or session replay.")
-                .font(.wwFootnote)
-            Button("What’s shared") { showingDetails=true }
-                .font(.wwFootnote).frame(minHeight:44)
-            ViewThatFits(in:.horizontal) {
-                HStack(spacing:16) { choices }
-                VStack(alignment:.leading, spacing:4) { choices }
-            }
-        }
-        .padding(16).frame(maxWidth:600,alignment:.leading)
-        .background(.regularMaterial,in:RoundedRectangle(cornerRadius:16))
-        .padding(.horizontal,16).padding(.top,8)
-        .sheet(isPresented:$showingDetails) {
-            NavigationStack {
-                List {
-                    Section { UsageAnalyticsDisclosure() }
-                }
-                .font(.wwBody).navigationTitle("Optional usage analytics")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { showingDetails=false } } }
-            }
-        }
-    }
-    @ViewBuilder private var choices: some View {
-        Button("Share usage") { analytics.setEnabled(true) }
-            .font(.wwSubheadline.weight(.semibold)).frame(minHeight:44)
-            .accessibilityIdentifier("analytics-prompt-allow")
-        Button("Not now") { analytics.declinePrompt() }
-            .font(.wwSubheadline.weight(.semibold)).frame(minHeight:44)
-            .accessibilityIdentifier("analytics-prompt-decline")
-    }
-}
-
 struct AboutView: View {
-    @ObservedObject private var analytics = UsageAnalytics.shared
-    @State private var explainAnalytics = false
-    @State private var chooseAnalytics = false
-    @State private var showingGuideUpdates = false
 
     var body: some View {
         List {
@@ -746,27 +691,6 @@ struct AboutView: View {
                 Text("Your shortlist, ratings and seen selections are saved on this device. They do not automatically synchronize with website accounts.")
                 Text("Previously loaded guides work offline. Links and content you have not loaded may require a connection.")
             }
-            #if DEBUG && targetEnvironment(simulator)
-            if let recorder=analytics.qaRecorder { AnalyticsQADiagnostics(recorder:recorder) }
-            #endif
-            if analytics.isAvailable {
-                Section("Usage analytics") {
-                    LabeledContent("Sharing", value: analytics.enabled ? "On" : "Off")
-                    if analytics.enabled {
-                        Button("Turn off usage analytics") { analytics.setEnabled(false) }
-                            .frame(minHeight: 44)
-                    } else {
-                        Button("Learn about usage analytics") { explainAnalytics = true }
-                            .frame(minHeight: 44)
-                    }
-                    Text("Optional. Your choice does not affect any WatchWeeks features.")
-                        .font(.wwFootnote).foregroundStyle(.secondary)
-                }
-            }
-            Section("Guide notifications") {
-                Text("Notification permission and usage analytics are separate choices. Guide alerts require a verified delivery service and your permission.")
-                Button("Guide alert preferences") { showingGuideUpdates=true }
-            }
             Section("Explore more") {
                 WebsiteLink(title: "WatchWeeks website", url: PublicLinks.home)
             }
@@ -777,34 +701,6 @@ struct AboutView: View {
                 }
             }
         }.scrollContentBackground(.hidden).watchPage().navigationTitle("About")
-            .sheet(isPresented:$showingGuideUpdates) { GuideUpdatesSheet() }
-            .sheet(isPresented: $explainAnalytics) {
-                NavigationStack {
-                    List {
-                        Section {
-                            UsageAnalyticsDisclosure()
-                        }
-                        Button("Choose a preference") { chooseAnalytics = true }
-                            .frame(minHeight: 44)
-                    }
-                    .navigationTitle("Optional usage analytics")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { explainAnalytics = false }
-                        }
-                    }
-                    .alert("Share usage analytics?", isPresented: $chooseAnalytics) {
-                        Button("Keep off", role: .cancel) { analytics.setEnabled(false); explainAnalytics = false }
-                        Button("Share usage") {
-                            analytics.setEnabled(true)
-                            explainAnalytics = false
-                        }
-                    } message: {
-                        Text("You can turn sharing off anytime in About & privacy.")
-                    }
-                }
-            }
     }
 }
 

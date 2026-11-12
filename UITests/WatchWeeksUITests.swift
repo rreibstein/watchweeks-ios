@@ -1,6 +1,16 @@
 import XCTest
 
 final class WatchWeeksUITests: XCTestCase {
+    @MainActor func testRapidReleaseHasNoAnalyticsOrNotificationEnrollment() {
+        let app=XCUIApplication();app.launchEnvironment["WW_NATIVE_QA_CITY"]="singapore";app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
+        XCTAssertFalse(app.buttons["guide-updates"].exists)
+        XCTAssertFalse(app.buttons["analytics-prompt-allow"].exists)
+        homeButton("home-about-privacy",in:app).tap()
+        XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["Guide alert preferences"].exists)
+        XCTAssertFalse(app.buttons["Learn about usage analytics"].exists)
+    }
     override func setUpWithError() throws {
         try super.setUpWithError()
         continueAfterFailure=false
@@ -93,39 +103,6 @@ final class WatchWeeksUITests: XCTestCase {
         XCTAssertTrue(last.waitForExistence(timeout:5));XCTAssertFalse(first.exists)
     }
 
-    @MainActor func testGuideUpdatesWaitForReliablePushDelivery() {
-        let app=XCUIApplication();app.launch()
-        XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
-        homeButton("guide-updates",in:app).tap()
-        XCTAssertFalse(app.navigationBars["Guide updates"].exists)
-        XCTAssertFalse(app.buttons["Enable notifications"].exists)
-        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","coming soon")).firstMatch.exists)
-        XCTAssertFalse(XCUIApplication(bundleIdentifier:"com.apple.springboard").alerts.firstMatch.exists)
-        XCTAssertTrue(app.tabBars.buttons["Events"].isSelected)
-    }
-
-    @MainActor func testHomeRequestsNativeNotificationPermissionWithoutInterstitial() {
-        let app=XCUIApplication()
-        // Real system authorization UI; this simulator-only flag never enables
-        // APNs/backend enrollment, sends a token, or fakes a notification receipt.
-        app.launchEnvironment["WW_PUSH_PERMISSION_QA"]="1"
-        app.launchEnvironment["WW_PUSH_PERMISSION_QA_SUITE"]="watchweeks.push.qa.\(UUID())"
-        app.launch()
-        XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
-        homeButton("guide-updates",in:app).tap()
-        let dialog=XCUIApplication(bundleIdentifier:"com.apple.springboard").alerts.firstMatch
-        if dialog.waitForExistence(timeout:8) {
-            let allow=dialog.buttons.matching(NSPredicate(format:"label == %@ OR label == %@","Allow","Allow Notifications")).firstMatch
-            XCTAssertTrue(allow.exists);allow.tap()
-        } // Apple's dialog is one-time; a previously allowed simulator won't ask again.
-        let button=app.buttons["guide-updates"]
-        let authorized=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","Permission granted, connecting"),object:button)
-        XCTAssertEqual(XCTWaiter.wait(for:[authorized],timeout:10),.completed)
-        XCTAssertFalse(app.navigationBars["Guide updates"].exists)
-        XCTAssertFalse(app.buttons["Enable notifications"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Events"].isSelected)
-    }
-
     @MainActor func testForegroundingKeepsBrowsingAvailableWithoutCancellationBanner() {
         let app=XCUIApplication();app.launch()
         XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))
@@ -135,140 +112,6 @@ final class WatchWeeksUITests: XCTestCase {
             XCTAssertFalse(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","CancellationError")).firstMatch.exists)
             XCTAssertTrue(app.tabBars.buttons["Brands A–Z"].isEnabled)
         }
-    }
-
-    @MainActor func testOptionalAnalyticsConsent() async throws {
-        let app = XCUIApplication()
-        app.launchEnvironment["WW_ANALYTICS_QA"] = "1"
-        app.launchEnvironment["WW_ANALYTICS_QA_SUITE"] = "watchweeks.analytics.qa.\(UUID())"
-        func events() async throws -> [[String: String]] {
-            let diagnostic=app.descendants(matching:.any)["analytics-qa-events"].firstMatch
-            XCTAssertTrue(diagnostic.waitForExistence(timeout:5))
-            let value=try XCTUnwrap(diagnostic.value as? String)
-            return try JSONDecoder().decode([[String:String]].self,from:Data(value.utf8))
-        }
-        func waitForEvents(_ count: Int) async throws -> [[String: String]] {
-            for _ in 0..<25 {
-                let current = try await events()
-                if current.count >= count { return current }
-                try await Task.sleep(for: .milliseconds(200))
-            }
-            return try await events()
-        }
-        let baseline = 0 // A unique consent/QA suite is used for this app launch.
-        func about() {
-            XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout: 10))
-            XCTAssertFalse(app.alerts.firstMatch.exists)
-            app.tabBars.buttons["Events"].tap()
-            homeButton("home-about-privacy",in:app).tap()
-            XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout: 5))
-        }
-        func choose(_ name: String) {
-            let learn = app.buttons["Learn about usage analytics"]
-            if !learn.isHittable { app.swipeUp() }
-            learn.tap()
-            XCTAssertTrue(app.navigationBars["Optional usage analytics"].waitForExistence(timeout: 5))
-            let preference = app.buttons["Choose a preference"]
-            if !preference.isHittable { app.swipeUp() }
-            preference.tap()
-            let button = app.alerts.buttons[name]
-            XCTAssertTrue(button.waitForExistence(timeout: 4))
-            button.tap()
-        }
-        app.launch()
-        about()
-        choose("Keep off")
-        var received = try await events()
-        XCTAssertEqual(received.count, baseline)
-        choose("Share usage")
-        received = try await waitForEvents(baseline + 1)
-        XCTAssertEqual(received.count, baseline + 1)
-        let first = try XCTUnwrap(received.last)
-        XCTAssertEqual(first["event"], "usage_analytics_enabled")
-        let firstID = try XCTUnwrap(first["id"])
-        let off = app.buttons["Turn off usage analytics"]
-        if !off.isHittable { app.swipeUp() }
-        off.tap()
-        app.terminate()
-        app.launch()
-        about()
-        received = try await events()
-        XCTAssertEqual(received.count, baseline + 1)
-        choose("Share usage")
-        received = try await waitForEvents(baseline + 2)
-        XCTAssertEqual(received.count, baseline + 2)
-        XCTAssertNotEqual(received.last?["id"], firstID)
-        if !off.isHittable { app.swipeUp() }
-        off.tap()
-    }
-
-    @MainActor func testAnalyticsPromptAppearsAfterEngagementAndNeverReplaysEarlierActions() async throws {
-        let app=XCUIApplication()
-        app.launchEnvironment["WW_ANALYTICS_QA"]="1"
-        app.launchEnvironment["WW_ANALYTICS_QA_SUITE"]="watchweeks.analytics.qa.\(UUID())"
-        app.launch()
-        let allow=app.buttons["analytics-prompt-allow"].firstMatch
-        XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout:10))
-        XCTAssertFalse(allow.exists) // Never interrupt initial launch.
-        app.tabBars.buttons["My list"].tap()
-        app.tabBars.buttons["Brands A–Z"].tap()
-        app.tabBars.buttons["My list"].tap()
-        XCTAssertFalse(allow.exists) // Two actions alone aren't enough.
-        XCTAssertTrue(allow.waitForExistence(timeout:40))
-        XCTAssertTrue(app.buttons["analytics-prompt-decline"].firstMatch.exists)
-        allow.tap()
-        XCTAssertTrue(allow.waitForNonExistence(timeout:5))
-        app.tabBars.buttons["Events"].tap()
-        homeButton("home-about-privacy",in:app).tap()
-        let diagnostic=app.descendants(matching:.any)["analytics-qa-events"].firstMatch
-        XCTAssertTrue(diagnostic.waitForExistence(timeout:5))
-        var received:[[String:String]]=[]
-        for _ in 0..<25 {
-            let value=try XCTUnwrap(diagnostic.value as? String)
-            received=try JSONDecoder().decode([[String:String]].self,from:Data(value.utf8))
-            if !received.isEmpty { break }
-            try await Task.sleep(for:.milliseconds(200))
-        }
-        XCTAssertEqual(received.map { $0["event"] },["usage_analytics_enabled"])
-        let off=app.buttons["Turn off usage analytics"]
-        if !off.isHittable { app.swipeUp() }
-        off.tap()
-        app.terminate();app.launch()
-        XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout:10))
-        app.tabBars.buttons["My list"].tap()
-        app.tabBars.buttons["Brands A–Z"].tap()
-        app.tabBars.buttons["My list"].tap()
-        XCTAssertFalse(app.buttons["analytics-prompt-allow"].firstMatch.exists)
-    }
-
-    @MainActor func testDecliningEarlyAnalyticsPromptStaysOffAfterRelaunch() {
-        let app=XCUIApplication()
-        app.launchEnvironment["WW_ANALYTICS_QA"]="1"
-        app.launchEnvironment["WW_ANALYTICS_QA_SUITE"]="watchweeks.analytics.qa.\(UUID())"
-        app.launch()
-        XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout:10))
-        app.tabBars.buttons["My list"].tap()
-        app.tabBars.buttons["Brands A–Z"].tap()
-        app.tabBars.buttons["My list"].tap()
-        let decline=app.buttons["analytics-prompt-decline"].firstMatch
-        XCTAssertTrue(decline.waitForExistence(timeout:40));decline.tap()
-        app.terminate();app.launch()
-        XCTAssertTrue(app.tabBars.buttons["My list"].waitForExistence(timeout:10))
-        app.tabBars.buttons["My list"].tap()
-        app.tabBars.buttons["Events"].tap()
-        homeButton("home-about-privacy",in:app).tap()
-        XCTAssertTrue(app.navigationBars["About"].waitForExistence(timeout:5))
-        // List rows below the first viewport may not have accessibility nodes yet.
-        let learn=app.buttons["Learn about usage analytics"]
-        for _ in 0..<6 {
-            if learn.exists { break }
-            app.swipeUp(velocity:.slow)
-        }
-        XCTAssertTrue(learn.waitForExistence(timeout:5))
-        let diagnostic=app.descendants(matching:.any)["analytics-qa-events"].firstMatch
-        XCTAssertTrue(diagnostic.waitForExistence(timeout:5))
-        XCTAssertEqual(diagnostic.value as? String,"[]")
-        XCTAssertFalse(app.buttons["analytics-prompt-allow"].firstMatch.exists)
     }
 
     @MainActor func testLiveMobileDesign() throws {

@@ -1,29 +1,12 @@
-Guide alerts — prominent Home button
+Rapid release — IAMWATCH schedule and Coconut Grove dealers
 
-The Home promo now has a filled WatchWeeks button, bell badge, stronger headline and clearer spacing. It keeps the same one-tap native permission flow. Pending setup and enabled notifications have distinct visual states; light/dark appearance and larger text remain supported.
+This candidate intentionally excludes native analytics and guide notifications. Those features are preserved on the full-feature development branch for a later release. No analytics or notification opt-in is needed for this update.
 
-One-tap guide notifications
+Minimum check:
+1. Events → Singapore → IAMWATCH: Schedule opens first. Change the day, search for a speaker, and open Session details. All program times are Singapore local time.
+2. Events → Miami → Coconut Grove: dealers appear vertically in A–Z order. Search for a dealer.
+3. Mark a brand seen, check My list, briefly go offline and confirm saved guide/checklist/program content remains accessible. The program must have been loaded first.
 
-On Home, tap Notify me → Allow in Apple's native notification dialog. There is no intermediate page or second Enable button. Stay on Home; setup retries quietly on a slow connection. Notifications on appears only after the service confirms enrollment. Apple's dialog is one-time: if already allowed, setup continues without asking again; if denied, the button opens device Settings.
+Program content is read from the published WatchWeeks IAMWATCH page because API v1 currently has no program records. It is rendered natively without running website scripts. A failed refresh retains the last saved program. No fictional or test program is shipped.
 
-For Reed's internal delivery test, find Copy test installation ID separately under Home → About & privacy → Guide alert preferences after enrollment. Copy only that non-secret reference for Lovable. Confirm actual receipt and that tapping opens the guide. No notification is sent by this build/test process.
-
-Previous Home and analytics improvements
-
-Optional analytics now offers an in-app choice after two useful interactions and 30 seconds of active use. It does not appear immediately on launch. Choose Share usage or Not now; either choice keeps all features available. Not now is remembered, and an existing analytics choice is respected. Change your preference later in Home → About & privacy. No earlier browsing is sent after opting in.
-
-The city shortcut strip is removed. The guide-alert promo is above Past guides. Check that returning from the background on a slow connection keeps browsing usable and shows no CancellationError text.
-
-TestFlight setup now checks Apple's verified download environment; the legacy receipt filename is only a fallback. Alert setup checks the service without waiting for all city guides.
-
-Publication alerts — internal TestFlight verification
-
-On Home (Events), tap Notify me, then Allow. Browsing and your checklist still work if you decline.
-
-Wait for enrollment, then open Home → About & privacy → Guide alert preferences → Copy test installation ID. For Reed's provider test, give Lovable only that reference. The app never copies the device token or registration credential.
-
-Lovable handles the test notification. Confirm physical receipt, tap it, and check that the guide opens. Unknown guides should safely return to the guide list.
-
-Check Turn off guide alerts. Offline unsubscribe should remain pending and finish after reopening online. Pending enrollment can also be canceled.
-
-Public alerts stay disabled until Reed confirms receipt. Optional usage analytics is a separate choice in Home → About & privacy. Existing ratings and seen selections should remain intact after this update.
+Please report the exact version/build and any issue. This build is not submitted for App Review or released automatically.

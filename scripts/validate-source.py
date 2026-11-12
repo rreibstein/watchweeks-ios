@@ -3,7 +3,15 @@ from pathlib import Path
 import json,plistlib,struct,xml.etree.ElementTree as ET
 root=Path(__file__).resolve().parents[1]
 p=plistlib.loads((root/'App/PrivacyInfo.xcprivacy').read_bytes());assert p['NSPrivacyTracking'] is False
-assert {i['NSPrivacyCollectedDataType'] for i in p['NSPrivacyCollectedDataTypes']} == {'NSPrivacyCollectedDataTypeDeviceID', 'NSPrivacyCollectedDataTypeProductInteraction'}
+info=plistlib.loads((root/'App/Info.plist').read_bytes())
+if info.get('WatchWeeksReleaseChannel') == 'rapid':
+ assert p['NSPrivacyCollectedDataTypes'] == []
+ assert 'WatchWeeksPostHogToken' not in info and 'WatchWeeksAPNsEnvironment' not in info
+ assert plistlib.loads((root/'App/WatchWeeks.entitlements').read_bytes()) == {}
+ assert 'UNUserNotificationCenter' not in (root/'App/WatchWeeksApp.swift').read_text()
+ assert 'us.i.posthog.com' not in (root/'App/WatchWeeksApp.swift').read_text()
+else:
+ assert {i['NSPrivacyCollectedDataType'] for i in p['NSPrivacyCollectedDataTypes']} == {'NSPrivacyCollectedDataTypeDeviceID', 'NSPrivacyCollectedDataTypeProductInteraction'}
 assert p['NSPrivacyTrackingDomains'] == []
 assert 'XCRemoteSwiftPackageReference' not in (root/'WatchWeeks.xcodeproj/project.pbxproj').read_text()
 ET.parse(root/'WatchWeeks.xcodeproj/xcshareddata/xcschemes/WatchWeeks.xcscheme')
