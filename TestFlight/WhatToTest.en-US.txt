@@ -1,3 +1,7 @@
+Rapid release — Home cleanup and reliable guide browsing
+
+Home shows today’s events only once. The unreliable city By day view is removed; day filters and IAMWATCH Schedule remain. Includes Just announced and A–Z dealer lists.
+
 Rapid release — Just announced, IAMWATCH schedule and dealer lists
 
 Latest additions: Just announced appears on the Home city card, inside event tiles and at the top of New releases. Tap a watch to switch to New releases at that brand. Recent matching models show JUST ADDED; recent means today plus six previous calendar dates in the guide's time zone. Missing/empty feeds hide the feature. No stable-image selection change was added.

@@ -101,6 +101,7 @@ final class WatchWeeksUITests: XCTestCase {
         """
         app.launch()
         homeButton("home-guide-singapore-2026",in:app).tap()
+        XCTAssertFalse(app.buttons["By day"].exists)
         let event=app.buttons["event-iamwatch"]
         XCTAssertTrue(event.waitForExistence(timeout:5));event.tap()
         XCTAssertTrue(app.staticTexts["IAMWATCH program"].waitForExistence(timeout:5))
@@ -204,10 +205,8 @@ final class WatchWeeksUITests: XCTestCase {
         capture(app, "02-singapore")
         app.buttons["Thu"].tap()
         XCTAssertTrue(app.staticTexts["0 events"].exists)
-        app.buttons["By day"].tap()
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Invitation only")).firstMatch.exists)
+        XCTAssertFalse(app.buttons["By day"].exists)
         app.buttons["All"].tap()
-        app.buttons["By # of brands"].tap()
         let cityRelease = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "city-release-card-")).firstMatch
         reveal(cityRelease, in: app)
         XCTAssertGreaterThan(cityRelease.frame.height, 100)

@@ -1,3 +1,31 @@
+# Latest follow-up — Home and guide fixes
+
+This follow-up supersedes the frozen candidate below. Home omits its bottom
+repeat event list when today’s schedule is shown. The unreliable city "By day"
+view has been removed for this release; day filters, event cards, and the
+separate IAMWATCH Schedule tab remain. No new permissions or data collection.
+
+Identify the build by TestFlight notes beginning **Rapid release — Home cleanup
+and reliable guide browsing**. Xcode Cloud assigns the build number. Select that
+same build in the existing 1.0.2 App Store Connect version after Apple processing.
+If 1.0.2 has already been released, a higher marketing version and rebuild are
+required. Do not substitute a differently numbered version.
+
+Minimum launch steps (iPad supported):
+1. Install this newest TestFlight update and briefly open Home and IAMWATCH Schedule.
+2. App Store Connect → WatchWeeks → iOS 1.0.2 → Build: select that tested build.
+3. What's New: "Discover Just announced watches, explore IAMWATCH’s program, and
+   browse Coconut Grove dealers in a searchable A–Z list. Includes cleaner Home
+   cards and more reliable guide browsing."
+4. Keep existing accurate privacy, seller, territories and pricing; choose manual
+   release. Add for Review → Submit for Review only with owner approval.
+5. After approval, Release This Version when ready.
+
+No Mac or Apple Developer capability change is needed for this rapid candidate.
+Analytics and push enrollment remain on the separate full-feature branch.
+
+---
+
 # Rapid content release — current candidate
 
 ## Final frozen candidate

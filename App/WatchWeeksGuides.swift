@@ -147,25 +147,29 @@ private struct GuidePreview: View {
         return guideDateRange(guide)
     }
     var body: some View {
+        TimelineView(.periodic(from: .now, by: 30)) { context in
+            card(now: context.date)
+        }
+    }
+
+    private func card(now: Date) -> some View {
+        let activity = LiveEvent.citySchedule(in: guide, now: now)
         let releases = guide.releaseCatalog()
-        VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 12) {
             if past {
                 guideLink
             } else {
-                TimelineView(.periodic(from: .now, by: 30)) { context in
-                    let activity = LiveEvent.citySchedule(in: guide, now: context.date)
-                    VStack(alignment: .leading, spacing: 8) {
-                        if let status = LiveEvent.homeStatus(in: guide, now: context.date) {
-                            ActivityPill(title: status.title, color: status.isLive ? WatchWeeksStyle.live : WatchWeeksStyle.today)
-                                .accessibilityIdentifier("home-guide-status-\(guide.id)")
-                            if let eventName = status.eventName, status.daysUntil != 0 {
-                                Text("Next public event: \(eventName)").font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
-                            }
+                VStack(alignment: .leading, spacing: 8) {
+                    if let status = LiveEvent.homeStatus(in: guide, now: now) {
+                        ActivityPill(title: status.title, color: status.isLive ? WatchWeeksStyle.live : WatchWeeksStyle.today)
+                            .accessibilityIdentifier("home-guide-status-\(guide.id)")
+                        if let eventName = status.eventName, status.daysUntil != 0 {
+                            Text("Next public event: \(eventName)").font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
                         }
-                        guideLink
-                        if let activity, !activity.today.isEmpty {
-                            todaySchedule(activity.today, now: context.date)
-                        }
+                    }
+                    guideLink
+                    if let activity, !activity.today.isEmpty {
+                        todaySchedule(activity.today, now: now)
                     }
                 }
             }
@@ -180,7 +184,7 @@ private struct GuidePreview: View {
             if !releases.isEmpty {
                 CityReleases(guide: guide, releases: releases, past: past)
             }
-            if !past {
+            if !past, activity?.today.isEmpty != false {
                 ForEach(guide.publicEvents.sorted { brandCount(guide, $0) > brandCount(guide, $1) }.prefix(3)) { event in
                     if guide.isDealerShow(event) {
                         Text("\(event.name) · \(guide.dealers(at: event).count) dealers").font(.wwFootnote)
@@ -341,19 +345,13 @@ struct CityView: View {
     @EnvironmentObject var model: AppModel
     let guide: Guide
     @State private var day: String?
-    @State private var sortByDay = false
     @State private var chipSeed=UUID().uuidString
 
     private var dates: [String] { Array(Set(guide.events.flatMap { $0.days.map(\.date) })).sorted() }
     private var events: [Event] {
-        guide.publicEvents.filter { event in day == nil || event.days.contains { $0.date == day && (sortByDay || !$0.isRestrictedAccess) } }.sorted { first, second in
-            if sortByDay, first.startsAt != second.startsAt { return (first.startsAt ?? "") < (second.startsAt ?? "") }
-            if sortByDay, let day,
-               let firstTime = first.days.first(where: { $0.date == day })?.open,
-               let secondTime = second.days.first(where: { $0.date == day })?.open,
-               firstTime != secondTime { return firstTime < secondTime }
-            return brandCount(guide, first) > brandCount(guide, second)
-        }
+        guide.publicEvents.filter { event in
+            day == nil || event.days.contains { $0.date == day && !$0.isRestrictedAccess }
+        }.sorted { brandCount(guide, $0) > brandCount(guide, $1) }
     }
 
     var body: some View {
@@ -366,10 +364,7 @@ struct CityView: View {
                 if !dates.isEmpty {
                     WatchSegments(selection: $day, choices: [nil] + dates.map(Optional.some), label: shortDay)
                 }
-                WatchSegments(selection: $sortByDay, choices: [false, true]) { $0 ? "By day" : "By # of brands" }
-                if sortByDay {
-                    daySchedule
-                } else if guide.id == "hong-kong-2026", day == nil {
+                if guide.id == "hong-kong-2026", day == nil {
                     let past = events.filter { guide.eventStatus($0) == .past }
                     let remaining = events.filter { guide.eventStatus($0) != .past }
                     if !remaining.isEmpty {
@@ -413,29 +408,6 @@ struct CityView: View {
         }
     }
 
-    private var daySchedule: some View {
-        ForEach(day.map { [$0] } ?? dates, id: \.self) { date in
-            let slots = guide.events.flatMap { event in
-                LocalSchedule.days(for: event, guideID: guide.id)
-                    .filter { $0.date == date }.map { (event, $0) }
-            }.sorted { (LocalSchedule.minute($0.1.open) ?? 1440) < (LocalSchedule.minute($1.1.open) ?? 1440) }
-            if !slots.isEmpty {
-                Text(LocalSchedule.dateLabel(date, zone: guide.timeZone) ?? date).font(.wwHeadline)
-                ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
-                    let (event, hours) = slot
-                    let parent = guide.parentEventID(for: event).flatMap { id in guide.events.first { $0.id == id } } ?? event
-                    NavigationLink { EventInfo(guide: guide, event: parent) } label: {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(hours.session ?? event.name).font(.wwHeadline)
-                            Text(LocalSchedule.label(hours, zone: guide.timeZone)).font(.wwFootnote)
-                            if parent.id != event.id { Text("Access session · \(parent.name)").font(.wwCaption) }
-                        }.frame(maxWidth: .infinity, alignment: .leading).padding(12).watchCard()
-                    }.buttonStyle(.plain)
-                }
-            }
-        }
-    }
-
     private var dayNavigation: some View {
         let allDays = [nil] + dates.map(Optional.some)
         let index = allDays.firstIndex(of: day) ?? 0
@@ -443,7 +415,7 @@ struct CityView: View {
             dayArrow("Previous day", icon: "chevron.left", target: index - 1, days: allDays)
             VStack(spacing: 4) {
                 Text(day.map { EventDates.label($0, zone: guide.timeZone) } ?? "All events").font(.wwTitle)
-                Text(sortByDay ? "Schedule" : "\(events.count) \(events.count == 1 ? "event" : "events")").foregroundStyle(WatchWeeksStyle.secondary)
+                Text("\(events.count) \(events.count == 1 ? "event" : "events")").foregroundStyle(WatchWeeksStyle.secondary)
             }.frame(maxWidth: .infinity).multilineTextAlignment(.center)
             dayArrow("Next day", icon: "chevron.right", target: index + 1, days: allDays)
         }
