@@ -14,6 +14,14 @@ public actor LocalStore {
         try JSONEncoder().encode(value).write(to: directory.appendingPathComponent(file), options: .atomic)
     }
     public func snapshot() throws -> GuideSnapshot? { try read("guides-v1.json", as: GuideSnapshot.self) }
+    public func program(guideID:String,eventID:String) throws -> EventProgram? {
+        try read("event-programs-v1.json",as:[EventProgram].self)?.first { $0.guideID == guideID && $0.eventID == eventID }
+    }
+    public func saveProgram(_ program:EventProgram) throws {
+        var saved=try read("event-programs-v1.json",as:[EventProgram].self) ?? []
+        saved.removeAll { $0.guideID == program.guideID && $0.eventID == program.eventID }
+        saved.append(program);try write(saved,file:"event-programs-v1.json")
+    }
     public func upcoming() throws -> UpcomingGuideFeed? { try read("upcoming-v1.json",as:UpcomingGuideFeed.self) }
     public func saveUpcoming(_ feed: UpcomingGuideFeed) throws { try feed.validate(); try write(feed,file:"upcoming-v1.json") }
     public func rememberedGuides() throws -> [Guide] { try read("guide-library-v1.json", as: [Guide].self) ?? snapshot()?.guides ?? [] }

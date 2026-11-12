@@ -21,6 +21,7 @@ public struct Dealer: Codable, Identifiable, Equatable, Sendable {
     public let name: String
     public let eventId: String
     public var id: String { "\(eventId)|\(name)" }
+    public init(name:String,eventId:String) { self.name=name;self.eventId=eventId }
 }
 
 public struct Event: Codable, Identifiable, Equatable, Sendable {

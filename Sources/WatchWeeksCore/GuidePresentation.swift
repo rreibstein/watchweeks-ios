@@ -20,8 +20,9 @@ public extension Guide {
         id == "miami-2026" && event.id == "coconut-grove"
     }
 
-    func dealers(at event: Event) -> [Dealer] {
-        (dealers ?? []).filter { $0.eventId == event.id }
+    func dealers(at event: Event, matching query:String = "") -> [Dealer] {
+        (dealers ?? []).filter { $0.eventId == event.id && (query.isEmpty || $0.name.localizedCaseInsensitiveContains(query)) }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
     var newReleases: [Release] { newReleases(for: nil) }

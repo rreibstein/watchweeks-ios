@@ -52,6 +52,47 @@ final class WatchWeeksUITests: XCTestCase {
             .wait(for: .runningForeground, timeout: 10))
     }
 
+    @MainActor func testIAMWATCHScheduleIsPrimaryWithDayFilteringAndSpeakers() {
+        let app=XCUIApplication()
+        app.launchEnvironment["WW_NATIVE_QA_CITY"]="singapore"
+        app.launchEnvironment["WW_SCHEDULE_QA_HTML"]="""
+        <section aria-label="Program"><h2>Program (2)</h2>
+        <h3>Fri Nov 13</h3><article><p class="font-mono">9 AM–10 AM · GTG</p><h4>The OGs</h4><p class="flex">Penthouse</p></article>
+        <h3>Sat Nov 14</h3><article><p class="font-mono">10 AM–11 AM · Lecture</p><h4>Régleurs: Watchmaking's Invisible Masters of Precision</h4><p class="flex">Wonder Room</p><div class="text-sm"><span class="font-bold uppercase">Presenter </span>Carlos Torres</div></article></section>
+        """
+        app.launch()
+        homeButton("home-guide-singapore-2026",in:app).tap()
+        let event=app.buttons["event-iamwatch"]
+        XCTAssertTrue(event.waitForExistence(timeout:5));event.tap()
+        XCTAssertTrue(app.staticTexts["IAMWATCH program"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["Schedule"].exists)
+        XCTAssertTrue(app.buttons["Brands & attendance"].exists)
+        XCTAssertTrue(app.staticTexts["The OGs"].waitForExistence(timeout:5))
+        let saturday=app.buttons.matching(NSPredicate(format:"label BEGINSWITH %@","Sat")).firstMatch
+        XCTAssertTrue(saturday.exists);saturday.tap()
+        XCTAssertFalse(app.staticTexts["The OGs"].exists)
+        let session=app.staticTexts["Régleurs: Watchmaking's Invisible Masters of Precision"]
+        XCTAssertTrue(session.waitForExistence(timeout:5))
+        let details=app.buttons["Session details"].firstMatch
+        if !details.isHittable { app.swipeUp() };details.tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Carlos Torres")).firstMatch.waitForExistence(timeout:5))
+    }
+
+    @MainActor func testCoconutGroveDealersAreVerticalAlphabeticalAndSearchable() {
+        let app=XCUIApplication();app.launchEnvironment["WW_NATIVE_QA_CITY"]="miami";app.launch()
+        homeButton("home-guide-miami-2026",in:app).tap()
+        let event=app.buttons["event-coconut-grove"]
+        XCTAssertTrue(event.waitForExistence(timeout:5));event.tap()
+        let search=app.textFields["Search dealers"]
+        XCTAssertTrue(search.waitForExistence(timeout:5))
+        let first=app.staticTexts["dealer-coconut-grove|Aaron Faber Gallery"]
+        let last=app.staticTexts["dealer-coconut-grove|Vintage Watches Miami"]
+        XCTAssertTrue(first.exists);XCTAssertTrue(last.exists)
+        XCTAssertLessThan(first.frame.minY,last.frame.minY)
+        search.tap();search.typeText("vintage")
+        XCTAssertTrue(last.waitForExistence(timeout:5));XCTAssertFalse(first.exists)
+    }
+
     @MainActor func testGuideUpdatesWaitForReliablePushDelivery() {
         let app=XCUIApplication();app.launch()
         XCTAssertTrue(app.tabBars.buttons["Events"].waitForExistence(timeout:10))

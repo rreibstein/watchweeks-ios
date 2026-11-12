@@ -186,7 +186,10 @@ private struct GuidePreview: View {
                 ForEach(guide.publicEvents.sorted { brandCount(guide, $0) > brandCount(guide, $1) }.prefix(3)) { event in
                     if guide.isDealerShow(event) {
                         Text("\(event.name) · \(guide.dealers(at: event).count) dealers").font(.wwFootnote)
-                        DealerChips(dealers: guide.dealers(at: event))
+                        DealerList(dealers:Array(guide.dealers(at:event).prefix(4)),searchable:false)
+                        NavigationLink { EventInfo(guide:guide,event:event) } label: {
+                            Text("See all \(guide.dealers(at:event).count) dealers · A–Z").font(.wwFootnote).frame(minHeight:44)
+                        }.buttonStyle(.plain).foregroundStyle(WatchWeeksStyle.link)
                     } else if brandCount(guide, event) > 0 {
                         Text("\(event.name) · \(brandCount(guide, event)) brands").font(.wwFootnote)
                     }
@@ -490,15 +493,27 @@ private struct EventPreview: View {
     }
 }
 
-private struct DealerChips: View {
+private struct DealerList: View {
     let dealers: [Dealer]
+    var searchable=true
+    @State private var query=""
     var body: some View {
-        ScrollView(.horizontal) {
-            HStack {
-                ForEach(dealers) { dealer in
-                    Text(dealer.name).font(.wwFootnote).padding(10).watchCard(radius: 20)
+        let visible=dealers.filter { query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) }
+        VStack(alignment:.leading,spacing:0) {
+            if searchable {
+                TextField("Search dealers",text:$query)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled()
+                    .padding(12).watchCard(radius:12).padding(.bottom,8)
+            }
+            ForEach(visible) { dealer in
+                VStack(alignment:.leading,spacing:0) {
+                    Text(dealer.name).font(.wwBody)
+                        .frame(maxWidth:.infinity,minHeight:48,alignment:.leading)
+                        .accessibilityIdentifier("dealer-\(dealer.id)")
+                    Divider()
                 }
             }
+            if visible.isEmpty { Text("No matching dealers.").font(.wwFootnote).padding(.vertical,12) }
         }
     }
 }
@@ -519,6 +534,7 @@ struct EventInfo: View {
     @Environment(\.openURL) private var openURL
     @State private var choosingMaps = false
     @State private var calendarSelection: EventCalendarSelection?
+    @State private var eventTab=IAMWATCHSection.schedule
     let guide: Guide
     let event: Event
 
@@ -529,16 +545,15 @@ struct EventInfo: View {
                     .foregroundStyle(WatchWeeksStyle.link)
                 Text(event.name).font(.wwTitle).accessibilityAddTraits(.isHeader)
                 Text(dateRange(event.startsAt, event.endsAt, zone: guide.timeZone)).font(.wwHeadline)
-                metadata
-                if SingaporeStock.applies(to: guide, event: event) { stock }
-                let releases = guide.releaseCatalog(eventID: event.id)
-                if !releases.isEmpty { GuideReleaseCarousel(guide: guide, event: event, releases: releases) }
-                let dealers = guide.dealers(at: event)
-                if guide.isDealerShow(event) {
-                    Text("\(dealers.count) dealers").font(.wwHeadline)
-                    DealerChips(dealers: dealers)
-                } else if brandCount(guide, event) > 0 {
-                    BrandDirectory(guide: guide, event: event)
+                if EventProgram.source(guideID:guide.id,eventID:event.id) != nil {
+                    DisclosureGroup("Location, hours & entry info") { metadata }
+                        .font(.wwSubheadline)
+                    WatchSegments(selection:$eventTab,choices:IAMWATCHSection.allCases) { $0.rawValue }
+                    if eventTab == .schedule { NativeEventProgram(guide:guide,event:event) }
+                    else { exhibitorContent }
+                } else {
+                    metadata
+                    exhibitorContent
                 }
             }.padding(16)
         }
@@ -552,6 +567,17 @@ struct EventInfo: View {
             model.activeGuideID = guide.id
             if !recordedView { recordedView=true; UsageAnalytics.shared.record(.event, guideID: guide.id, eventID: event.id) }
         }
+    }
+
+    @ViewBuilder private var exhibitorContent: some View {
+        if SingaporeStock.applies(to: guide, event: event) { stock }
+        let releases=guide.releaseCatalog(eventID:event.id)
+        if !releases.isEmpty { GuideReleaseCarousel(guide:guide,event:event,releases:releases) }
+        let dealers=guide.dealers(at:event)
+        if guide.isDealerShow(event) {
+            Text("\(dealers.count) dealers · A–Z").font(.wwHeadline)
+            DealerList(dealers:dealers)
+        } else if brandCount(guide,event) > 0 { BrandDirectory(guide:guide,event:event) }
     }
 
     private var calendarSlots: [EventCalendarSlot] {
@@ -659,6 +685,88 @@ struct EventInfo: View {
                 .foregroundStyle(WatchWeeksStyle.secondary)
         }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
             .background(WatchWeeksStyle.control, in: RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+private enum IAMWATCHSection: String,CaseIterable { case schedule="Schedule",brands="Brands & attendance" }
+
+private struct NativeEventProgram: View {
+    let guide:Guide
+    let event:Event
+    @State private var program:EventProgram?
+    @State private var day:String?
+    @State private var query=""
+    @State private var loading=false
+    @State private var stale=false
+    @State private var error:String?
+    private var store:LocalStore {
+        LocalStore(directory:FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0]
+            .appendingPathComponent("WatchWeeks",isDirectory:true))
+    }
+    var body: some View {
+        VStack(alignment:.leading,spacing:14) {
+            Text("IAMWATCH program").font(.wwTitle2).accessibilityAddTraits(.isHeader)
+            Text("All times are local to \(guide.city).").font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
+            if let program {
+                WatchSegments(selection:$day,choices:[nil]+program.dates.map(Optional.some)) { value in
+                    value.flatMap { LocalSchedule.dateLabel($0,zone:program.timeZone) } ?? "All days"
+                }
+                TextField("Search sessions, speakers or rooms",text:$query)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled()
+                    .padding(12).watchCard(radius:12)
+                let filtered=program.matching(day:day,query:query)
+                ForEach(day.map{[$0]} ?? program.dates,id:\.self) { date in
+                    let sessions=filtered.filter{$0.date == date}
+                    if !sessions.isEmpty {
+                        Text(LocalSchedule.dateLabel(date,zone:program.timeZone) ?? date).font(.wwHeadline)
+                        ForEach(sessions) { session in
+                            VStack(alignment:.leading,spacing:8) {
+                                Text(LocalSchedule.hours(session.day).map{LocalSchedule.hoursLabel($0,compact:true)} ?? "Time unconfirmed")
+                                    .font(.wwSubheadline.weight(.semibold)).foregroundStyle(WatchWeeksStyle.link)
+                                Text(session.title).font(.wwHeadline)
+                                if session.invitationOnly { Text("Invitation only").font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary) }
+                                if let category=session.category { Text(category).font(.wwCaption) }
+                                if let room=session.room { Label(room,systemImage:"mappin.and.ellipse").font(.wwFootnote) }
+                                if session.description != nil || !session.participants.isEmpty {
+                                    DisclosureGroup("Session details") {
+                                        VStack(alignment:.leading,spacing:8) {
+                                            if let text=session.description { Text(text) }
+                                            ForEach(session.participants,id:\.self) { Text($0) }
+                                        }.font(.wwFootnote).padding(.top,6)
+                                    }.font(.wwFootnote)
+                                }
+                            }.padding(14).frame(maxWidth:.infinity,alignment:.leading).watchCard()
+                                .accessibilityIdentifier("program-\(session.id)")
+                        }
+                    }
+                }
+                if filtered.isEmpty { Text("No matching sessions.").foregroundStyle(WatchWeeksStyle.secondary) }
+                Text("\(stale ? "Saved program" : "Updated") · \(program.fetchedAt.formatted(date:.abbreviated,time:.shortened)). Check the organizer for changes.")
+                    .font(.wwCaption).foregroundStyle(WatchWeeksStyle.secondary)
+                WebsiteLink(title:"Program on WatchWeeks",url:program.sourceURL)
+            } else if loading { ProgressView("Loading program…") }
+            if let error { Text(error).font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary) }
+            Button(loading ? "Refreshing…" : "Refresh program") { Task { await refresh() } }.disabled(loading)
+        }.accessibilityElement(children:.contain)
+            .task { await refresh() }
+    }
+    private func refresh() async {
+        guard !loading else { return };loading=true;defer{loading=false}
+        if program == nil { program=try? await store.program(guideID:guide.id,eventID:event.id);stale=program != nil }
+        do {
+            #if DEBUG && targetEnvironment(simulator)
+            if let html=ProcessInfo.processInfo.environment["WW_SCHEDULE_QA_HTML"] {
+                program=try PublishedProgramParser.parse(html,guideID:guide.id,eventID:event.id,timeZone:guide.timeZone)
+                stale=false;error=nil;return
+            }
+            #endif
+            let result=try await EventProgramRepository(store:store).load(guide:guide,event:event)
+            program=result.program;stale=result.stale;error=result.stale ? "Couldn’t refresh. Your saved program remains available." : nil
+        } catch {
+            if GuideRefreshFailure.isCancellation(error) { return }
+            self.error=program == nil ? "The program is unavailable right now. Please retry when connected." : "Couldn’t refresh. Your saved program remains available."
+            stale=program != nil
+        }
     }
 }
 

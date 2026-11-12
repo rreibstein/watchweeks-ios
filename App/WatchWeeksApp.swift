@@ -30,8 +30,22 @@ import WatchWeeksCore
         let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("WatchWeeks", isDirectory: true)
         let store = LocalStore(directory: root)
         self.store=store; self.repository=GuideRepository(service: PublicGuideService(), store: store)
+        #if DEBUG && targetEnvironment(simulator)
+        // Explicit UI-test harness only; no synthetic guide ever enters Release.
+        if let city=ProcessInfo.processInfo.environment["WW_NATIVE_QA_CITY"] {
+            let singapore=city == "singapore", id=singapore ? "singapore-2026" : "miami-2026"
+            guides=[Guide(id:id,city:singapore ? "Singapore" : "Miami",startDate:"2026-11-12",endDate:"2026-11-15",
+                timeZone:singapore ? "Asia/Singapore" : "America/New_York",
+                events:[Event(id:singapore ? "iamwatch" : "coconut-grove",name:singapore ? "IAMWATCH 2026" : "Coconut Grove Jewelry & Watch Show")],
+                dealers:singapore ? nil : [Dealer(name:"Vintage Watches Miami",eventId:"coconut-grove"),Dealer(name:"Aaron Faber Gallery",eventId:"coconut-grove")])]
+            activeGuideID=id;loaded=true
+        }
+        #endif
     }
     func start() async {
+        #if DEBUG && targetEnvironment(simulator)
+        if ProcessInfo.processInfo.environment["WW_NATIVE_QA_CITY"] != nil { return }
+        #endif
         if loaded {
             await refresh()
             return
