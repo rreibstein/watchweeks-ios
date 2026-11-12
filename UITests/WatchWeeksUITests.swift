@@ -1,36 +1,35 @@
 import XCTest
 
 final class WatchWeeksUITests: XCTestCase {
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        continueAfterFailure=false
+    @MainActor func testAnnouncementsThreePlacementsNavigationAndScreenshots() throws {
+        let app=XCUIApplication()
+        app.launchEnvironment["WW_ANNOUNCED_QA_GUIDE"]=String(data:try XCTUnwrap(Data(base64Encoded:announcedFixtureBase64)),encoding:.utf8)
+        app.launchEnvironment["WW_ANNOUNCED_QA_NOW"]="2026-11-12T12:00:00Z"
+        app.launch()
+        let firstID="1218a21a-53c7-41fb-a8d9-0204c5474c09"
+        let home=homeButton("announced-home-\(firstID)",in:app)
+        capture(app,"announced-01-home-real-feed-snapshot")
+        home.tap()
+        XCTAssertTrue(app.tabBars.buttons["New releases"].isSelected)
+        let release=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH %@","release-trilobe|")).firstMatch
+        XCTAssertTrue(release.waitForExistence(timeout:8))
+        let atBrand=XCTNSPredicateExpectation(predicate:NSPredicate(format:"hittable == true"),object:release)
+        XCTAssertEqual(XCTWaiter.wait(for:[atBrand],timeout:8),.completed)
+        XCTAssertTrue(app.staticTexts["JUST ADDED"].firstMatch.exists || release.label.contains("JUST ADDED"))
+        _=homeButton("announced-new_releases-\(firstID)",in:app)
+        capture(app,"announced-03-new-releases-real-feed-snapshot")
+        app.tabBars.buttons["Events"].tap()
+        homeButton("home-guide-singapore-2026",in:app).tap()
+        _=homeButton("announced-guide-\(firstID)",in:app)
+        capture(app,"announced-02-guide-event-real-feed-snapshot")
+        let chip=homeButton("event-chip-iamwatch-trilobe",in:app)
+        chip.tap()
+        XCTAssertTrue(app.buttons["Brands & attendance"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.staticTexts["IAMWATCH program"].exists)
     }
-    @MainActor private func homeButton(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
-        // LazyVStack can report an offscreen activation point as an XCTest error
-        // when isHittable is queried after returning from a navigation destination.
-        // Re-query each snapshot and scroll until the full row is inside the viewport.
-        for _ in 0..<24 {
-            let button=app.buttons[identifier].firstMatch
-            if button.exists {
-                let frame=button.frame, window=app.windows.firstMatch.frame
-                let bar=app.tabBars.firstMatch
-                let bottom=bar.exists ? min(window.maxY-44,bar.frame.minY-8) : window.maxY-80
-                if frame.minY.isFinite, frame.maxY.isFinite, frame.height > 0,
-                   frame.width > 0, frame.minY >= window.minY+44, frame.maxY <= bottom { return button }
-                if frame.height > 0, frame.width > 0, frame.minY.isFinite, frame.minY < window.minY+44 {
-                    app.swipeDown(velocity:.slow);continue
-                }
-            }
-            app.swipeUp(velocity:.slow)
-        }
-        let hierarchy=XCTAttachment(string:app.debugDescription)
-        hierarchy.name="Home accessibility hierarchy";hierarchy.lifetime = .keepAlways;add(hierarchy)
-        let screenshot=XCTAttachment(screenshot:app.screenshot())
-        screenshot.name="Home after scrolling";screenshot.lifetime = .keepAlways;add(screenshot)
-        let controls=app.buttons.allElementsBoundByIndex.suffix(12).map { "[\($0.identifier)] \($0.label)" }.joined(separator:"; ")
-        XCTFail("Home button was not visible after scrolling: " + identifier + ". Home controls: " + String(controls.prefix(1800)))
-        return app.buttons[identifier].firstMatch
-    }
+    // Two real public announcements from the Nov 12 feed; simulator test only.
+    private let announcedFixtureBase64="eyJ2IjoxLCJndWlkZSI6eyJpZCI6InNpbmdhcG9yZS0yMDI2Iiwic2x1ZyI6InNpbmdhcG9yZSIsImNpdHkiOiJTaW5nYXBvcmUiLCJkYXRlcyI6Ik5vdiAxMuKAkzE1LCAyMDI2IiwidGltZXpvbmUiOiJBc2lhL1NpbmdhcG9yZSIsInN0YXJ0X2RhdGUiOiIyMDI2LTExLTEyIiwiZW5kX2RhdGUiOiIyMDI2LTExLTE1IiwidXJsIjoiaHR0cHM6Ly93YXRjaHdlZWtzLmNvbS9zaW5nYXBvcmUifSwiZXZlbnRzIjpbeyJpZCI6ImlhbXdhdGNoIiwibmFtZSI6IklBTVdBVENIIDIwMjYiLCJ2ZW51ZSI6IlRoZSBTaW5nYXBvcmUgRURJVElPTiIsInVybCI6Imh0dHBzOi8vd3d3LmlhbXdhdGNoLmNvbS9ldmVudC8yMDI2L0hvbWUiLCJub3RlIjoiVGh1IE5vdiAxMiBpcyBpbnZpdGF0aW9uIG9ubHkuIERyZXNzIGNvZGU6IFwiRG91YmxlLVdyaXN0ZWQsIFJlc29ydCBDYXN1YWwuXCIgUHJpbnQgeW91ciBldmVudCBwYXNzIGJlZm9yZSB5b3UgYXJyaXZlIOKAlCBhIHBob3RvIGlzIHRha2VuIGF0IHJlZ2lzdHJhdGlvbiBmb3IgeW91ciBwYXNzLiBQcm9ncmFtIHNlc3Npb25zIGFyZSBzZWF0ZWQgZmlyc3QgY29tZSwgZmlyc3Qgc2VydmVkLiBBcnJpdmUgYWJvdXQgMTUgbWludXRlcyBiZWZvcmUgYSBzZXNzaW9uIHlvdSB3YW50IHRvIGF0dGVuZDsgcmVnaXN0ZXJpbmcgZm9yIGEgc2Vzc2lvbiBkb2VzIG5vdCByZXNlcnZlIGEgc2VhdC4gU2Vzc2lvbnMgaW4gdGhlIFBlbnRob3VzZSBhcmUgZXNjb3J0ZWQuIE1lZXQgYXQgdGhlIElBTVdBVENIIGRlc2sgaW4gdGhlIExldmVsIDEgbG9iYnkgYW5kIHRoZSB0ZWFtIHdpbGwgdGFrZSB5b3UgdXAuXG5cbkdlb3JnZSBEYW5pZWxzIDEwMDogVGhlIEdlbmVzaXMgb2YgQXJ0aXNhbmFsIFdhdGNobWFraW5nLCBwcmVzZW50ZWQgYnkgUGhpbGxpcHMgaW4gQXNzb2NpYXRpb24gd2l0aCBCYWNzICYgUnVzc28gYW5kIFRoZSBIb3VyIEdsYXNzLCBpcyBvbiB2aWV3IGluIHRoZSBCb2FyZHJvb20gdGhyb3VnaG91dCB0aGUgZmFpcjogMjIgb2YgRGFuaWVscycgd2F0Y2hlcywgd2l0aCBTcGFjZSBUcmF2ZWxsZXIgSSBhbmQgU3BhY2UgVHJhdmVsbGVyIElJIGV4aGliaXRlZCB0b2dldGhlciBmb3IgdGhlIGZpcnN0IHRpbWUuIFB1YmxpYyBkYXlzIEZyaSBOb3YgMTMgLSBTdW4gTm92IDE1LCAxMSBBTS04IFBNLiBTYXR1cmRheSBhZnRlcm5vb24gaXMgZGVkaWNhdGVkIHRvIERhbmllbHMsIGluY2x1ZGluZyB0aGUgYXZhbnQtcHJlbWllcmUgb2YgdGhlIFBoaWxsaXBzIGRvY3VtZW50YXJ5IG9uIGhpcyBsaWZlIGFuZCB3b3JrLiIsImRheXMiOlt7ImRhdGUiOiIyMDI2LTExLTEyIiwib3BlbiI6IjE0OjAwIiwiY2xvc2UiOiIyMTowMCIsImFjY2VzcyI6Imludml0YXRpb24ifSx7ImRhdGUiOiIyMDI2LTExLTEzIiwib3BlbiI6IjExOjAwIiwiY2xvc2UiOiIyMDowMCIsImFjY2VzcyI6InJzdnAifSx7ImRhdGUiOiIyMDI2LTExLTE0Iiwib3BlbiI6IjExOjAwIiwiY2xvc2UiOiIyMDowMCIsImFjY2VzcyI6InJzdnAifSx7ImRhdGUiOiIyMDI2LTExLTE1Iiwib3BlbiI6IjExOjAwIiwiY2xvc2UiOiIyMDowMCIsImFjY2VzcyI6InJzdnAifV0sInN0YXJ0X2RhdGUiOiIyMDI2LTExLTEyIiwiZW5kX2RhdGUiOiIyMDI2LTExLTE1In1dLCJicmFuZHMiOlt7Im5hbWUiOiJQZXRlcm1hbm4gQsOpZGF0IiwiYnJhbmRLZXkiOiJwZXRlcm1hbm5iZGF0IiwiZXZlbnRJZCI6ImlhbXdhdGNoIiwid2Vic2l0ZSI6bnVsbCwiaGFzUmVsZWFzZSI6dHJ1ZX0seyJuYW1lIjoiVHJpbG9iZSIsImJyYW5kS2V5IjoidHJpbG9iZSIsImV2ZW50SWQiOiJpYW13YXRjaCIsIndlYnNpdGUiOm51bGwsImhhc1JlbGVhc2UiOnRydWV9XSwicmVsZWFzZXMiOlt7ImJyYW5kIjoiVHJpbG9iZSIsImJyYW5kS2V5IjoidHJpbG9iZSIsImV2ZW50SWQiOiJpYW13YXRjaCIsImtpbmQiOiJkZWJ1dCIsInRleHQiOiJVbmUgRm9sbGUgSm91cm7DqWUgMm5kIEdlbmVyYXRpb24gKEJsdWU7IEJsYWNrOyBHcmV5KSDigJQgVGhlIHNlY29uZCBnZW5lcmF0aW9uIG9mIFVuZSBGb2xsZSBKb3VybsOpZTogYSBuZXcgYmFycmVsLXNoYXBlZCA0MC4zbW0gY2FzZSBpbiBHcmFkZSA1IHRpdGFuaXVtIG9yIHJvc2UgZ29sZCwga2VlcGluZyB0aGUgdGhyZWUgZmxvYXRpbmcgcmluZ3MgdGhhdCB0dXJuIGNvdW50ZXJjbG9ja3dpc2UgYXJvdW5kIGEgZml4ZWQgcG9pbnRlciwgbm93IGRyaXZlbiBieSBUcmlsb2JlJ3MgbWFudWZhY3R1cmUgWC1OaWhpbG8gY2FsaWJyZSAoNCBIeiwgNDItaG91ciByZXNlcnZlKSBpbiBwbGFjZSBvZiB0aGUgWC1DZW50cmljLiBJbiBibHVlLCBibGFjayBhbmQgZ3JleS5cblByaWNlOiDigqwyMyw1MDAiLCJ1cmwiOiJodHRwczovL3RyaWxvYmUuY29tIiwic291cmNlIjpudWxsLCJhd2FyZHMiOltdLCJpbWFnZXMiOlt7InVybCI6Imh0dHBzOi8vd2F0Y2h3ZWVrcy5jb20vYXBpL3B1YmxpYy9yZWxlYXNlcy9pbWFnZXM/a2V5PTkxY2ZmZjFjMDJiYTMxNTBlNzliNDE2NDkzMzY0ZDczOGQ0Y2IwMGNiYTZmNTE1ZDllN2FlZDM3MTBiMjgwZjAiLCJjcmVkaXQiOiJUcmlsb2JlIiwibGluayI6Imh0dHBzOi8vdHJpbG9iZS5jb20ifV19LHsiYnJhbmQiOiJQZXRlcm1hbm4gQsOpZGF0IiwiYnJhbmRLZXkiOiJwZXRlcm1hbm5iZGF0IiwiZXZlbnRJZCI6ImlhbXdhdGNoIiwia2luZCI6ImRlYnV0IiwidGV4dCI6IlJlZmVyZW5jZSAyOTE0IOKAlCBQZXRlcm1hbm4gQsOpZGF0J3MgUmVmZXJlbmNlIDI5MTQgaXMgYSBtb25vcHVzaGVyIGNocm9ub2dyYXBoIHdpdGggYW4gaW5zdGFudGFuZW91cyBtaW51dGUgY291bnRlciwgaW4gYSAzNi41MG1tIHBsYXRpbnVtIGNhc2UgOS45MG1tIHRoaWNrLiBJdHMgc2VtaS1vcGVuIGRpYWwsIG1hZGUgYnkgQ29tYmzDqW1pbmUgZnJvbSBzdGFpbmxlc3Mgc3RlZWwgYW5kIHNhcHBoaXJlIHdpdGggc29saWQgZ29sZCBhcHBsaXF1ZXMsIHNpdHMgb3ZlciB0aGUgaW4taG91c2UgQ2FsaWJlciAyMzQgd2l0aCBhIDU2LWhvdXIgcmVzZXJ2ZS4gTGltaXRlZCB0byAyMCBwaWVjZXMgaW4gcGxhdGludW0uXG5QcmljZTogQ0hGIDE4MCwwMDAgZXggVkFUIiwidXJsIjoiaHR0cHM6Ly9wZXRlcm1hbm4tYmVkYXQuY29tL3JlZmVyZW5jZXMvcmVmZXJlbmNlLTI5MTQvIiwic291cmNlIjpudWxsLCJhd2FyZHMiOltdLCJpbWFnZXMiOlt7InVybCI6Imh0dHBzOi8vd2F0Y2h3ZWVrcy5jb20vYXBpL3B1YmxpYy9yZWxlYXNlcy9pbWFnZXM/a2V5PTljZWVmZmRhOGRlY2I3ZTY4ZDVhNjRjZTI5YTYyYTkxZjE4Nzk2MWQxZWJjYzVkZWEwM2EyMzViMWRjMTQ2MTIiLCJjcmVkaXQiOiJQZXRlcm1hbm4gQsOpZGF0IiwibGluayI6Imh0dHBzOi8vcGV0ZXJtYW5uLWJlZGF0LmNvbS9yZWZlcmVuY2VzL3JlZmVyZW5jZS0yOTE0LyJ9XX1dLCJkZWFsZXJzIjpbXSwiYW5ub3VuY2VkIjpbeyJpZCI6IjEyMThhMjFhLTUzYzctNDFmYi1hOGQ5LTAyMDRjNTQ3NGMwOSIsImJyYW5kIjoiVHJpbG9iZSIsImJyYW5kS2V5IjoidHJpbG9iZSIsIm1vZGVsIjoiVW5lIEZvbGxlIEpvdXJuw6llIDJuZCBHZW5lcmF0aW9uIiwidmFyaWFudCI6IkJsdWU7IEJsYWNrOyBHcmV5IiwiZXZlbnRJZCI6ImlhbXdhdGNoIiwiZXZlbnROYW1lIjoiSUFNV0FUQ0giLCJkYXRlIjoiMjAyNi0xMS0xMiIsImltYWdlVXJsIjoiaHR0cHM6Ly93YXRjaHdlZWtzLmNvbS9hcGkvcHVibGljL3JlbGVhc2VzL2ltYWdlcz9rZXk9OTFjZmZmMWMwMmJhMzE1MGU3OWI0MTY0OTMzNjRkNzM4ZDRjYjAwY2JhNmY1MTVkOWU3YWVkMzcxMGIyODBmMCIsImNyZWRpdCI6IlRyaWxvYmUifSx7ImlkIjoiNjc3NDc2MjktMGFmNC00YmE3LTljZjAtOTVjMThlZDE3MDJlIiwiYnJhbmQiOiJQZXRlcm1hbm4gQsOpZGF0IiwiYnJhbmRLZXkiOiJwZXRlcm1hbm5iZGF0IiwibW9kZWwiOiJSZWZlcmVuY2UgMjkxNCIsInZhcmlhbnQiOm51bGwsImV2ZW50SWQiOiJpYW13YXRjaCIsImV2ZW50TmFtZSI6IklBTVdBVENIIiwiZGF0ZSI6IjIwMjYtMTEtMTIiLCJpbWFnZVVybCI6Imh0dHBzOi8vd2F0Y2h3ZWVrcy5jb20vYXBpL3B1YmxpYy9yZWxlYXNlcy9pbWFnZXM/a2V5PTljZWVmZmRhOGRlY2I3ZTY4ZDVhNjRjZTI5YTYyYTkxZjE4Nzk2MWQxZWJjYzVkZWEwM2EyMzViMWRjMTQ2MTIiLCJjcmVkaXQiOiJQZXRlcm1hbm4gQsOpZGF0In1dfQ=="
+
     @MainActor func testGuestNavigation() {
         let app = XCUIApplication()
         app.launch()

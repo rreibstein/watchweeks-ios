@@ -28,7 +28,7 @@ struct DiscoveryView: View {
                             .foregroundStyle(WatchWeeksStyle.secondary)
                         LiveStatusPanel(guides: model.guides)
                         Text("Guides").font(.wwTitle).accessibilityAddTraits(.isHeader)
-                        if model.loading && model.guides.isEmpty { ProgressView("Loading guides…") }
+                        if model.loading && model.guides.isEmpty { AnnouncementSkeleton() }
                         if let message = model.message {
                             Text(message).font(.wwCallout)
                             Button("Try again") { Task { await model.refresh() } }
@@ -179,6 +179,7 @@ private struct GuidePreview: View {
                 Text(guide.summary ?? "A recap of \(guide.city)’s watch events, exhibitors and new releases.")
                     .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
             }
+            AnnouncedBand(guide:guide,source:.home,includeAllTile:true)
             if !releases.isEmpty {
                 CityReleases(guide: guide, releases: releases, past: past)
             }
@@ -271,12 +272,14 @@ private struct CityReleases: View {
         case "nyww-2026": featured = ["bremont", "brewwatchco", "bulova"]
         default: featured = []
         }
+        let excluded=guide.announcedPhotoExclusions(surface:.home,now:AnnouncedClock.now)
+        let eligible=releases.filter{!excluded.contains($0.brandID ?? "")}
         let preferred = featured.compactMap { brandID in
-            releases.first { $0.brandID == brandID && !$0.displayImages.isEmpty }
+            eligible.first { $0.brandID == brandID && !$0.displayImages.isEmpty }
         }
         var photos: Set<URL> = []
         var result: [Release] = []
-        for release in preferred + releases {
+        for release in preferred + eligible {
             guard let url = release.displayImages.first?.resolvedURL, photos.insert(url).inserted else { continue }
             result.append(release)
             if result.count == 3 { break }
@@ -286,7 +289,7 @@ private struct CityReleases: View {
 
     var body: some View {
         let items = highlights
-        Divider()
+        if guide.recentAnnounced(now:AnnouncedClock.now).count < 2 { Divider() }
         Text(past ? "New release highlights" : "\(releases.count) new releases")
             .font(.wwCaption.weight(.semibold)).foregroundStyle(WatchWeeksStyle.secondary)
         if !items.isEmpty {
@@ -342,6 +345,7 @@ struct CityView: View {
     let guide: Guide
     @State private var day: String?
     @State private var sortByDay = false
+    @State private var chipSeed=UUID().uuidString
 
     private var dates: [String] { Array(Set(guide.events.flatMap { $0.days.map(\.date) })).sorted() }
     private var events: [Event] {
@@ -384,7 +388,10 @@ struct CityView: View {
                     if events.isEmpty { Text("No public events on this day.").foregroundStyle(WatchWeeksStyle.secondary) }
                 }
                 let releases = guide.releaseCatalog()
-                if !releases.isEmpty { GuideReleaseCarousel(guide: guide, releases: releases) }
+                if !releases.isEmpty {
+                    GuideReleaseCarousel(guide:guide,releases:releases,
+                        excludedAnnouncedBrands:guide.announcedPhotoExclusions(surface:.guide,now:AnnouncedClock.now,eventIDs:Set(events.map(\.id))))
+                }
                 if let url = PublicLinks.safeExternal(guide.webURL) {
                     TrackedGuideShare(guide:guide,url:url)
                 }
@@ -399,9 +406,13 @@ struct CityView: View {
 
     private func eventCards(_ items: [Event]) -> some View {
         ForEach(items) { event in
+            VStack(alignment:.leading,spacing:0) {
             NavigationLink { EventInfo(guide: guide, event: event) } label: {
                 EventPreview(guide: guide, event: event, day: day)
             }.buttonStyle(.plain).accessibilityIdentifier("event-\(event.id)")
+            EventBrandChips(guide:guide,event:event,seed:chipSeed)
+            AnnouncedBand(guide:guide,source:.guide,eventID:event.id,compact:true)
+            }.watchCard()
         }
     }
 
@@ -488,7 +499,7 @@ private struct EventPreview: View {
             Spacer(minLength: 0)
             Image(systemName: "chevron.right").padding(.top, 3)
         }
-        .padding(16).watchCard()
+        .padding(16)
         .accessibilityElement(children: .combine)
     }
 }
@@ -537,8 +548,10 @@ struct EventInfo: View {
     @State private var eventTab=IAMWATCHSection.schedule
     let guide: Guide
     let event: Event
+    var initialBrandID:String?=nil
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) {
                 Text("\(guide.city.uppercased()) GUIDE").font(.wwCaption).tracking(1)
@@ -556,6 +569,13 @@ struct EventInfo: View {
                     exhibitorContent
                 }
             }.padding(16)
+        }
+        .task(id:initialBrandID) {
+            guard let id=initialBrandID else { return }
+            eventTab = .brands
+            do { try await Task.sleep(for:.milliseconds(150)) } catch { return }
+            proxy.scrollTo("brand-\(id)",anchor:.top)
+        }
         }
         .watchPage().navigationBarTitleDisplayMode(.inline).watchFindToolbar()
         .sheet(item: $calendarSelection) { selection in
@@ -858,12 +878,14 @@ private struct GuideReleaseCarousel: View {
     let guide: Guide
     var event: Event? = nil
     let releases: [Release]
+    var excludedAnnouncedBrands:Set<String>=[]
 
     private var scope: String { event == nil ? "city" : "event" }
 
     var body: some View {
-        let pictured = releases.filter { !$0.displayImages.isEmpty }
-        let textOnly = releases.filter { $0.displayImages.isEmpty }
+        let eligible=releases.filter{!excludedAnnouncedBrands.contains($0.brandID ?? "")}
+        let pictured = eligible.filter { !$0.displayImages.isEmpty }
+        let textOnly = eligible.filter { $0.displayImages.isEmpty }
         return VStack(alignment: .leading, spacing: 10) {
             Text("New releases").font(.wwTitle2).accessibilityAddTraits(.isHeader)
             ScrollView(.horizontal, showsIndicators: false) {
@@ -1021,5 +1043,143 @@ struct GuideUpdatesSheet: View {
                 }
                 .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { dismiss() } } }
         }
+    }
+}
+
+enum AnnouncedClock {
+    static var now:Date {
+        #if DEBUG && targetEnvironment(simulator)
+        if let text=ProcessInfo.processInfo.environment["WW_ANNOUNCED_QA_NOW"],let date=ISO8601DateFormatter().date(from:text) { return date }
+        #endif
+        return .now
+    }
+}
+
+private struct EventBrandChips:View {
+    let guide:Guide
+    let event:Event
+    let seed:String
+    var body:some View {
+        let items=guide.eventChipBrands(eventID:event.id,seed:seed)
+        if !items.brands.isEmpty {
+            ChipFlowLayout(spacing:4) {
+                ForEach(items.brands) { brand in
+                    NavigationLink { EventInfo(guide:guide,event:event,initialBrandID:brand.id) } label: {
+                        Text(brand.displayName).font(.wwCaption.weight(.semibold)).lineLimit(1)
+                            .padding(.horizontal,9).padding(.vertical,6)
+                            .background(WatchWeeksStyle.control,in:Capsule()).frame(minHeight:44)
+                    }.buttonStyle(.plain).foregroundStyle(WatchWeeksStyle.link)
+                        .accessibilityIdentifier("event-chip-\(event.id)-\(brand.id)")
+                }
+                if items.remaining > 0 {
+                    NavigationLink { EventInfo(guide:guide,event:event) } label: {
+                        Text("+\(items.remaining) more").font(.wwCaption).frame(minHeight:44)
+                    }.buttonStyle(.plain)
+                }
+            }.padding(.horizontal,12).padding(.bottom,8)
+        }
+    }
+}
+
+struct AnnouncedBand: View {
+    @EnvironmentObject private var model:AppModel
+    let guide:Guide
+    let source:AnnouncedSurface
+    var eventID:String?=nil
+    var compact=false
+    var includeAllTile=false
+    var body:some View {
+        TimelineView(.periodic(from:.now,by:60)) { _ in
+            let items=guide.recentAnnounced(now:AnnouncedClock.now,eventID:eventID)
+            if items.count >= (source == .home ? 2 : 1) {
+                VStack(alignment:.leading,spacing:12) {
+                    if compact { Divider() }
+                    HStack(spacing:6) {
+                        if !compact { Image(systemName:"bolt.fill").foregroundStyle(.yellow).accessibilityHidden(true) }
+                        Text(compact ? "JUST ANNOUNCED · \(items.count)" : "JUST ANNOUNCED")
+                            .font(.wwCaption.weight(.bold)).tracking(1)
+                        Spacer(minLength:0)
+                        if !compact { Text("Swipe · \(items.count) new").font(.wwCaption2).foregroundStyle(.white.opacity(0.7)) }
+                    }
+                    ScrollView(.horizontal,showsIndicators:false) {
+                        HStack(alignment:.top,spacing:12) {
+                            ForEach(Array(items.enumerated()),id:\.element.id) { position,item in
+                                Button {
+                                    UsageAnalytics.shared.recordAnnouncement(item,guideID:guide.id,source:source,position:position,count:items.count)
+                                    model.activeGuideID=guide.id
+                                    model.releaseRequest=ReleaseNavigationRequest(guideID:guide.id,brandKey:item.brandKey,eventID:item.eventId)
+                                } label: { tile(item) }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel([item.brand,item.title,eventName(item)].filter{!$0.isEmpty}.joined(separator:", "))
+                                .accessibilityIdentifier("announced-\(source.rawValue)-\(item.id)")
+                            }
+                            if includeAllTile {
+                                Button {
+                                    UsageAnalytics.shared.recordAnnouncement(nil,guideID:guide.id,source:source,position:nil,count:items.count)
+                                    model.activeGuideID=guide.id
+                                    model.releaseRequest=ReleaseNavigationRequest(guideID:guide.id,brandKey:nil,eventID:nil)
+                                } label: {
+                                    VStack(alignment:.leading,spacing:12) {
+                                        Image(systemName:"arrow.right").font(.title)
+                                        Text("All new releases →").font(.wwHeadline)
+                                    }.padding(16).frame(width:160,height:200,alignment:.leading)
+                                        .background(.white.opacity(0.08),in:RoundedRectangle(cornerRadius:10))
+                                }.buttonStyle(.plain)
+                            }
+                        }.scrollTargetLayout()
+                    }.scrollTargetBehavior(.viewAligned)
+                }
+                .padding(compact ? 12 : 16)
+                .foregroundStyle(compact ? WatchWeeksStyle.ink : .white)
+                .background(compact ? Color.clear : Color(red:0.08,green:0.07,blue:0.07),in:RoundedRectangle(cornerRadius:14))
+                .accessibilityElement(children:.contain)
+            } else if model.loading && guide.announced == nil && guide.announcementsResolved != true {
+                AnnouncementSkeleton()
+            }
+        }
+    }
+    private func eventName(_ item:AnnouncedRelease) -> String {
+        item.eventName ?? guide.events.first{$0.id == item.eventId}?.name ?? ""
+    }
+    private func tile(_ item:AnnouncedRelease) -> some View {
+        VStack(alignment:.leading,spacing:5) {
+            WatchWeeksStyle.control.aspectRatio(compact ? 1 : 4.0/5.0,contentMode:.fit)
+                .overlay { ReleaseImage(url:item.imageUrl,contentMode:.fill) }
+                .clipped().clipShape(RoundedRectangle(cornerRadius:8))
+                .overlay(alignment:.topLeading) {
+                    if !compact {
+                        Text(dateLabel(item.date)).font(.wwCaption2.weight(.semibold))
+                            .padding(.horizontal,7).padding(.vertical,5)
+                            .background(.black.opacity(0.75),in:Capsule()).padding(6)
+                    }
+                }
+            Text(item.brand.uppercased()).font(.wwCaption2.weight(.semibold)).lineLimit(1)
+            Text(item.title).font(compact ? .wwCaption : .wwSubheadline.weight(.semibold)).lineLimit(2)
+            if !compact { Text(eventName(item)).font(.wwCaption2).foregroundStyle(.white.opacity(0.65)).lineLimit(1) }
+        }.frame(width:compact ? 96 : 160,alignment:.topLeading).contentShape(Rectangle())
+    }
+    private func dateLabel(_ value:String) -> String {
+        guard let date=EventDates.parse(value,zone:guide.timeZone),let zone=TimeZone(identifier:guide.timeZone) else { return value }
+        var format=Date.FormatStyle().month(.abbreviated).day();format.timeZone=zone
+        return date.formatted(format)
+    }
+}
+
+struct AnnouncementSkeleton:View {
+    var body:some View {
+        VStack(alignment:.leading,spacing:12) {
+            RoundedRectangle(cornerRadius:4).fill(.white.opacity(0.2)).frame(width:150,height:14)
+            HStack(spacing:12) {
+                ForEach(0..<2) { _ in
+                    VStack(alignment:.leading,spacing:6) {
+                        RoundedRectangle(cornerRadius:8).fill(.white.opacity(0.12)).frame(width:160,height:200)
+                        RoundedRectangle(cornerRadius:3).fill(.white.opacity(0.16)).frame(width:130,height:14)
+                        RoundedRectangle(cornerRadius:3).fill(.white.opacity(0.12)).frame(width:100,height:14)
+                    }
+                }
+            }
+        }.padding(16).frame(maxWidth:.infinity,alignment:.leading)
+            .background(Color(red:0.08,green:0.07,blue:0.07),in:RoundedRectangle(cornerRadius:14))
+            .clipped().accessibilityLabel("Loading guide releases")
     }
 }

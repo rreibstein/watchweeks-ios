@@ -8,6 +8,7 @@ public enum UsageAction: String, Codable, Sendable {
     case guide = "guide_viewed", event = "event_viewed", release = "release_viewed"
     case rating = "brand_rating_set", seen = "brand_seen_toggled"
     case myList = "my_visit_viewed", shared = "guide_shared", website = "website_link_opened"
+    case announced = "just_announced_tapped",announcedAll="just_announced_all_releases_tapped"
 }
 
 /// Explicit PostHog capture API, with consent-gated bounded durable delivery.
@@ -25,9 +26,11 @@ public enum UsageAction: String, Codable, Sendable {
         let guideID: String?
         let eventID: String?
         let releaseID: String?
+        let source:String?,brandKey:String?,position:Int?,count:Int?,announcedDate:String?
         enum CodingKeys: String, CodingKey {
             case platform, geoDisabled = "$geoip_disable", personProfiles = "$process_person_profile"
             case appVersion = "app_version", appBuild = "app_build", guideID = "guide_id", eventID = "event_id", releaseID = "release_id"
+            case source,brandKey="brand_key",position,count,announcedDate="announced_date"
         }
     }
     private struct Envelope: Codable {
@@ -98,9 +101,11 @@ public enum UsageAction: String, Codable, Sendable {
         retry()
     }
     public func becameBackground() { foreground=false }
-    public func record(_ action: UsageAction, guideID: String? = nil, eventID: String? = nil, releaseID: String? = nil) {
+    public func record(_ action: UsageAction, guideID: String? = nil, eventID: String? = nil, releaseID: String? = nil,announcement:AnnouncementInteraction? = nil) {
         guard enabled, let identity else { return }
-        let p=Properties(appVersion:version,appBuild:build,guideID:guideID,eventID:eventID,releaseID:releaseID)
+        let p=Properties(appVersion:version,appBuild:build,guideID:guideID,eventID:eventID,releaseID:releaseID,
+            source:announcement?.source.rawValue,brandKey:announcement?.brandKey,position:announcement?.position,
+            count:announcement?.count,announcedDate:announcement?.date)
         let envelope=Envelope(api_key:token,event:action,distinct_id:identity,properties:p,timestamp:ISO8601DateFormatter().string(from:.now),uuid:UUID())
         if queue.count == 100 { queue.removeFirst() }
         queue.append(envelope); persist(); retry()

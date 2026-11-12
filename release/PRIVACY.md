@@ -1,5 +1,11 @@
 # WatchWeeks iPhone app privacy policy
 
+Rapid content builds omit native product analytics, notification enrollment and
+associated prompts. Those builds do not create analytics identifiers or transmit
+analytics queues. The optional-feature sections below apply only to builds that
+offer those controls. Local selections and public-content requests remain as
+described here.
+
 WatchWeeks is operated by Reed Reibstein in the United States. This policy covers
 the WatchWeeks iPhone app. You can contact us at reed.reibstein@gmail.com with
 privacy questions or requests about your data.

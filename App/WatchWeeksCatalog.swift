@@ -73,7 +73,7 @@ struct BrandDirectory: View {
             TextField("Search brands", text: $query)
                 .padding(.horizontal, 12).frame(minHeight: 44).watchCard(radius: 12)
             ForEach(ordered) { brand in
-                BrandRow(guide: guide, brand: brand, event: event)
+                BrandRow(guide: guide, brand: brand, event: event).id("brand-\(brand.id)")
             }
             if ordered.isEmpty { ContentUnavailableView("No matching brands", systemImage: "magnifyingglass") }
         }.onChange(of: byInterest) { _, _ in model.resort() }
@@ -433,6 +433,7 @@ struct ReleasesView: View {
 }
 
 private struct ReleaseDirectory: View {
+    @EnvironmentObject private var model:AppModel
     let guide: Guide
     let proxy: ScrollViewProxy
     @State private var query = ""
@@ -445,6 +446,7 @@ private struct ReleaseDirectory: View {
     }
 
     var body: some View {
+        let justAdded=guide.justAddedReleaseIDs(in:guide.releaseCatalog(),now:AnnouncedClock.now)
         let releases = guide.releaseCatalog(eventID: eventID).filter {
             query.isEmpty || $0.title.localizedCaseInsensitiveContains(query)
                 || ($0.displayBrandName?.localizedCaseInsensitiveContains(query) ?? false)
@@ -460,6 +462,9 @@ private struct ReleaseDirectory: View {
                 .font(.wwHeadline).foregroundStyle(WatchWeeksStyle.release)
             Text("Recent and upcoming watches from exhibitors. Check with the brand for show availability.")
                 .font(.wwFootnote).foregroundStyle(WatchWeeksStyle.secondary)
+            AnnouncedBand(guide:guide,source:.newReleases)
+            let added=Set(releases.filter{justAdded.contains($0.id)}.compactMap(\.brandID)).count
+            if added > 0 { Text("Just added · \(added) \(added == 1 ? "brand" : "brands")").font(.wwFootnote.weight(.semibold)).foregroundStyle(WatchWeeksStyle.link) }
             HStack {
                 TextField("Search releases", text: $query)
                 WatchDropdown(choices: [nil] + guide.publicEvents.map { Optional($0.id) },
@@ -480,7 +485,7 @@ private struct ReleaseDirectory: View {
             ForEach(releases) { release in
                 VStack(spacing: 0) {
                     NavigationLink { ReleaseDetail(guide: guide, release: release) } label: {
-                        ReleaseCard(release: release, guide: guide, standalone: false)
+                        ReleaseCard(release: release, guide: guide, standalone: false,justAdded:justAdded.contains(release.id))
                     }.buttonStyle(.plain)
                         .accessibilityIdentifier("release-\(release.id)")
                     if let brand = guide.brands.first(where: { $0.id == release.brandID }) {
@@ -490,7 +495,17 @@ private struct ReleaseDirectory: View {
                     .id(release.id)
             }
             if releases.isEmpty { ContentUnavailableView("No matching releases", systemImage: "sparkles") }
-        }
+        }.id("release-directory-top")
+            .task(id:model.releaseRequest?.id) {
+                guard let request=model.releaseRequest,request.guideID == guide.id else { return }
+                query="";eventID=nil
+                do { try await Task.sleep(for:.milliseconds(100)) } catch { return }
+                let target=request.brandKey.flatMap { brand in
+                    guide.releaseCatalog().first{$0.brandID == brand && (request.eventID == nil || $0.eventID == request.eventID)}?.id
+                } ?? "release-directory-top"
+                proxy.scrollTo(target,anchor:.top)
+                if model.releaseRequest?.id == request.id { model.releaseRequest=nil }
+            }
     }
 
     private func eventName(_ id: String?) -> String {
@@ -532,6 +547,7 @@ struct ReleaseCard: View {
     let guide: Guide
     var compact = false
     var standalone = true
+    var justAdded:Bool?=nil
     var showsEvent = false
     @State private var photoNearViewport = false
 
@@ -558,6 +574,7 @@ struct ReleaseCard: View {
                 Text(brand).font(.wwSubheadline).foregroundStyle(WatchWeeksStyle.secondary)
             }
             ReleaseBadges(release: release)
+            if justAdded ?? guide.isJustAdded(release,now:AnnouncedClock.now) { ReleaseBadge(label:"JUST ADDED") }
             Text(release.title).font(.wwTitle3)
             if let price = release.displayedPrice { Text(price).font(.wwSubheadline.weight(.semibold)) }
             if !compact || showsEvent, let event = guide.events.first(where: { $0.id == release.eventID }) {
@@ -841,8 +858,10 @@ struct CatalogView: View {
                                 BrandDirectory(guide: guide).id(guide.id)
                             }
                         } else if model.guides.isEmpty {
-                            ContentUnavailableView("No guides loaded", systemImage: "globe",
+                            if model.loading && releases { AnnouncementSkeleton() }
+                            else { ContentUnavailableView("No guides loaded", systemImage: "globe",
                                                    description: Text("Open Events to load the guides."))
+                            }
                         } else {
                             Text(releases ? "Choose a guide to explore new releases." : "Choose a guide to browse brands.")
                                 .foregroundStyle(WatchWeeksStyle.secondary)

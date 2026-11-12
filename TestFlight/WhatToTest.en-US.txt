@@ -1,3 +1,7 @@
+Full-feature preview — Just announced and native program
+
+This branch retains consented analytics and gated push for a later release. The rapid App Store candidate is maintained separately.
+
 Guide alerts — prominent Home button
 
 The Home promo now has a filled WatchWeeks button, bell badge, stronger headline and clearer spacing. It keeps the same one-tap native permission flow. Pending setup and enabled notifications have distinct visual states; light/dark appearance and larger text remain supported.
