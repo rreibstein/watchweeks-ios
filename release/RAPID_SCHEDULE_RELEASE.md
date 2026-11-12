@@ -17,9 +17,11 @@ Minimum launch steps (iPad supported):
 3. What's New: "Discover Just announced watches, explore IAMWATCH’s program, and
    browse Coconut Grove dealers in a searchable A–Z list. Includes cleaner Home
    cards and more reliable guide browsing."
-4. Keep existing accurate privacy, seller, territories and pricing; choose manual
-   release. Add for Review → Submit for Review only with owner approval.
-5. After approval, Release This Version when ready.
+4. Keep existing accurate privacy, seller, territories and pricing. For the fewest
+   steps, select **Automatically release this version**. Add for Review → Submit
+   for Review is the owner's approval to submit and publish after Apple approves.
+   Apple then releases automatically; no later release click is needed. Choose
+   manual release instead only if a separate publication decision is desired.
 
 No Mac or Apple Developer capability change is needed for this rapid candidate.
 Analytics and push enrollment remain on the separate full-feature branch.
