@@ -1,3 +1,15 @@
+# Final frozen rapid candidate — 6cb6a2e
+
+Includes Just announced, event brand chips, IAMWATCH program and vertical dealer
+search. No native push enrollment or analytics. 101 portable tests and 10 export
+validator cases pass. Xcode Verify passed in 6m 3s, zero errors/failures/warnings.
+All three QA screenshots were captured as CI attachments and all 12 live image
+URLs checked successfully. Signed Upload started; public archive report still
+says running at Nov 12 19:40 UTC. Processing/build number remain unconfirmed.
+See release/RAPID_SCHEDULE_RELEASE.md, first section, for the current minimal
+handoff, metadata, capability-vs-privacy clarification and deferred event list.
+No App Review submission, public release or provider notification was performed.
+
 # Current rapid content candidate
 
 See release/RAPID_SCHEDULE_RELEASE.md. release/rapid-schedule contains the native

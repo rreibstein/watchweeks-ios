@@ -1,5 +1,83 @@
 # Rapid content release — current candidate
 
+## Final frozen candidate
+
+Source **6cb6a2ef45f0df0845194824e8fc19628e95dc45**, version **1.0.2**.
+Notes start **Rapid release — Just announced, IAMWATCH schedule and dealer lists**.
+Includes Just announced in all three requested locations, Just added markers,
+event-brand chips, IAMWATCH program-first browsing and the vertical dealer list.
+No native analytics or notification enrollment. Full instrumentation is preserved
+on feature/just-announced for a later release.
+
+Validation: 101 portable tests; 10 export-validator cases; Xcode Cloud Verify passed
+in 6m 3s with zero errors, failures, analysis issues or warnings. UI QA exercised
+announcement-to-release routing, all three placements, brand-chip navigation,
+program/day/speaker browsing, dealer search and absence of removed feature UI.
+All 12 current announcement image URLs returned HTTP 200 with image content.
+Three actual simulator screenshot attachments were captured using a two-item
+snapshot of real published Nov 12 data; they are QA captures, not a new App Store
+marketing screenshot set:
+
+- announced-01-home-real-feed-snapshot
+- announced-02-guide-event-real-feed-snapshot
+- announced-03-new-releases-real-feed-snapshot
+
+Archive check 131432217941 still reports running as of Nov 12, 19:40 UTC. Public
+reports may lag. Apple processing and the exact TestFlight build number are NOT
+confirmed. Do not call the candidate available until TestFlight/Apple confirms it.
+
+## Minimum owner steps for this frozen candidate
+
+1. When TestFlight offers the build with the notes above, install it. Record its
+   version/build. Spend about two minutes opening Just announced → release,
+   IAMWATCH Schedule → a day/session, Coconut Grove → dealer search, and My list.
+   Confirm appearance and preserved selections. No APNs or PostHog setup is needed.
+2. In the existing WatchWeeks App Store Connect update, choose that same tested
+   build. Keep existing name, price, seller, territories and accurate screenshots.
+   Use the What's New and review-note text below. Keep Sign-in required off and
+   choose manual release. If version 1.0.2 is already public, stop and bump/rebuild;
+   do not attach this binary to a differently numbered version.
+3. After exact-build owner approval, Add for Review → Submit for Review. After
+   Apple approves, approve public release and use Release This Version. No agent
+   submission or publication is authorized by these instructions.
+
+Apple Developer → Identifiers → Push Notifications can remain checked. It is an
+App ID capability, not activation in the signed rapid app. No APNs entitlement is
+requested by this candidate. App Privacy disclosures are separate: do not add
+Device ID/Product Interaction solely for omitted push/PostHog features. If those
+were added only as preparation, restore the live app's accurate data disclosures;
+keep actual hosting/request-metadata collection accurately disclosed.
+
+Native policy URL, if the listing needs it:
+https://github.com/rreibstein/watchweeks-ios/blob/release/rapid-schedule/release/PRIVACY_RAPID.md
+
+What's New:
+
+> Discover Just announced watches, explore IAMWATCH's day-by-day program, and
+> browse Coconut Grove dealers in a searchable A–Z list. Includes quicker brand
+> browsing and smoother guide loading.
+
+Review notes:
+
+> Independent guide; no organizer affiliation or required login. Singapore shows
+> Just announced; tapping a watch opens New releases at that brand. Singapore →
+> IAMWATCH opens the native Schedule tab with days and session details. Miami →
+> Coconut Grove has the dealer directory. Ratings remain on-device and previously
+> loaded guides/programs work offline. This build has no native product analytics
+> or notification enrollment. Public program content is parsed without running
+> website scripts or embedding a WebView.
+
+Deferred analytics event list (no events sent by rapid build):
+
+- just_announced_tapped: source (home/guide/new_releases), guide_id, brand_key,
+  event_id, zero-based position, visible count and announced_date.
+- just_announced_all_releases_tapped: source, guide_id and visible count.
+- Existing consent gate and platform/app-version properties apply in the full
+  variant. No model/variant text, notes, credit, image URL or prices are sent.
+
+The earlier implementation notes below remain background; this frozen-candidate
+section supersedes their candidate/validation/owner-step details.
+
 Branch: release/rapid-schedule. Version: 1.0.2, with a new Xcode Cloud build number.
 Do not submit if that version train has already closed; advance/rebuild in that case.
 The full-feature source, including this native program/dealer implementation and
