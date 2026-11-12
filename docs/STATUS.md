@@ -1,3 +1,20 @@
+# Current rapid follow-up — ef408fe
+
+Source ef408fe1d8da67a5ef186dd0627d80146a764e17, marketing version 1.0.2.
+Home suppresses the bottom duplicate event list whenever today’s schedule appears.
+Removed the unreliable city By day list; day filtering and the separate IAMWATCH
+Schedule remain. Includes the preceding Just announced and dealer-list features.
+Native analytics and push enrollment remain deferred to feature/just-announced.
+
+Validation for this follow-up: 101 core tests passed, 10 export-validator cases
+passed, source/resource/privacy validation and Swift syntax parsing passed.
+The source is pushed to both ci/cloud-candidate and release/cloud-upload.
+Xcode Cloud Upload archive check 131458586406 started Nov 12 at 20:07:41 UTC.
+No current simulator result, archive completion, Apple processing or TestFlight
+build number has yet been confirmed. The 6cb6a2e simulator success below is for
+the preceding candidate, not this follow-up. See release/RAPID_SCHEDULE_RELEASE.md
+for the minimal owner launch steps. No App Review submission or public release.
+
 # Final frozen rapid candidate — 6cb6a2e
 
 Includes Just announced, event brand chips, IAMWATCH program and vertical dealer
