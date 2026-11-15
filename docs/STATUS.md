@@ -1,3 +1,14 @@
+# 1.0.3 saved-guide safety candidate — 48bffe8
+
+Source 48bffe8914fdc51c868caa1e9bca666fe9caec9e sets marketing version 1.0.3
+for the isolated cache-safety patch. Both ci/cloud-candidate and release/cloud-upload
+were advanced without force push. All 108 release-mode Linux tests passed for
+the patch, plus source/resource/privacy and 10 export-validator checks. Xcode Cloud
+results, Apple processing and the actual new TestFlight build number are pending.
+See release/UPDATE_1_0_3.md for owner steps and exact What's New/review notes.
+No App Review submission or public release has been performed. The friend's beta
+crash remains unconfirmed; do not claim this candidate fixes his specific crash.
+
 # Launch-crash investigation — November 15
 
 See docs/LAUNCH_CRASH_INVESTIGATION_2026_11_15.md. A malformed-cache crash risk

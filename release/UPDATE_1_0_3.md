@@ -3,6 +3,10 @@
 Bundle: com.watchweeks.app. Version: 1.0.3. Xcode Cloud supplies an unused build
 number; do not use cloud run 41 or the old 1.0.2 binary for this update.
 
+Source **48bffe8914fdc51c868caa1e9bca666fe9caec9e** was pushed to both
+ci/cloud-candidate and release/cloud-upload on Nov 15. Native workflow results and
+Apple processing remain pending; the actual TestFlight build number is unconfirmed.
+
 This candidate consists of the rapid build-41 source plus cache validation,
 recovery, seven regression tests and release metadata. No account-sync, photo,
 reminder, analytics or push feature branch is included. Ratings/Seen remain local.
@@ -12,7 +16,7 @@ this update fixes that specific crash before testing or receiving its stack.
 ## Validation
 
 108 Swift tests passed with release optimization on Linux for the cache patch.
-Source/resource/privacy and export-validator checks are required before promotion.
+Source/resource/privacy validation and all 10 export-validator cases passed.
 Actual Xcode compilation, signature validation, simulator results and TestFlight
 processing must be reported separately when observed. No beta-device validation
 has been performed here.
