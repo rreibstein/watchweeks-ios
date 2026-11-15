@@ -1,15 +1,9 @@
-Rapid release — Home cleanup and reliable guide browsing
+WatchWeeks 1.0.3 — Safer saved-guide loading
 
-Home shows today’s events only once. The unreliable city By day view is removed; day filters and IAMWATCH Schedule remain. Includes Just announced and A–Z dealer lists.
+This update validates cached public guides before displaying them and supports recovery on refresh while preserving saved ratings, Seen state and valid older guides. It addresses a reproduced malformed-cache crash risk; the reported iOS 27.3 beta crash is not yet confirmed fixed.
 
-Rapid release — Just announced, IAMWATCH schedule and dealer lists
+Install as an update over your existing app. Open Home, a guide, New releases and My list; verify your saved ratings and Seen state. Close and reopen the app. If a guide was already cached, check it and My list in Airplane Mode, then reconnect and refresh.
 
-Latest additions: Just announced appears on the Home city card, inside event tiles and at the top of New releases. Tap a watch to switch to New releases at that brand. Recent matching models show JUST ADDED; recent means today plus six previous calendar dates in the guide's time zone. Missing/empty feeds hide the feature. No stable-image selection change was added.
+If possible, test opening on iOS 27.3 beta. Report the exact version/build and whether Home appears before any unexpected closure. Do not delete/reinstall to test.
 
-Event tiles now show up to eight wrapping brand chips and +N more. Chips prioritize brands with releases; tapping opens the event at that brand. The main tile still opens the event normally.
-
-This rapid build intentionally has no native PostHog analytics, notification enrollment or notification prompt. Detailed tap instrumentation is retained for the later full-feature release, not activated here.
-
-Minimum check: open Singapore and inspect the three Just announced placements; tap an announcement and a brand chip. Open IAMWATCH's Schedule tab, select a day and expand a session. Open Miami → Coconut Grove and search the vertical A–Z dealer list. Verify your saved ratings/Seen remain in My list. Previously loaded guides and programs remain usable offline.
-
-No App Review submission or public release occurs automatically. Report the exact version/build and any issue.
+No new features, permissions, analytics or push enrollment. No App Review submission or publication is automatic from this upload.
