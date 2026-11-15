@@ -13,7 +13,13 @@ public actor LocalStore {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try JSONEncoder().encode(value).write(to: directory.appendingPathComponent(file), options: .atomic)
     }
-    public func snapshot() throws -> GuideSnapshot? { try read("guides-v1.json", as: GuideSnapshot.self) }
+    public func snapshot() throws -> GuideSnapshot? {
+        guard let saved = try read("guides-v1.json", as: GuideSnapshot.self) else { return nil }
+        // Decodable checks types, not stable IDs. Apply the feed's invariants
+        // before cached records reach SwiftUI lists or dictionary initializers.
+        try GuideRepository.validate(saved.guides)
+        return saved
+    }
     public func program(guideID:String,eventID:String) throws -> EventProgram? {
         try read("event-programs-v1.json",as:[EventProgram].self)?.first { $0.guideID == guideID && $0.eventID == eventID }
     }
@@ -24,11 +30,22 @@ public actor LocalStore {
     }
     public func upcoming() throws -> UpcomingGuideFeed? { try read("upcoming-v1.json",as:UpcomingGuideFeed.self) }
     public func saveUpcoming(_ feed: UpcomingGuideFeed) throws { try feed.validate(); try write(feed,file:"upcoming-v1.json") }
-    public func rememberedGuides() throws -> [Guide] { try read("guide-library-v1.json", as: [Guide].self) ?? snapshot()?.guides ?? [] }
+    public func rememberedGuides() throws -> [Guide] {
+        if let saved = try read("guide-library-v1.json", as: [Guide].self) {
+            try GuideRepository.validate(saved)
+            return saved
+        }
+        return try snapshot()?.guides ?? []
+    }
     public func saveGuides(_ guides: [Guide], now: Date = Date()) throws {
-        let previous = try rememberedGuides()
+        try GuideRepository.validate(guides)
+        // A successful refresh may repair an invalid public-data cache. Retain
+        // valid older editions for My list, without touching saved selections.
+        let previous = try read("guide-library-v1.json", as: [Guide].self)
+            ?? read("guides-v1.json", as: GuideSnapshot.self)?.guides ?? []
         var library: [String: Guide] = [:]
-        for guide in previous + guides { library[guide.id] = guide }
+        for guide in previous where (try? GuideRepository.validate([guide])) != nil { library[guide.id] = guide }
+        for guide in guides { library[guide.id] = guide }
         try write(library.values.sorted { $0.id < $1.id }, file: "guide-library-v1.json")
         try write(GuideSnapshot(fetchedAt: now, guides: guides), file: "guides-v1.json")
     }

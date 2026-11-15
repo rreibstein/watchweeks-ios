@@ -1,3 +1,13 @@
+# Launch-crash investigation — November 15
+
+See docs/LAUNCH_CRASH_INVESTIGATION_2026_11_15.md. A malformed-cache crash risk
+was reproduced and guarded on fix/launch-cache-safety. 108 release-optimized
+Linux tests passed, including seven cache-safety regressions; saved selections
+and valid older guide editions are preserved. Today's live feed also passed
+checks with 1.0/1.0.1 reference sources. The friend's reported iOS 27.3 beta crash
+remains unconfirmed: no crash report or native beta reproduction is available.
+No new Xcode validation, upload, submission or publication for this patch.
+
 # Current rapid follow-up — ef408fe
 
 Source ef408fe1d8da67a5ef186dd0627d80146a764e17, marketing version 1.0.2.
